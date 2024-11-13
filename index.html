@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marist Schools Assessment Portal</title>
+    <link rel="stylesheet" href="/assessment-portal/assets/css/styles.css">
+</head>
+<body>
+    <div class="header">
+        <h1>Marist Schools Assessment Portal</h1>
+        <nav class="nav-links">
+            <a href="/assessment-portal/admin" class="admin-link">Teacher Admin</a>
+        </nav>
+    </div>
+
+    <div class="container">
+        <div class="tabs" id="gradeTabs">
+            <button class="tab-button active" data-grade="grade8">Grade 8</button>
+            <button class="tab-button" data-grade="grade9">Grade 9</button>
+            <button class="tab-button" data-grade="grade10">Grade 10</button>
+            <button class="tab-button" data-grade="grade11">Grade 11</button>
+            <button class="tab-button" data-grade="grade12">Grade 12</button>
+        </div>
+
+        <!-- Grade 8 Content -->
+        <div id="grade8" class="tab-content active">
+            <div class="exam-grid">
+                <!-- Exams will be loaded dynamically -->
+            </div>
+        </div>
+
+        <!-- Other grade tabs -->
+        <div id="grade9" class="tab-content">
+            <div class="exam-grid"></div>
+        </div>
+        <div id="grade10" class="tab-content">
+            <div class="exam-grid"></div>
+        </div>
+        <div id="grade11" class="tab-content">
+            <div class="exam-grid"></div>
+        </div>
+        <div id="grade12" class="tab-content">
+            <div class="exam-grid"></div>
+        </div>
+    </div>
+
+    <!-- Password Modal -->
+    <div class="modal-overlay" id="modalOverlay"></div>
+    <div class="password-modal" id="passwordModal">
+        <h3>Enter Exam Password</h3>
+        <input type="password" id="examPassword" placeholder="Enter password">
+        <button onclick="validatePassword()">Submit</button>
+    </div>
+
+    <script src="assets/js/main.js"></script>
+</body>
+</html>
