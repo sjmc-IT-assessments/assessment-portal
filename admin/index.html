@@ -1,33 +1,128 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SJMC Assessment Portal</title>
-    <!-- Updated path -->
-    <link rel="stylesheet" type="text/css" href="/assessment-portal/assets/css/admin.css">
+    <link rel="stylesheet" type="text/css" href="css/admin.css">
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 </head>
+
 <body>
     <div id="loginSection" class="login-container">
         <div class="login-box">
-            <h2>Assessment Portal Admin</h2>
-            <button id="googleLogin" class="google-btn">
+            <h2>SJMC Assessment Portal Admin</h2>
+            <!-- Add onclick handler directly for debugging -->
+            <button onclick="window.adminPortal.handleLogin()" id="googleLogin" class="google-btn">
+                <img src="../assets/images/google-icon.png" alt="" width="18" height="18">
                 Sign in with Google
             </button>
         </div>
     </div>
 
+    <!-- Admin Panel -->
     <div id="adminPanel" style="display: none;">
-        <div class="exam-list" id="examList">
-            <!-- Assessments will be loaded here -->
-        </div>
-    </div>
+        <div class="header">
+            <h1>SJMC Assessment Portal Admin</h1>
+            <div class="admin-controls">
+                <button id="manageUsersBtn" class="admin-btn">Manage Users</button>
+                <span id="userEmail"></span>
+                <button id="logoutBtn" class="logout-btn">Logout</button>
+            </div>
+        </div>>
+        </header>
 
-    <!-- Updated path -->
-    <script src="/assessment-portal/admin/js/admin.js"></script>
+        <main class="admin-main">
+            <div class="admin-container">
+                <!-- Add Assessment Form -->
+                <section class="admin-section">
+                    <h2>Add New Assessment</h2>
+                    <form id="assessmentForm" class="assessment-form">
+                        <div class="form-group">
+                            <label for="grade">Grade</label>
+                            <select id="grade" required>
+                                <option value="8">Grade 8</option>
+                                <option value="9">Grade 9</option>
+                                <option value="10">Grade 10</option>
+                                <option value="11">Grade 11</option>
+                                <option value="12">Grade 12</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="subject">Subject</label>
+                            <input type="text" id="subject" required placeholder="e.g., Afrikaans">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="assessmentType">Assessment Type</label>
+                            <select id="assessmentType" required>
+                                <option value="exam">Exam</option>
+                                <option value="test">Test</option>
+                                <option value="assignment">Assignment</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="driveUrl">Google Drive URL</label>
+                            <input type="url" id="driveUrl" required placeholder="https://drive.google.com/file/d/...">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="scheduledDate">Scheduled Date</label>
+                            <input type="datetime-local" id="scheduledDate" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <div class="password-group">
+                                <input type="text" id="password" required>
+                                <button type="button" onclick="adminPortal.generatePassword()"
+                                    class="generate-btn">Generate</button>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="submit-btn">Add Assessment</button>
+                    </form>
+                </section>
+
+                <!-- Current Assessments -->
+                <section class="admin-section">
+                    <div class="section-header">
+                        <h2>Current Assessments</h2>
+                        <div class="filter-controls">
+                            <select id="filterGrade" onchange="adminPortal.filterAssessments()">
+                                <option value="">All Grades</option>
+                                <option value="8">Grade 8</option>
+                                <option value="9">Grade 9</option>
+                                <option value="10">Grade 10</option>
+                                <option value="11">Grade 11</option>
+                                <option value="12">Grade 12</option>
+                            </select>
+                            <select id="filterType" onchange="adminPortal.filterAssessments()">
+                                <option value="">All Types</option>
+                                <option value="exam">Exams</option>
+                                <option value="test">Tests</option>
+                                <option value="assignment">Assignments</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="examList" class="assessment-list">
+                        <!-- Assessments will be loaded here -->
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+    <script>
+        // Add this before loading admin.js to check if Firebase is loaded
+        console.log('Firebase auth available:', !!firebase.auth);
+    </script>
+    <script type="module" src="js/admin.js"></script>
 </body>
+
 </html>

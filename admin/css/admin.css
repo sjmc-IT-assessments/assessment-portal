@@ -1,23 +1,25 @@
 :root {
     --primary-color: #2563eb;
     --secondary-color: #1e40af;
-    --accent-color: #YOURCOLOR;     /* Accent color */
     --background-color: #f3f4f6;
+    --error-color: #ef4444;
+    --success-color: #10b981;
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     margin: 0;
     padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     background-color: var(--background-color);
 }
 
+/* Login Styles */
 .login-container {
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    background-color: #f3f4f6;
+    background-color: var(--background-color);
 }
 
 .login-box {
@@ -28,44 +30,22 @@ body {
     text-align: center;
 }
 
-.google-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    padding: 10px 20px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    background: white;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    padding: 12px 24px;
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-}
-
-.google-btn:hover {
-    background-color: #f8f8f8;
-}
-
-.google-btn img {
-    width: 18px;
-    height: 18px;
-}
-
-.header {
-    background-color: var(--primary-color);
-    color: white;
+/* Admin Header */
+.admin-header {
+    background-color: white;
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
     padding: 1rem;
+}
+
+.header-content {
+    max-width: 1200px;
+    margin: 0 auto;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-.user-info {
+.user-section {
     display: flex;
     align-items: center;
     gap: 1rem;
@@ -73,111 +53,242 @@ body {
 
 .logout-btn {
     padding: 0.5rem 1rem;
-    background: var(--secondary-color);
+    background-color: var(--error-color);
     color: white;
     border: none;
     border-radius: 4px;
     cursor: pointer;
 }
 
-.container {
+/* Main Content */
+.admin-main {
     max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
+    margin: 2rem auto;
+    padding: 0 1rem;
 }
 
-.admin-form {
+.admin-section {
     background: white;
-    padding: 20px;
+    padding: 1.5rem;
     border-radius: 8px;
-    margin-bottom: 20px;
+    margin-bottom: 2rem;
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+}
+
+/* Form Styles */
+.assessment-form {
+    display: grid;
+    gap: 1rem;
+    max-width: 600px;
 }
 
 .form-group {
-    margin-bottom: 15px;
+    display: grid;
+    gap: 0.5rem;
 }
 
 .form-group label {
-    display: block;
-    margin-bottom: 5px;
     font-weight: 500;
 }
 
 .form-group input,
 .form-group select {
-    width: 100%;
-    padding: 8px;
+    padding: 0.5rem;
     border: 1px solid #e5e7eb;
     border-radius: 4px;
+    font-size: 1rem;
 }
 
-.exam-list {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    margin-top: 20px;
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
+.password-group {
+    display: flex;
+    gap: 0.5rem;
 }
 
-.exam-item {
-    padding: 15px;
-    border-bottom: 1px solid #e5e7eb;
+.generate-btn {
+    padding: 0.5rem 1rem;
+    background-color: var(--secondary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.submit-btn {
+    padding: 0.75rem 1.5rem;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    justify-self: start;
+}
+
+/* Assessment List */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.filter-controls {
+    display: flex;
+    gap: 1rem;
+}
+
+.assessment-list {
+    display: grid;
+    gap: 1rem;
+}
+
+.assessment-item {
+    background: white;
+    padding: 1rem;
+    border-radius: 4px;
+    border: 1px solid #e5e7eb;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-.exam-item:last-child {
-    border-bottom: none;
+.assessment-info {
+    flex-grow: 1;
 }
 
-.copy-button {
-    background: var(--primary-color);
+.assessment-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.copy-btn {
+    background-color: var(--primary-color);
     color: white;
     border: none;
-    padding: 8px 16px;
+    padding: 0.5rem 1rem;
     border-radius: 4px;
     cursor: pointer;
 }
 
-.delete-button {
+.delete-btn {
+    background-color: var(--error-color);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.password-dialog {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.password-options {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    max-width: 400px;
+    width: 90%;
+}
+
+.password-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin: 1rem 0;
+}
+
+.password-option {
+    padding: 0.75rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    background: #f9fafb;
+    cursor: pointer;
+    text-align: left;
+    font-family: monospace;
+    font-size: 1.1em;
+    transition: all 0.2s;
+}
+
+.password-option:hover {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+}
+
+.refresh-btn, .close-btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 0.5rem;
+}
+
+.refresh-btn {
+    background: var(--primary-color);
+    color: white;
+}
+
+.close-btn {
+    background: #e5e7eb;
+    color: #374151;
+}
+.user-management-dialog {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.user-management-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    max-width: 500px;
+    width: 90%;
+}
+
+.add-user-form {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.add-user-form input {
+    flex: 1;
+    padding: 0.5rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+}
+
+.user-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.remove-btn {
     background: #ef4444;
     color: white;
     border: none;
-    padding: 8px 16px;
+    padding: 0.25rem 0.5rem;
     border-radius: 4px;
     cursor: pointer;
-    margin-left: 10px;
-}
-.logo {
-    max-width: 200px;
-    height: auto;
-}
-
-.google-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    padding: 12px 24px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    background: white;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    width: 100%;
-    max-width: 250px;
-    margin: 0 auto;
-}
-
-.google-btn img {
-    width: 18px;
-    height: 18px;
-    object-fit: contain;
-}
-
-#adminPanel {
-    padding: 20px;
 }

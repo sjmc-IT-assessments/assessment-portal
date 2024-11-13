@@ -19,6 +19,17 @@ const examConfig = {
     // Add more exams here
 };
 
+    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+    apiKey: "AIzaSyDZCPR_aHLvZWhaGQJ5isd3t51snf-vbds",
+    authDomain: "assessment-portal-sjmc.firebaseapp.com",
+    projectId: "assessment-portal-sjmc",
+    storageBucket: "assessment-portal-sjmc.firebasestorage.app",
+    messagingSenderId: "881891153841",
+    appId: "1:881891153841:web:10c1fb448b76a2750b4f90",
+    measurementId: "G-GW01WBG6C9"
+  };
+
 // Main functionality
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize tabs
@@ -61,3 +72,4 @@ function validatePassword() {
         alert('Incorrect password. Please try again.');
     }
 }
+export default firebaseConfig;
