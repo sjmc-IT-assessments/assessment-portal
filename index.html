@@ -1,58 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Marist Schools Assessment Portal</title>
+    <title>SJMC Assessment Portal</title>
     <link rel="stylesheet" href="assets/css/styles.css">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 </head>
+
 <body>
     <div class="header">
-        <h1>Marist Schools Assessment Portal</h1>
-        <nav class="nav-links">
-            <a href="admin/index.html" class="admin-link">Teacher Admin</a>
-        </nav>
-    </div>
-
-    <div class="container">
-        <div class="tabs" id="gradeTabs">
-            <button class="tab-button active" data-grade="grade8">Grade 8</button>
-            <button class="tab-button" data-grade="grade9">Grade 9</button>
-            <button class="tab-button" data-grade="grade10">Grade 10</button>
-            <button class="tab-button" data-grade="grade11">Grade 11</button>
-            <button class="tab-button" data-grade="grade12">Grade 12</button>
-        </div>
-
-        <!-- Grade 8 Content -->
-        <div id="grade8" class="tab-content active">
-            <div class="exam-grid">
-                <!-- Exams will be loaded dynamically -->
+        <div class="header-content">
+            <div class="portal-header">
+                <div class="logo-section">
+                    <img src="assets/images/school-logo2.png" alt="SJMC Logo" class="portal-logo">
+                </div>
+                <h1>SJMC Assessment Portal</h1>
+                <div class="nav-section">
+                    <a href="admin" class="admin-link">Teacher Login</a>
+                </div>
             </div>
         </div>
-
-        <!-- Other grade tabs -->
-        <div id="grade9" class="tab-content">
-            <div class="exam-grid"></div>
-        </div>
-        <div id="grade10" class="tab-content">
-            <div class="exam-grid"></div>
-        </div>
-        <div id="grade11" class="tab-content">
-            <div class="exam-grid"></div>
-        </div>
-        <div id="grade12" class="tab-content">
-            <div class="exam-grid"></div>
-        </div>
     </div>
 
+    <main class="main-content">
+        <div class="container">
+            <div class="grade-selector">
+                <div class="tabs" id="gradeTabs">
+                    <button class="tab-button active" data-grade="8">Grade 8</button>
+                    <button class="tab-button" data-grade="9">Grade 9</button>
+                    <button class="tab-button" data-grade="10">Grade 10</button>
+                    <button class="tab-button" data-grade="11">Grade 11</button>
+                    <button class="tab-button" data-grade="12">Grade 12</button>
+                </div>
+            </div>
+
+            <div id="gradeContent" class="grade-content active">
+                <div class="assessments-grid">
+                    <!-- Assessments will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </main>
     <!-- Password Modal -->
-    <div class="modal-overlay" id="modalOverlay"></div>
-    <div class="password-modal" id="passwordModal">
-        <h3>Enter Exam Password</h3>
-        <input type="password" id="examPassword" placeholder="Enter password">
-        <button onclick="validatePassword()">Submit</button>
+    <div class="modal-overlay" id="modalOverlay" style="display: none;">
+        <div class="password-modal">
+            <h3>Enter Assessment Password</h3>
+            <div class="password-form">
+                <input type="password" id="assessmentPassword" placeholder="Enter password">
+                <button onclick="portal.verifyPassword()">Submit</button>
+            </div>
+            <button class="close-btn" onclick="portal.closeModal()">Close</button>
+        </div>
     </div>
-
-    <script src="assets/js/main.js"></script>
+    <script type="module" src="assets/js/main.js"></script>
 </body>
+
 </html>

@@ -13,10 +13,14 @@
 </head>
 
 <body>
+    <!-- Login Section -->
     <div id="loginSection" class="login-container">
+        <a href="../index.html" class="back-btn">&larr; Back to Portal</a>
         <div class="login-box">
+            <div class="logo-section">
+                <img src="../assets/images/school-logo.png" alt="SJMC Logo" class="school-logo">
+            </div>
             <h2>SJMC Assessment Portal Admin</h2>
-            <!-- Add onclick handler directly for debugging -->
             <button onclick="window.adminPortal.handleLogin()" id="googleLogin" class="google-btn">
                 <img src="../assets/images/google-icon.png" alt="" width="18" height="18">
                 Sign in with Google
@@ -26,15 +30,20 @@
 
     <!-- Admin Panel -->
     <div id="adminPanel" style="display: none;">
+        <!-- Header -->
         <div class="header">
-            <h1>SJMC Assessment Portal Admin</h1>
-            <div class="admin-controls">
-                <button id="manageUsersBtn" class="admin-btn">Manage Users</button>
-                <span id="userEmail"></span>
-                <button id="logoutBtn" class="logout-btn">Logout</button>
+            <div class="header-content">
+                <div class="logo-section">
+                    <img src="../assets/images/school-logo2.png" alt="SJMC Logo" class="school-logo">
+                </div>
+                <h1 class="header-title">SJMC Assessment Portal Admin</h1>
+                <div class="admin-controls">
+                    <button id="manageUsersBtn" class="admin-btn">Manage Users</button>
+                    <span id="userEmail"></span>
+                    <button id="logoutBtn" class="logout-btn">Logout</button>
+                </div>
             </div>
-        </div>>
-        </header>
+        </div>
 
         <main class="admin-main">
             <div class="admin-container">
@@ -74,9 +83,9 @@
 
                         <div class="form-group">
                             <label for="scheduledDate">Scheduled Date</label>
-                            <input type="datetime-local" id="scheduledDate" required>
+                            <input type="datetime-local" id="scheduledDate" required step="600">
+                            <!-- 600 seconds = 10 minutes -->
                         </div>
-
                         <div class="form-group">
                             <label for="password">Password</label>
                             <div class="password-group">
@@ -89,7 +98,19 @@
                         <button type="submit" class="submit-btn">Add Assessment</button>
                     </form>
                 </section>
+                <section class="admin-section">
+                    <div class="section-header">
+                        <h2>Password Report</h2>
+                        <div class="date-filter">
+                            <input type="date" id="reportDate" class="date-input">
+                            <button onclick="adminPortal.generatePasswordReport()" class="report-btn">Generate
+                                Report</button>
+                        </div>
+                    </div>
+                    <div id="passwordReport" class="password-report">
 
+                    </div>
+                </section>
                 <!-- Current Assessments -->
                 <section class="admin-section">
                     <div class="section-header">
