@@ -1,6 +1,6 @@
-import firebaseConfig from '../../assets/js/config.js';
+import firebaseConfig, { calendarConfig } from '../../assets/js/config.js';
+import { CalendarService } from './calendar-service.js';
 
-// Password Generator Class
 class PasswordGenerator {
     constructor() {
         this.firstWords = [
@@ -47,17 +47,16 @@ class PasswordGenerator {
     }
 }
 
-// Main AdminPortal Class
 class AdminPortal {
     constructor() {
         console.log('Starting AdminPortal initialization');
-        this.firebaseConfig = firebaseConfig;
         this.passwordGenerator = new PasswordGenerator();
-        this.initializeGoogleCalendar().catch(console.error);
+        this.isSubmitting = false;
+        this.calendarService = new CalendarService(calendarConfig);
 
         try {
             if (!firebase.apps.length) {
-                firebase.initializeApp(this.firebaseConfig);
+                firebase.initializeApp(firebaseConfig);
             }
             this.auth = firebase.auth();
             this.db = firebase.firestore();
@@ -65,21 +64,28 @@ class AdminPortal {
 
             this.initializeAuth();
             this.setupEventListeners();
+            this.initializeCalendar();
         } catch (error) {
-            console.error('Firebase initialization error:', error);
+            console.error('Initialization error:', error);
             alert('Error initializing application: ' + error.message);
+        }
+    }
+
+    async initializeCalendar() {
+        try {
+            await this.calendarService.ensureInitialized();
+            console.log('Calendar service initialized successfully');
+        } catch (error) {
+            console.warn('Calendar initialization failed:', error);
         }
     }
 
     async initializeAuth() {
         this.auth.onAuthStateChanged(async (user) => {
-            console.log('Auth state changed, user:', user); // Debug log
+            console.log('Auth state changed, user:', user);
             if (user) {
                 if (user.email.endsWith('@maristsj.co.za')) {
-                    // Check if user is authorized
-                    console.log('Checking authorization for:', user.email); // Debug log
                     const isAuthorized = await this.checkUserAuthorization(user.email);
-                    console.log('Is user authorized?', isAuthorized); // Debug log
                     if (isAuthorized) {
                         this.showAdminPanel(user);
                     } else {
@@ -95,8 +101,168 @@ class AdminPortal {
             }
         });
     }
+
+    setupEventListeners() {
+        const loginButton = document.getElementById('googleLogin');
+        if (loginButton) {
+            loginButton.addEventListener('click', () => this.handleLogin());
+        }
+
+        const logoutButton = document.getElementById('logoutBtn');
+        if (logoutButton) {
+            logoutButton.addEventListener('click', () => this.handleLogout());
+        }
+
+        const manageUsersBtn = document.getElementById('manageUsersBtn');
+        if (manageUsersBtn) {
+            manageUsersBtn.addEventListener('click', () => this.manageUsers());
+        }
+
+        const assessmentForm = document.getElementById('assessmentForm');
+        if (assessmentForm) {
+            const newAssessmentForm = assessmentForm.cloneNode(true);
+            assessmentForm.parentNode.replaceChild(newAssessmentForm, assessmentForm);
+
+            newAssessmentForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (!this.isSubmitting) {
+                    const formData = this.getExamFormData();
+                    await this.saveExam(formData);
+                }
+            });
+        }
+
+        const calendarCheckbox = document.getElementById('addCalendarReminder');
+        if (calendarCheckbox) {
+            calendarCheckbox.addEventListener('change', async (e) => {
+                if (e.target.checked) {
+                    try {
+                        await this.calendarService.ensureInitialized();
+                    } catch (error) {
+                        console.error('Failed to initialize calendar service:', error);
+                        e.target.checked = false;
+                        alert('Unable to enable calendar reminders. Please try again later.');
+                    }
+                }
+            });
+        }
+
+        this.setupTimeSelect();
+    }
+
+    async handleLogin() {
+        try {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            provider.setCustomParameters({
+                hd: 'maristsj.co.za'
+            });
+
+            const result = await this.auth.signInWithPopup(provider);
+            console.log('Sign in successful:', result.user.email);
+        } catch (error) {
+            console.error('Login error:', error);
+            if (error.code === 'auth/popup-blocked') {
+                alert('Please allow popups for this site to login.');
+            } else if (error.code === 'auth/cancelled-popup-request') {
+                console.log('Previous popup closed');
+            } else {
+                alert('Login failed: ' + error.message);
+            }
+        }
+    }
+
+    async handleLogout() {
+        try {
+            await this.auth.signOut();
+            const baseUrl = window.location.pathname.split('/admin')[0];
+            window.location.href = baseUrl + '/index.html';
+        } catch (error) {
+            console.error('Logout error:', error);
+            alert('Logout failed: ' + error.message);
+        }
+    }
+
+    async saveExam(examData) {
+        if (this.isSubmitting) {
+            console.log('Already submitting, preventing duplicate submission');
+            return;
+        }
+
+        const submitButton = document.querySelector('button[type="submit"]');
+        try {
+            this.isSubmitting = true;
+            submitButton.disabled = true;
+            submitButton.textContent = 'Saving...';
+
+            const docRef = await this.db.collection('exams').add({
+                ...examData,
+                createdBy: this.auth.currentUser.email,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            console.log('Exam saved to Firestore:', docRef.id);
+
+            const addReminder = document.getElementById('addCalendarReminder').checked;
+            if (addReminder) {
+                try {
+                    await this.calendarService.createReminder(examData);
+                    console.log('Calendar reminder created');
+                } catch (calendarError) {
+                    console.error('Calendar error (continuing anyway):', calendarError);
+                    alert('Assessment saved, but calendar reminder failed to create. Please add it manually if needed.');
+                }
+            }
+
+            document.getElementById('assessmentForm').reset();
+            alert('Assessment saved successfully!');
+            await this.loadExams();
+
+            return docRef;
+        } catch (error) {
+            console.error('Save exam error:', error);
+            alert('Error: ' + error.message);
+        } finally {
+            this.isSubmitting = false;
+            submitButton.disabled = false;
+            submitButton.textContent = 'Submit';
+        }
+    }
+
+    async checkUserAuthorization(email) {
+        try {
+            const userDoc = await this.db.collection('users').doc(email).get();
+            return userDoc.exists;
+        } catch (error) {
+            console.error('Error checking user authorization:', error);
+            return false;
+        }
+    }
+
+    showAdminPanel(user) {
+        document.getElementById('loginSection').style.display = 'none';
+        const adminPanel = document.getElementById('adminPanel');
+        if (adminPanel) {
+            adminPanel.style.display = 'block';
+            let examList = document.getElementById('examList');
+            if (!examList) {
+                examList = document.createElement('div');
+                examList.id = 'examList';
+                examList.className = 'exam-list';
+                adminPanel.appendChild(examList);
+            }
+            this.loadExams();
+        }
+    }
+
+    hideAdminPanel() {
+        document.getElementById('loginSection').style.display = 'flex';
+        const adminPanel = document.getElementById('adminPanel');
+        if (adminPanel) {
+            adminPanel.style.display = 'none';
+        }
+    }
+
     async manageUsers() {
-        if (this.auth.currentUser.email !== 'acoetzee@maristsj.co.za') { //Admin email
+        if (this.auth.currentUser.email !== 'acoetzee@maristsj.co.za') {
             alert('Only the administrator can manage users.');
             return;
         }
@@ -156,17 +322,7 @@ class AdminPortal {
             }
         }
     }
-    async checkUserAuthorization(email) {
-        try {
-            console.log('Checking user doc for:', email); // Debug log
-            const userDoc = await this.db.collection('users').doc(email).get();
-            console.log('User doc exists?', userDoc.exists); // Debug log
-            return userDoc.exists;
-        } catch (error) {
-            console.error('Error checking user authorization:', error);
-            return false;
-        }
-    }
+
     async loadTeachers() {
         const usersList = document.getElementById('usersList');
         if (!usersList) return;
@@ -174,6 +330,40 @@ class AdminPortal {
         try {
             const snapshot = await this.db.collection('users').get();
             usersList.innerHTML = '<h4>Authorized Teachers</h4>';
+
+            snapshot.forEach(doc => {
+                const userData = doc.data();
+                const item = document.createElement('div');
+                item.className = 'user-item';
+                item.innerHTML = `
+                    <span>${userData.email}</span>
+                    <button onclick="adminPortal.removeTeacher('${userData.email}')" class="remove-button">
+                        Remove
+                    </button>
+                `;
+                usersList.appendChild(item);
+            });
+        } catch (error) {
+            console.error('Error loading teachers:', error);
+            usersList.innerHTML = 'Error loading teachers';
+        }
+    }
+
+    async loadExams() {
+        const examsList = document.getElementById('examList');
+        if (!examsList) return;
+
+        examsList.innerHTML = '<h2>Current Assessments</h2>';
+
+        try {
+            const snapshot = await this.db.collection('exams')
+                .orderBy('scheduledDate', 'desc')
+                .get();
+
+            if (snapshot.empty) {
+                examsList.innerHTML += '<p>No assessments added yet.</p>';
+                return;
+            }
 
             snapshot.forEach(doc => {
                 const exam = doc.data();
@@ -191,7 +381,7 @@ class AdminPortal {
                             Copy Password
                         </button>
                         <button onclick="adminPortal.editExam('${doc.id}')" class="edit-button">
-                            Edit
+                            Edit Time
                         </button>
                         <button onclick="adminPortal.deleteExam('${doc.id}')" class="delete-button">
                             Delete
@@ -201,88 +391,8 @@ class AdminPortal {
                 examsList.appendChild(item);
             });
         } catch (error) {
-            console.error('Error loading teachers:', error);
-            usersList.innerHTML = 'Error loading teachers';
-        }
-    }
-
-    setupEventListeners() {
-        const loginButton = document.getElementById('googleLogin');
-        if (loginButton) {
-            loginButton.addEventListener('click', () => this.handleLogin());
-        }
-
-        document.getElementById('logoutBtn')?.addEventListener('click', () => this.handleLogout());
-
-        const assessmentForm = document.getElementById('assessmentForm');
-        if (assessmentForm) {
-            assessmentForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                console.log('Form submitted');
-                const examData = this.getExamFormData();
-                console.log('Assessment data:', examData);
-                await this.saveExam(examData);
-            });
-        }
-        document.getElementById('manageUsersBtn')?.addEventListener('click', () => this.manageUsers());
-        this.setupEventListeners();
-        this.setupTimeSelect();
-    }
-
-    async handleLogin() {
-        try {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            provider.setCustomParameters({
-                hd: 'maristsj.co.za'
-            });
-
-            const result = await this.auth.signInWithPopup(provider);
-            console.log('Sign in successful:', result.user.email);
-        } catch (error) {
-            console.error('Login error:', error);
-            if (error.code === 'auth/popup-blocked') {
-                alert('Please allow popups for this site to login.');
-            } else if (error.code === 'auth/cancelled-popup-request') {
-                console.log('Previous popup closed');
-            } else {
-                alert('Login failed: ' + error.message);
-            }
-        }
-    }
-
-    async handleLogout() {
-        try {
-            await this.auth.signOut();
-            // Get the base URL dynamically
-            const baseUrl = window.location.pathname.split('/admin')[0];
-            window.location.href = baseUrl + '/index.html';
-        } catch (error) {
-            console.error('Logout error:', error);
-            alert('Logout failed: ' + error.message);
-        }
-    }
-
-    showAdminPanel(user) {
-        document.getElementById('loginSection').style.display = 'none';
-        const adminPanel = document.getElementById('adminPanel');
-        if (adminPanel) {
-            adminPanel.style.display = 'block';
-            let examList = document.getElementById('examList');
-            if (!examList) {
-                examList = document.createElement('div');
-                examList.id = 'examList';
-                examList.className = 'exam-list';
-                adminPanel.appendChild(examList);
-            }
-            this.loadExams();
-        }
-    }
-
-    hideAdminPanel() {
-        document.getElementById('loginSection').style.display = 'flex';
-        const adminPanel = document.getElementById('adminPanel');
-        if (adminPanel) {
-            adminPanel.style.display = 'none';
+            console.error('Error loading exams:', error);
+            examsList.innerHTML += '<p>Error loading exams. Please try again.</p>';
         }
     }
 
@@ -332,10 +442,9 @@ class AdminPortal {
             password: document.getElementById('password')?.value,
             date: new Date().toISOString()
         };
-        // Validate the data
+
         console.log('Collected form data:', formData);
 
-        // Check for missing required fields
         const missingFields = Object.entries(formData)
             .filter(([key, value]) => !value)
             .map(([key]) => key);
@@ -351,6 +460,7 @@ class AdminPortal {
         const fileId = url.match(/\/d\/(.*?)(\/|$)/)?.[1];
         return fileId ? `https://drive.google.com/file/d/${fileId}/preview` : url;
     }
+
     setupTimeSelect() {
         const timeSelect = document.getElementById('scheduledTime');
         if (timeSelect) {
@@ -370,96 +480,6 @@ class AdminPortal {
         }
     }
 
-    async saveExam(examData) {
-        console.log('Starting to save exam. Exam data:', examData); // Log full data
-        try {
-            if (!this.auth.currentUser) {
-                throw new Error('No user logged in');
-            }
-            const dataToSave = {
-                ...examData,
-                createdBy: this.auth.currentUser.email,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            };
-            console.log('Attempting to save data:', dataToSave);
-
-            const docRef = await this.db.collection('exams').add(dataToSave);
-            console.log('Exam saved successfully with ID:', docRef.id);
-
-            alert('Assessment saved successfully!');
-            document.getElementById('assessmentForm').reset();
-            this.loadExams();
-        } catch (error) {
-            console.error('Error saving exam:', {
-                message: error.message,
-                code: error.code,
-                fullError: error
-            });
-            alert(`Error saving assessment: ${error.message}`);
-        }
-        const docRef = await this.db.collection('exams').add({
-            ...examData,
-            createdBy: this.auth.currentUser.email,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        await this.createCalendarReminder(examData);
-
-        // Show success message to user
-        alert('Assessment saved and calendar reminder created successfully!');
-
-        return docRef;
-    } catch(error) {
-        console.error('Error saving exam:', error);
-        alert('Error: ' + error.message);
-        throw error;
-    }
-    async loadExams() {
-        const examsList = document.getElementById('examList');
-        if (!examsList) return;
-
-        examsList.innerHTML = '<h2>Current Assessments</h2>';
-
-        try {
-            const snapshot = await this.db.collection('exams')
-                .orderBy('scheduledDate', 'desc')
-                .get();
-
-            if (snapshot.empty) {
-                examsList.innerHTML += '<p>No assessments added yet.</p>';
-                return;
-            }
-
-            snapshot.forEach(doc => {
-                const exam = doc.data();
-                const item = document.createElement('div');
-                item.className = 'exam-item';
-                item.innerHTML = `
-                    <div>
-                        <strong>Grade ${exam.grade} - ${exam.subject}</strong><br>
-                        Password: ${exam.password}<br>
-                        Scheduled: ${new Date(exam.scheduledDate).toLocaleString()}<br>
-                        Added: ${new Date(exam.createdAt?.toDate()).toLocaleDateString()}
-                    </div>
-                    <div class="exam-actions">
-                        <button onclick="adminPortal.copyPassword('${exam.password}')" class="copy-button">
-                            Copy Password
-                        </button>
-                        <button onclick="adminPortal.editExam('${doc.id}')" class="edit-button">
-                            Edit Time
-                        </button>
-                        <button onclick="adminPortal.deleteExam('${doc.id}')" class="delete-button">
-                            Delete
-                        </button>
-                    </div>
-                `;
-                examsList.appendChild(item);
-            });
-        } catch (error) {
-            console.error('Error loading exams:', error);
-            examsList.innerHTML += '<p>Error loading exams. Please try again.</p>';
-        }
-    }
-
     async deleteExam(examId) {
         if (confirm('Are you sure you want to delete this exam?')) {
             try {
@@ -475,6 +495,7 @@ class AdminPortal {
         navigator.clipboard.writeText(password);
         alert('Password copied to clipboard!');
     }
+
     async generatePasswordReport() {
         const reportDate = document.getElementById('reportDate').value;
         if (!reportDate) {
@@ -483,14 +504,12 @@ class AdminPortal {
         }
 
         try {
-            // Convert selected date to start and end of day
             const selectedDate = new Date(reportDate);
             const startOfDay = new Date(selectedDate);
             startOfDay.setHours(0, 0, 0, 0);
             const endOfDay = new Date(selectedDate);
             endOfDay.setHours(23, 59, 59, 999);
 
-            // Simpler query that only needs one index
             const snapshot = await this.db.collection('exams')
                 .where('scheduledDate', '>=', startOfDay.toISOString())
                 .where('scheduledDate', '<=', endOfDay.toISOString())
@@ -504,7 +523,6 @@ class AdminPortal {
                 return;
             }
 
-            // Group by grade
             const assessmentsByGrade = {};
             snapshot.forEach(doc => {
                 const data = doc.data();
@@ -514,13 +532,11 @@ class AdminPortal {
                 assessmentsByGrade[data.grade].push(data);
             });
 
-            // Generate report HTML
             let reportHTML = `
                 <h3>Passwords for ${new Date(reportDate).toLocaleDateString()}</h3>
                 <div class="password-list">
             `;
 
-            // Sort grades numerically
             const sortedGrades = Object.keys(assessmentsByGrade).sort((a, b) => Number(a) - Number(b));
 
             sortedGrades.forEach(grade => {
@@ -553,7 +569,6 @@ class AdminPortal {
         const reportDiv = document.getElementById('passwordReport');
         if (!reportDiv) return;
 
-        // Create a text version of the report
         const assessments = reportDiv.querySelectorAll('.password-item');
         const reportText = Array.from(assessments)
             .map(item => item.textContent.trim().replace(/\s+/g, ' '))
@@ -567,6 +582,7 @@ class AdminPortal {
             alert('Error copying report: ' + error.message);
         }
     }
+
     async editExam(examId) {
         try {
             console.log('Starting edit for exam:', examId);
@@ -579,11 +595,9 @@ class AdminPortal {
             const exam = doc.data();
             console.log('Current exam data:', exam);
 
-            // Create edit dialog
             const dialog = document.createElement('div');
             dialog.className = 'edit-dialog-overlay';
 
-            // Convert scheduledDate to local datetime-local format
             const scheduledDate = new Date(exam.scheduledDate);
             const formattedDate = scheduledDate.toISOString().slice(0, 16);
 
@@ -613,7 +627,6 @@ class AdminPortal {
 
             document.body.appendChild(dialog);
 
-            // Handle form submission
             document.getElementById('editForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const newScheduledDate = document.getElementById('editScheduledDate').value;
@@ -627,7 +640,7 @@ class AdminPortal {
                     console.log('Update successful');
                     alert('Assessment updated successfully');
                     dialog.remove();
-                    this.loadExams(); // Refresh the list
+                    this.loadExams();
                 } catch (error) {
                     console.error('Error updating assessment:', error);
                     alert('Error updating assessment: ' + error.message);
@@ -639,80 +652,12 @@ class AdminPortal {
             alert('Error loading assessment: ' + error.message);
         }
     }
-    async initializeGoogleCalendar() {
-        try {
-            await new Promise((resolve, reject) => {
-                gapi.load('client:auth2', resolve);
-            });
-
-            await gapi.client.init({
-                apiKey: calendarConfig.apiKey,
-                clientId: calendarConfig.clientId,
-                scope: calendarConfig.scopes.join(' ')
-            });
-
-            console.log('Google Calendar API initialized successfully');
-        } catch (error) {
-            console.error('Error initializing Google Calendar:', error);
-            throw error;
-        }
-    }
-    async createCalendarReminder(examData) {
-        try {
-            if (!gapi.auth2.getAuthInstance().isSignedIn.get()) {
-                await gapi.auth2.getAuthInstance().signIn();
-            }
-    
-            const examDate = new Date(examData.scheduledDate);
-            const reminderTime = new Date(examDate.getTime() - 20 * 60000);
-    
-            // Basic attendees list - just you and the creating teacher
-            const attendees = [
-                { email: 'acoetzee@maristsj.co.za' },  // IT Admin (you)
-                { email: this.auth.currentUser.email }  // Teacher who created it
-            ];
-    
-            const event = {
-                summary: `Kiosk Setup - Grade ${examData.grade} ${examData.subject}`,
-                description: `Prepare devices for ${examData.subject} assessment.\nPassword: ${examData.password}`,
-                start: {
-                    dateTime: reminderTime.toISOString(),
-                    timeZone: 'Africa/Johannesburg'
-                },
-                end: {
-                    dateTime: examDate.toISOString(),
-                    timeZone: 'Africa/Johannesburg'
-                },
-                attendees: [...new Set(attendees.map(a => a.email))].map(email => ({ email })), // Remove duplicates if same person
-                reminders: {
-                    useDefault: false,
-                    overrides: [
-                        { method: 'email', minutes: 30 },
-                        { method: 'popup', minutes: 20 }
-                    ]
-                },
-                visibility: 'private'
-            };
-    
-            const response = await gapi.client.calendar.events.insert({
-                calendarId: 'primary',
-                resource: event,
-                sendUpdates: 'all'
-            });
-    
-            console.log('Calendar reminder created:', response.result);
-            return response.result;
-        } catch (error) {
-            console.error('Error creating calendar reminder:', error);
-            throw error;
-        }
-    }
-
 }
-
 
 // Initialize admin portal when document is loaded
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Document loaded, initializing AdminPortal');
     window.adminPortal = new AdminPortal();
 });
+
+export default AdminPortal;
