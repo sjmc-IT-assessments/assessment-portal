@@ -12,7 +12,10 @@ const firebaseConfig = {
 export const calendarConfig = {
     clientId: '36563114370-ht96lqnq8nr2020dk61fhmq5b7p5iamf.apps.googleusercontent.com',
     apiKey: 'AIzaSyBQiktcs0S_K_8Uyh7PtxH2OgAa0fYp0P0',
-    scopes: ['https://www.googleapis.com/auth/calendar.events']
+    scopes: [
+        'https://www.googleapis.com/auth/calendar',
+        'https://www.googleapis.com/auth/calendar.events'
+    ]
 };
 
 export default firebaseConfig;

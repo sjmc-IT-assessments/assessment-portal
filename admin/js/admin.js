@@ -1,5 +1,5 @@
 import firebaseConfig, { calendarConfig } from '../../assets/js/config.js';
-import { CalendarService } from '../admin/js/calendar-service.js';
+import { CalendarService } from './calendar-service.js';
 
 class PasswordGenerator {
     constructor() {
@@ -81,22 +81,28 @@ class AdminPortal {
     }
 
     async initializeAuth() {
+        await this.auth.signOut();
+
         this.auth.onAuthStateChanged(async (user) => {
             console.log('Auth state changed, user:', user);
             if (user) {
                 if (user.email.endsWith('@maristsj.co.za')) {
                     const isAuthorized = await this.checkUserAuthorization(user.email);
                     if (isAuthorized) {
+                        document.getElementById('loginSection').style.display = 'none';
+                        document.getElementById('adminPanel').style.display = 'block';
                         this.showAdminPanel(user);
                     } else {
                         alert('You are not authorized to access the admin panel. Please contact the administrator.');
-                        this.auth.signOut();
+                        await this.auth.signOut();
                     }
                 } else {
                     alert('Please use your SJMC email address to login.');
-                    this.auth.signOut();
+                    await this.auth.signOut();
                 }
             } else {
+                document.getElementById('loginSection').style.display = 'flex';
+                document.getElementById('adminPanel').style.display = 'none';
                 this.hideAdminPanel();
             }
         });
@@ -154,11 +160,26 @@ class AdminPortal {
         try {
             const provider = new firebase.auth.GoogleAuthProvider();
             provider.setCustomParameters({
+                prompt: 'select_account', // Force account selection every time
                 hd: 'maristsj.co.za'
             });
 
+            // Clear any existing auth state first
+            await this.auth.signOut();
+
             const result = await this.auth.signInWithPopup(provider);
             console.log('Sign in successful:', result.user.email);
+
+            // Force a UI update
+            if (result.user) {
+                const isAuthorized = await this.checkUserAuthorization(result.user.email);
+                if (isAuthorized) {
+                    this.showAdminPanel(result.user);
+                } else {
+                    alert('You are not authorized to access the admin panel. Please contact the administrator.');
+                    await this.auth.signOut();
+                }
+            }
         } catch (error) {
             console.error('Login error:', error);
             if (error.code === 'auth/popup-blocked') {

@@ -202,14 +202,13 @@
                 initialized: !!firebase?.apps?.length
             });
         </script>
-
-        <!-- Google API Script -->
-        <script src="https://apis.google.com/js/api.js"></script>
-
         <!--  Module Scripts -->
         <script type="module" src="../assets/js/config.js"></script>
         <script type="module" src="./js/calendar-service.js"></script>
         <script type="module" src="./js/admin.js"></script>
+        <!-- Google API Script -->
+        <script src="https://accounts.google.com/gsi/client" async defer></script>
+        <script src="https://apis.google.com/js/api.js"></script>
     </body>
 
     </html>
