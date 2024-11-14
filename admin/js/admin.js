@@ -139,6 +139,7 @@ class AdminPortal {
         }
 
         const calendarCheckbox = document.getElementById('addCalendarReminder');
+
         if (calendarCheckbox) {
             calendarCheckbox.addEventListener('change', async (e) => {
                 if (e.target.checked) {
@@ -154,6 +155,28 @@ class AdminPortal {
         }
 
         this.setupTimeSelect();
+
+
+        const applyFilterBtn = document.getElementById('applyFilter');
+        if (applyFilterBtn) {
+            applyFilterBtn.addEventListener('click', () => {
+                console.log('Applying filters...'); // Debug log
+                this.loadExams(true);
+            });
+        }
+        // Optional: Add reset filter button
+        const filterControls = document.querySelector('.filter-controls');
+        if (filterControls && !document.querySelector('.reset-filter-btn')) {
+            const resetFilterBtn = document.createElement('button');
+            resetFilterBtn.textContent = 'Reset';
+            resetFilterBtn.className = 'reset-filter-btn';
+            resetFilterBtn.addEventListener('click', () => {
+                document.getElementById('filterGrade').value = '';
+                document.getElementById('filterType').value = '';
+                this.loadExams(false);
+            });
+            filterControls.appendChild(resetFilterBtn);
+        }
     }
 
     async handleLogin() {
@@ -370,22 +393,48 @@ class AdminPortal {
         }
     }
 
-    async loadExams() {
+    async loadExams(filter = false) {
         const examsList = document.getElementById('examList');
         if (!examsList) return;
 
         examsList.innerHTML = '<h2>Current Assessments</h2>';
 
         try {
-            const snapshot = await this.db.collection('exams')
-                .orderBy('scheduledDate', 'desc')
-                .get();
+            let query = this.db.collection('exams')
+                .orderBy('scheduledDate', 'desc');
 
-            if (snapshot.empty) {
-                examsList.innerHTML += '<p>No assessments added yet.</p>';
-                return;
+            // Apply filters if requested
+            if (filter) {
+                const gradeFilter = document.getElementById('filterGrade').value;
+                const typeFilter = document.getElementById('filterType').value;
+
+                // Create a new query with filters
+                if (gradeFilter) {
+                    // Convert grade to number since it's stored as number in Firestore
+                    query = this.db.collection('exams')
+                        .where('grade', '==', Number(gradeFilter));
+                }
+                if (typeFilter) {
+                    if (gradeFilter) {
+                        query = query.where('type', '==', typeFilter);
+                    } else {
+                        query = this.db.collection('exams')
+                            .where('type', '==', typeFilter);
+                    }
+                }
+
+                // Add the orderBy after the filters
+                query = query.orderBy('scheduledDate', 'desc');
             }
 
+            console.log('Executing query...'); // Debug log
+            const snapshot = await query.get();
+            console.log('Query results:', snapshot.size); // Debug log
+
+            if (snapshot.empty) {
+                examsList.innerHTML += '<p>No assessments found.</p>';
+                return;
+            }
             snapshot.forEach(doc => {
                 const exam = doc.data();
                 const item = document.createElement('div');
@@ -413,9 +462,10 @@ class AdminPortal {
             });
         } catch (error) {
             console.error('Error loading exams:', error);
-            examsList.innerHTML += '<p>Error loading exams. Please try again.</p>';
+            examsList.innerHTML += `<p>Error loading exams: ${error.message}</p>`;
         }
     }
+
 
     generatePassword() {
         const passwords = this.passwordGenerator.generateOptions(5);
