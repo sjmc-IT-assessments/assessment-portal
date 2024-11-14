@@ -1,204 +1,215 @@
-<!DOCTYPE html>
-<html lang="en">
+<<!DOCTYPE html>
+    <html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SJMC Assessment Portal</title>
-    <link rel="stylesheet" type="text/css" href="css/admin.css">
-    <script src="https://apis.google.com/js/api.js"></script>
-    <script type="module" src="./js/calendar-service.js"></script>
-    <script type="module" src="./js/admin.js"></script>
-    <!-- Firebase SDKs -->
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>SJMC Assessment Portal</title>
+        <link rel="stylesheet" type="text/css" href="css/admin.css">
+    </head>
 
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-</head>
-
-<body>
-    <!-- Login Section -->
-    <div id="loginSection" class="login-container">
-        <a href="../index.html" class="back-btn">&larr; Back to Portal</a>
-        <div class="login-box">
-            <div class="logo-section">
-                <img src="../assets/images/school-logo.png" alt="SJMC Logo" class="school-logo">
-            </div>
-            <h2>SJMC Assessment Portal Admin</h2>
-            <button onclick="window.adminPortal.handleLogin()" id="googleLogin" class="google-btn">
-                <img src="../assets/images/google-icon.png" alt="" width="18" height="18">
-                Sign in with Google
-            </button>
-        </div>
-    </div>
-
-    <!-- Admin Panel -->
-    <div id="adminPanel" style="display: none;">
-        <!-- Header -->
-        <div class="header">
-            <div class="header-content">
+    <body>
+        <!-- Login Section -->
+        <div id="loginSection" class="login-container">
+            <a href="../index.html" class="back-btn">← Back to Portal</a>
+            <div class="login-box">
                 <div class="logo-section">
-                    <img src="../assets/images/school-logo2.png" alt="SJMC Logo" class="school-logo">
+                    <img src="../assets/images/school-logo.png" alt="SJMC Logo" class="school-logo">
                 </div>
-                <h1 class="header-title">SJMC Assessment Portal Admin</h1>
-                <div class="admin-controls">
-                    <button id="manageUsersBtn" class="admin-btn">Manage Users</button>
-                    <span id="userEmail"></span>
-                    <button id="logoutBtn" class="logout-btn">Logout</button>
-                </div>
+                <h2>SJMC Assessment Portal Admin</h2>
+                <button id="googleLogin" class="google-login-btn">
+                    <img src="../assets/images/google-icon.png" width="18" height="18" alt="Google">
+                    Sign in with Google
+                </button>
             </div>
         </div>
 
-        <main class="admin-main">
-            <div class="admin-container">
-                <!-- Add Assessment Form -->
-                <section class="admin-section">
-                    <h2>Add New Assessment</h2>
-                    <form id="assessmentForm" class="assessment-form">
-                        <div class="form-group">
-                            <label for="grade">Grade</label>
-                            <select id="grade" required>
-                                <option value="8">Grade 8</option>
-                                <option value="9">Grade 9</option>
-                                <option value="10">Grade 10</option>
-                                <option value="11">Grade 11</option>
-                                <option value="12">Grade 12</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="subject">Subject</label>
-                            <input type="text" id="subject" required placeholder="e.g., Afrikaans">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="assessmentType">Assessment Type</label>
-                            <select id="assessmentType" required>
-                                <option value="exam">Exam</option>
-                                <option value="test">Test</option>
-                                <option value="assignment">Assignment</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="driveUrl">Google Drive URL</label>
-                            <input type="url" id="driveUrl" required placeholder="https://drive.google.com/file/d/...">
-                        </div>
-                        <div class="form-group">
-                            <label for="scheduledDate">Scheduled Date & Time</label>
-                            <div class="datetime-inputs">
-                                <input type="date" id="scheduledDate" required>
-                                <span class="select-holder">
-                                    <select id="scheduledTime" class="time-select"
-                                        onmousedown="if(this.options.length>6){this.size=6;}" onchange='this.size=0;'
-                                        onblur="this.size=0;" required>
-                                        <option value="08:00">08:00</option>
-                                        <option value="08:10">08:10</option>
-                                        <option value="08:20">08:20</option>
-                                        <option value="08:30">08:30</option>
-                                        <option value="08:40">08:40</option>
-                                        <option value="08:50">08:50</option>
-                                        <option value="09:00">09:00</option>
-                                        <option value="09:10">09:10</option>
-                                        <option value="09:20">09:20</option>
-                                        <option value="09:30">09:30</option>
-                                        <option value="09:40">09:40</option>
-                                        <option value="09:50">09:50</option>
-                                        <option value="10:00">10:00</option>
-                                        <option value="10:10">10:10</option>
-                                        <option value="10:20">10:20</option>
-                                        <option value="10:30">10:30</option>
-                                        <option value="10:40">10:40</option>
-                                        <option value="10:50">10:50</option>
-                                        <option value="11:00">11:00</option>
-                                        <option value="11:10">11:10</option>
-                                        <option value="11:20">11:20</option>
-                                        <option value="11:30">11:30</option>
-                                        <option value="11:40">11:40</option>
-                                        <option value="11:50">11:50</option>
-                                        <option value="12:00">12:00</option>
-                                        <option value="12:10">12:10</option>
-                                        <option value="12:20">12:20</option>
-                                        <option value="12:30">12:30</option>
-                                        <option value="12:40">12:40</option>
-                                        <option value="12:50">12:50</option>
-                                        <option value="13:00">13:00</option>
-                                        <option value="13:10">13:10</option>
-                                        <option value="13:20">13:20</option>
-                                        <option value="13:30">13:30</option>
-                                        <option value="13:40">13:40</option>
-                                        <option value="13:50">13:50</option>
-                                        <option value="14:00">14:00</option>
-                                        <option value="14:10">14:10</option>
-                                    </select>
-                                </span>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="password">Password</label>
-                            <div class="password-group">
-                                <input type="text" id="password" required>
-                                <button type="button" onclick="adminPortal.generatePassword()"
-                                    class="generate-btn">Generate</button>
-                            </div>
-
-                        </div>
-                        <div class="form-group">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="addCalendarReminder" checked>
-                                Add calendar reminder (20 minutes before start)
-                            </label>
-                        </div>
-
-                        <button type="submit" class="submit-btn">Add Assessment</button>
-                    </form>
-                </section>
-                <section class="admin-section">
-                    <div class="section-header">
-                        <h2>Password Report</h2>
-                        <div class="date-filter">
-                            <input type="date" id="reportDate" class="date-input">
-                            <button onclick="adminPortal.generatePasswordReport()" class="report-btn">Generate
-                                Report</button>
-                        </div>
+        <!-- Admin Panel -->
+        <div id="adminPanel" style="display: none;">
+            <!-- Header -->
+            <div class="header">
+                <div class="header-content">
+                    <div class="logo-section">
+                        <img src="../assets/images/school-logo2.png" alt="SJMC Logo" class="school-logo">
                     </div>
-                    <div id="passwordReport" class="password-report">
-
+                    <h1 class="header-title">SJMC Assessment Portal Admin</h1>
+                    <div class="admin-controls">
+                        <button id="manageUsersBtn" class="admin-btn">Manage Users</button>
+                        <span id="userEmail"></span>
+                        <button id="logoutBtn" class="logout-btn">Logout</button>
                     </div>
-                </section>
-                <!-- Current Assessments -->
-                <section class="admin-section">
-                    <div class="section-header">
-                        <h2>Current Assessments</h2>
-                        <div class="filter-controls">
-                            <select id="filterGrade" onchange="adminPortal.filterAssessments()">
-                                <option value="">All Grades</option>
-                                <option value="8">Grade 8</option>
-                                <option value="9">Grade 9</option>
-                                <option value="10">Grade 10</option>
-                                <option value="11">Grade 11</option>
-                                <option value="12">Grade 12</option>
-                            </select>
-                            <select id="filterType" onchange="adminPortal.filterAssessments()">
-                                <option value="">All Types</option>
-                                <option value="exam">Exams</option>
-                                <option value="test">Tests</option>
-                                <option value="assignment">Assignments</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div id="examList" class="assessment-list">
-                        <!-- Assessments will be loaded here -->
-                    </div>
-                </section>
+                </div>
             </div>
-        </main>
-    </div>
-    <script>
-        // Add this before loading admin.js to check if Firebase is loaded
-        console.log('Firebase auth available:', !!firebase.auth);
-    </script>
-    <script type="module" src="js/admin.js"></script>
-</body>
 
-</html>
+            <main class="admin-main">
+                <div class="admin-container">
+                    <!-- Add Assessment Form -->
+                    <section class="admin-section">
+                        <h2>Add New Assessment</h2>
+                        <form id="assessmentForm" class="assessment-form">
+                            <div class="form-group">
+                                <label for="grade">Grade</label>
+                                <select id="grade" required>
+                                    <option value="8">Grade 8</option>
+                                    <option value="9">Grade 9</option>
+                                    <option value="10">Grade 10</option>
+                                    <option value="11">Grade 11</option>
+                                    <option value="12">Grade 12</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="subject">Subject</label>
+                                <input type="text" id="subject" required placeholder="e.g., Afrikaans">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="assessmentType">Assessment Type</label>
+                                <select id="assessmentType" required>
+                                    <option value="exam">Exam</option>
+                                    <option value="test">Test</option>
+                                    <option value="assignment">Assignment</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="driveUrl">Google Drive URL</label>
+                                <input type="url" id="driveUrl" required
+                                    placeholder="https://drive.google.com/file/d/...">
+                            </div>
+                            <div class="form-group">
+                                <label for="scheduledDate">Scheduled Date & Time</label>
+                                <div class="datetime-inputs">
+                                    <input type="date" id="scheduledDate" required>
+                                    <span class="select-holder">
+                                        <select id="scheduledTime" class="time-select"
+                                            onmousedown="if(this.options.length>6){this.size=6;}"
+                                            onchange='this.size=0;' onblur="this.size=0;" required>
+                                            <option value="08:00">08:00</option>
+                                            <option value="08:10">08:10</option>
+                                            <option value="08:20">08:20</option>
+                                            <option value="08:30">08:30</option>
+                                            <option value="08:40">08:40</option>
+                                            <option value="08:50">08:50</option>
+                                            <option value="09:00">09:00</option>
+                                            <option value="09:10">09:10</option>
+                                            <option value="09:20">09:20</option>
+                                            <option value="09:30">09:30</option>
+                                            <option value="09:40">09:40</option>
+                                            <option value="09:50">09:50</option>
+                                            <option value="10:00">10:00</option>
+                                            <option value="10:10">10:10</option>
+                                            <option value="10:20">10:20</option>
+                                            <option value="10:30">10:30</option>
+                                            <option value="10:40">10:40</option>
+                                            <option value="10:50">10:50</option>
+                                            <option value="11:00">11:00</option>
+                                            <option value="11:10">11:10</option>
+                                            <option value="11:20">11:20</option>
+                                            <option value="11:30">11:30</option>
+                                            <option value="11:40">11:40</option>
+                                            <option value="11:50">11:50</option>
+                                            <option value="12:00">12:00</option>
+                                            <option value="12:10">12:10</option>
+                                            <option value="12:20">12:20</option>
+                                            <option value="12:30">12:30</option>
+                                            <option value="12:40">12:40</option>
+                                            <option value="12:50">12:50</option>
+                                            <option value="13:00">13:00</option>
+                                            <option value="13:10">13:10</option>
+                                            <option value="13:20">13:20</option>
+                                            <option value="13:30">13:30</option>
+                                            <option value="13:40">13:40</option>
+                                            <option value="13:50">13:50</option>
+                                            <option value="14:00">14:00</option>
+                                            <option value="14:10">14:10</option>
+                                        </select>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="password">Password</label>
+                                <div class="password-group">
+                                    <input type="text" id="password" required>
+                                    <button type="button" onclick="adminPortal.generatePassword()"
+                                        class="generate-btn">Generate</button>
+                                </div>
+
+                            </div>
+                            <div class="form-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="addCalendarReminder" checked>
+                                    Add calendar reminder (20 minutes before start)
+                                </label>
+                            </div>
+
+                            <button type="submit" class="submit-btn">Add Assessment</button>
+                        </form>
+                    </section>
+                    <section class="admin-section">
+                        <div class="section-header">
+                            <h2>Password Report</h2>
+                            <div class="date-filter">
+                                <input type="date" id="reportDate" class="date-input">
+                                <button onclick="adminPortal.generatePasswordReport()" class="report-btn">Generate
+                                    Report</button>
+                            </div>
+                        </div>
+                        <div id="passwordReport" class="password-report">
+
+                        </div>
+                    </section>
+                    <!-- Current Assessments -->
+                    <section class="admin-section">
+                        <div class="section-header">
+                            <h2>Current Assessments</h2>
+                            <div class="filter-controls">
+                                <select id="filterGrade" onchange="adminPortal.filterAssessments()">
+                                    <option value="">All Grades</option>
+                                    <option value="8">Grade 8</option>
+                                    <option value="9">Grade 9</option>
+                                    <option value="10">Grade 10</option>
+                                    <option value="11">Grade 11</option>
+                                    <option value="12">Grade 12</option>
+                                </select>
+                                <select id="filterType" onchange="adminPortal.filterAssessments()">
+                                    <option value="">All Types</option>
+                                    <option value="exam">Exams</option>
+                                    <option value="test">Tests</option>
+                                    <option value="assignment">Assignments</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="examList" class="assessment-list">
+                            <!-- Assessments will be loaded here -->
+                        </div>
+                    </section>
+                </div>
+            </main>
+        </div>
+
+        <!-- Firebase Scripts -->
+        <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+        <!-- Firebase check -->
+        <script>
+            console.log('Firebase availability check:', {
+                app: !!firebase?.app,
+                auth: !!firebase?.auth,
+                firestore: !!firebase?.firestore,
+                initialized: !!firebase?.apps?.length
+            });
+        </script>
+
+        <!-- Google API Script -->
+        <script src="https://apis.google.com/js/api.js"></script>
+
+        <!--  Module Scripts -->
+        <script type="module" src="../assets/js/config.js"></script>
+        <script type="module" src="./js/calendar-service.js"></script>
+        <script type="module" src="./js/admin.js"></script>
+    </body>
+
+    </html>

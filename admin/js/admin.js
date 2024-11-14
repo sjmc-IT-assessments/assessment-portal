@@ -1,5 +1,5 @@
 import firebaseConfig, { calendarConfig } from '../../assets/js/config.js';
-import { CalendarService } from './calendar-service.js';
+import { CalendarService } from '../admin/js/calendar-service.js';
 
 class PasswordGenerator {
     constructor() {
