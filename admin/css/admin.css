@@ -178,6 +178,7 @@ body {
     border-radius: 4px;
     cursor: pointer;
 }
+
 .password-dialog {
     position: fixed;
     top: 0;
@@ -224,7 +225,8 @@ body {
     border-color: #d1d5db;
 }
 
-.refresh-btn, .close-btn {
+.refresh-btn,
+.close-btn {
     padding: 0.5rem 1rem;
     border: none;
     border-radius: 4px;
@@ -241,6 +243,7 @@ body {
     background: #e5e7eb;
     color: #374151;
 }
+
 .user-management-dialog {
     position: fixed;
     top: 0;
@@ -292,6 +295,7 @@ body {
     border-radius: 4px;
     cursor: pointer;
 }
+
 .password-report {
     background: white;
     padding: 1rem;
@@ -324,6 +328,49 @@ body {
     border: 1px solid #e5e7eb;
     border-radius: 4px;
 }
+.teacher-select-wrapper {
+    position: relative;
+}
+
+.teacher-select {
+    width: 100%;
+    min-height: 100px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: white;
+}
+
+.help-text {
+    display: block;
+    margin-top: 4px;
+    color: #666;
+    font-size: 0.8em;
+}
+
+
+.select-holder {
+    display: inline-block;
+    position: absolute;
+    width: 85px;
+    height: 35px;
+    padding-left: 20px;
+}
+
+.time-select {
+    position: absolute;
+    padding: 25px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    color: #003DA5;
+    background: white;
+    z-index: 100;
+}
+
+.time-select option {
+    padding: 4px 6px;
+    font-size: 16px;
+}
 
 .report-btn {
     padding: 0.5rem 1rem;
@@ -344,6 +391,7 @@ body {
     cursor: pointer;
     width: 100%;
 }
+
 .edit-dialog-overlay {
     position: fixed;
     top: 0;
@@ -410,6 +458,7 @@ body {
     border-radius: 4px;
     cursor: pointer;
 }
+
 .header {
     background-color: var(--primary-color);
     color: white;
@@ -467,8 +516,10 @@ body {
     color: #e5e7eb;
     font-size: 0.9rem;
 }
+
 .login-container .school-logo {
-    height: 300px; /* Adjust this value to make the login logo bigger */
+    height: 300px;
+    /* Adjust this value to make the login logo bigger */
     width: auto;
     margin-bottom: 1rem;
 }
@@ -477,6 +528,7 @@ body {
     height: 50px;
     width: auto;
 }
+
 .back-btn {
     position: absolute;
     top: 20px;
@@ -486,7 +538,7 @@ body {
     color: var(--primary-color);
     text-decoration: none;
     border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s;
 }
 

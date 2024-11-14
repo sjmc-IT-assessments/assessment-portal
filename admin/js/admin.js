@@ -53,6 +53,7 @@ class AdminPortal {
         console.log('Starting AdminPortal initialization');
         this.firebaseConfig = firebaseConfig;
         this.passwordGenerator = new PasswordGenerator();
+        this.initializeGoogleCalendar().catch(console.error);
 
         try {
             if (!firebase.apps.length) {
@@ -224,6 +225,8 @@ class AdminPortal {
             });
         }
         document.getElementById('manageUsersBtn')?.addEventListener('click', () => this.manageUsers());
+        this.setupEventListeners();
+        this.setupTimeSelect();
     }
 
     async handleLogin() {
@@ -317,16 +320,18 @@ class AdminPortal {
     }
 
     getExamFormData() {
+        const date = document.getElementById('scheduledDate').value;
+        const time = document.getElementById('scheduledTime').value;
+        const scheduledDateTime = `${date}T${time}`;
         const formData = {
             grade: document.getElementById('grade')?.value,
             subject: document.getElementById('subject')?.value,
             type: document.getElementById('assessmentType')?.value,
             url: this.formatDriveUrl(document.getElementById('driveUrl')?.value || ''),
-            scheduledDate: document.getElementById('scheduledDate')?.value,
+            scheduledDate: scheduledDateTime,
             password: document.getElementById('password')?.value,
             date: new Date().toISOString()
         };
-
         // Validate the data
         console.log('Collected form data:', formData);
 
@@ -345,6 +350,24 @@ class AdminPortal {
     formatDriveUrl(url) {
         const fileId = url.match(/\/d\/(.*?)(\/|$)/)?.[1];
         return fileId ? `https://drive.google.com/file/d/${fileId}/preview` : url;
+    }
+    setupTimeSelect() {
+        const timeSelect = document.getElementById('scheduledTime');
+        if (timeSelect) {
+            timeSelect.addEventListener('mousedown', function () {
+                if (this.options.length > 6) {
+                    this.size = 6;
+                }
+            });
+
+            timeSelect.addEventListener('change', function () {
+                this.size = 0;
+            });
+
+            timeSelect.addEventListener('blur', function () {
+                this.size = 0;
+            });
+        }
     }
 
     async saveExam(examData) {
@@ -374,8 +397,22 @@ class AdminPortal {
             });
             alert(`Error saving assessment: ${error.message}`);
         }
-    }
+        const docRef = await this.db.collection('exams').add({
+            ...examData,
+            createdBy: this.auth.currentUser.email,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        await this.createCalendarReminder(examData);
 
+        // Show success message to user
+        alert('Assessment saved and calendar reminder created successfully!');
+
+        return docRef;
+    } catch(error) {
+        console.error('Error saving exam:', error);
+        alert('Error: ' + error.message);
+        throw error;
+    }
     async loadExams() {
         const examsList = document.getElementById('examList');
         if (!examsList) return;
@@ -600,6 +637,74 @@ class AdminPortal {
         } catch (error) {
             console.error('Error loading assessment for edit:', error);
             alert('Error loading assessment: ' + error.message);
+        }
+    }
+    async initializeGoogleCalendar() {
+        try {
+            await new Promise((resolve, reject) => {
+                gapi.load('client:auth2', resolve);
+            });
+
+            await gapi.client.init({
+                apiKey: calendarConfig.apiKey,
+                clientId: calendarConfig.clientId,
+                scope: calendarConfig.scopes.join(' ')
+            });
+
+            console.log('Google Calendar API initialized successfully');
+        } catch (error) {
+            console.error('Error initializing Google Calendar:', error);
+            throw error;
+        }
+    }
+    async createCalendarReminder(examData) {
+        try {
+            if (!gapi.auth2.getAuthInstance().isSignedIn.get()) {
+                await gapi.auth2.getAuthInstance().signIn();
+            }
+    
+            const examDate = new Date(examData.scheduledDate);
+            const reminderTime = new Date(examDate.getTime() - 20 * 60000);
+    
+            // Basic attendees list - just you and the creating teacher
+            const attendees = [
+                { email: 'acoetzee@maristsj.co.za' },  // IT Admin (you)
+                { email: this.auth.currentUser.email }  // Teacher who created it
+            ];
+    
+            const event = {
+                summary: `Kiosk Setup - Grade ${examData.grade} ${examData.subject}`,
+                description: `Prepare devices for ${examData.subject} assessment.\nPassword: ${examData.password}`,
+                start: {
+                    dateTime: reminderTime.toISOString(),
+                    timeZone: 'Africa/Johannesburg'
+                },
+                end: {
+                    dateTime: examDate.toISOString(),
+                    timeZone: 'Africa/Johannesburg'
+                },
+                attendees: [...new Set(attendees.map(a => a.email))].map(email => ({ email })), // Remove duplicates if same person
+                reminders: {
+                    useDefault: false,
+                    overrides: [
+                        { method: 'email', minutes: 30 },
+                        { method: 'popup', minutes: 20 }
+                    ]
+                },
+                visibility: 'private'
+            };
+    
+            const response = await gapi.client.calendar.events.insert({
+                calendarId: 'primary',
+                resource: event,
+                sendUpdates: 'all'
+            });
+    
+            console.log('Calendar reminder created:', response.result);
+            return response.result;
+        } catch (error) {
+            console.error('Error creating calendar reminder:', error);
+            throw error;
         }
     }
 
