@@ -32,7 +32,34 @@ class PasswordGenerator {
             'Summer', 'Autumn', 'Spring', 'Thunder', 'Lightning',
             'Crystal', 'Rainbow', 'Golden', 'Silver', 'Mystic',
             'Whisper', 'Noble', 'Royal', 'Brave', 'Swift',
-            'Bright', 'Lunar', 'Solar', 'Star', 'Cloud'
+            'Bright', 'Lunar', 'Solar', 'Star', 'Cloud',
+
+            // Science Words
+            'Quantum', 'Nucleus', 'Electron', 'Neutron', 'Proton',
+            'Molecule', 'Asteroid', 'Telescope', 'Laboratory', 'Chemical',
+            'Velocity', 'Momentum', 'Gravity', 'Magnetic', 'Atomic',
+
+            // Technology
+            'Digital', 'Cyber', 'Quantum', 'Virtual', 'Binary',
+            'Pixel', 'Neural', 'Vector', 'Matrix', 'Crypto',
+            'Quantum', 'Hologram', 'Wireless', 'Circuit', 'Android',
+
+            // Mythology
+            'Olympus', 'Poseidon', 'Mercury', 'Jupiter', 'Neptune',
+            'Hercules', 'Atlas', 'Pegasus', 'Phoenix', 'Hydra',
+            'Kraken', 'Cyclops', 'Titan', 'Oracle', 'Chimera',
+
+            // Architecture
+            'Cathedral', 'Pyramid', 'Colosseum', 'Palace', 'Castle',
+            'Citadel', 'Fortress', 'Mansion', 'Temple', 'Tower',
+            'Pavilion', 'Pantheon', 'Obelisk', 'Lighthouse', 'Bridge',
+            // Adventure Time inspired
+            'Algebraic', 'Mathematical', 'Radical', 'Wizard', 'Dungeon',
+            'Princess', 'Vampire', 'Candy', 'Ice', 'Flame',
+            'Lumpy', 'Cosmic', 'Adventure', 'Magic', 'Penguin',
+            'Prismo', 'Cosmic', 'Bubblegum', 'Marceline', 'Banana',
+            'Grass', 'Finn', 'Jake', 'Tree', 'Cosmic',
+            'Science', 'Wizard', 'Champion', 'Hero', 'Sword'
         ];
 
         this.secondWords = [
@@ -40,13 +67,75 @@ class PasswordGenerator {
             'Mountain', 'River', 'Forest', 'Meadow', 'Symphony',
             'Cookie', 'Tornado', 'Whisper', 'Blossom', 'Dance',
             'Spirit', 'Heart', 'Soul', 'Mind', 'Breeze',
-            'Phoenix', 'Dragon', 'Tiger', 'Eagle', 'Lion'
+            'Phoenix', 'Dragon', 'Tiger', 'Eagle', 'Lion',
+
+            // Exploration
+            'Wanderer', 'Explorer', 'Adventure', 'Discovery', 'Journey',
+            'Expedition', 'Voyager', 'Pioneer', 'Navigator', 'Traveler',
+            'Pathfinder', 'Discoverer', 'Surveyor', 'Nomad', 'Scout',
+
+            // Elements & Materials
+            'Platinum', 'Titanium', 'Diamond', 'Sapphire', 'Emerald',
+            'Obsidian', 'Quartz', 'Marble', 'Crystal', 'Bronze',
+            'Graphene', 'Neon', 'Carbon', 'Silicon', 'Helium',
+
+            // Time Related
+            'Infinity', 'Eternity', 'Temporal', 'Chronicle', 'Dynasty',
+            'Century', 'Millennium', 'Moment', 'Legacy', 'Heritage',
+            'Ancestry', 'Destiny', 'Future', 'Epoch', 'Era',
+
+            // Weather Phenomena
+            'Hurricane', 'Avalanche', 'Blizzard', 'Tempest', 'Monsoon',
+            'Typhoon', 'Cyclone', 'Thunder', 'Lightning', 'Tornado',
+            'Whirlwind', 'Tsunami', 'Eclipse', 'Aurora', 'Rainbow',
+
+            // Fantasy Creatures
+            'Basilisk', 'Centaur', 'Griffon', 'Manticore', 'Sphinx',
+            'Minotaur', 'Pegasus', 'Unicorn', 'Dragon', 'Phoenix',
+            'Leviathan', 'Behemoth', 'Chimera', 'Wyrm', 'Hydra',
+
+            // Abstract Concepts
+            'Serenity', 'Harmony', 'Liberty', 'Victory', 'Destiny',
+            'Mystery', 'Fortune', 'Wisdom', 'Glory', 'Honor',
+            'Courage', 'Justice', 'Freedom', 'Unity', 'Peace'
+
         ];
 
         this.foodWords = [
             'Habanero', 'Milkshake', 'Cookie', 'Pepper', 'Mango',
             'Vanilla', 'Chocolate', 'Cinnamon', 'Nutmeg', 'Wasabi',
-            'Cupcake', 'Donut', 'Pretzel', 'Smoothie', 'Biscuit'
+            'Cupcake', 'Donut', 'Pretzel', 'Smoothie', 'Biscuit',
+
+            // International Foods
+            'Sushi', 'Paella', 'Lasagna', 'Croissant', 'Tiramisu',
+            'Baklava', 'Churros', 'Gelato', 'Ramen', 'Kimchi',
+            'Falafel', 'Hummus', 'Sashimi', 'Gnocchi', 'Tempura',
+
+            // Fancy Desserts
+            'Macaron', 'Eclair', 'Ganache', 'Praline', 'Souffle',
+            'Parfait', 'Profiterole', 'Meringue', 'Gelato', 'Gateau',
+            'Truffle', 'Toffee', 'Caramel', 'Fondant', 'Mousse',
+
+            // Beverages
+            'Espresso', 'Cappuccino', 'Lemonade', 'Frappe', 'Matcha',
+            'Boba', 'Slushie', 'Mojito', 'Nectar', 'Cordial',
+            'Smoothie', 'Latte', 'Mocha', 'Juice', 'Punch',
+            //AT
+            'Sandwich', 'Bacon', 'Pancake', 'Spaghetti', 'Everything',
+            'Burrito', 'BubbleGum', 'Candy', 'IceCream', 'Cookie',
+            'Pizza', 'Taco', 'Waffle', 'Pickle', 'Burger',
+            'Noodle', 'Meatball', 'Sundae', 'Lasagna', 'PieDay',
+            'Donut', 'Popcorn', 'Pretzel', 'Sugar', 'Sweet',
+
+            // Exotic Fruits
+            'Dragonfruit', 'Passionfruit', 'Lychee', 'Guava', 'Papaya',
+            'Kumquat', 'Pomelo', 'Durian', 'Jackfruit', 'Rambutan',
+            'Mangosteen', 'Persimmon', 'Tamarind', 'Starfruit', 'Plantain',
+
+            // Herbs & Spices
+            'Lavender', 'Rosemary', 'Saffron', 'Cardamom', 'Turmeric',
+            'Oregano', 'Thyme', 'Basil', 'Sage', 'Tarragon',
+            'Ginger', 'Clove', 'Anise', 'Fennel', 'Juniper'
         ];
     }
 
