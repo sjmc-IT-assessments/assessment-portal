@@ -4,52 +4,104 @@
       "collectionGroup": "exams",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "archived", "order": "ASCENDING" },
-        { "fieldPath": "scheduledDate", "order": "DESCENDING" }
+        {
+          "fieldPath": "archived",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "scheduledDate",
+          "order": "DESCENDING"
+        }
       ]
     },
     {
       "collectionGroup": "exams",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "archived", "order": "ASCENDING" },
-        { "fieldPath": "grade", "order": "ASCENDING" },
-        { "fieldPath": "scheduledDate", "order": "DESCENDING" }
+        {
+          "fieldPath": "grade",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "scheduledDate",
+          "order": "ASCENDING"
+        }
       ]
     },
     {
       "collectionGroup": "exams",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "archived", "order": "ASCENDING" },
-        { "fieldPath": "type", "order": "ASCENDING" },
-        { "fieldPath": "scheduledDate", "order": "DESCENDING" }
+        {
+          "fieldPath": "grade",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "archived",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "scheduledDate",
+          "order": "DESCENDING"
+        }
       ]
     },
     {
       "collectionGroup": "exams",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "grade", "order": "ASCENDING" },
-        { "fieldPath": "type", "order": "ASCENDING" },
-        { "fieldPath": "archived", "order": "ASCENDING" },
-        { "fieldPath": "scheduledDate", "order": "DESCENDING" }
+        {
+          "fieldPath": "archived",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "type",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "scheduledDate",
+          "order": "DESCENDING"
+        }
       ]
     },
     {
       "collectionGroup": "exams",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "grade", "order": "ASCENDING" },
-        { "fieldPath": "scheduledDate", "order": "DESCENDING" }
+        {
+          "fieldPath": "archived",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "grade",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "type",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "scheduledDate",
+          "order": "DESCENDING"
+        }
       ]
     },
     {
       "collectionGroup": "exams",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "type", "order": "ASCENDING" },
-        { "fieldPath": "scheduledDate", "order": "DESCENDING" }
+        {
+          "fieldPath": "grade",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "archived",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "scheduledDate",
+          "order": "DESCENDING"
+        }
       ]
     }
   ],

@@ -1,6 +1,22 @@
 import firebaseConfig, { calendarConfig } from '../../assets/js/config.js';
 import { CalendarService } from './calendar-service.js';
 
+// Format date as DD/MM/YYYY
+function formatDate(date, includeTime = false) {
+    if (!(date instanceof Date)) {
+        date = new Date(date);
+    }
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+
+    if (!includeTime) {
+        return `${day}/${month}/${year}`;
+    }
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${day}/${month}/${year}, ${hours}:${minutes}`;
+}
 class PasswordGenerator {
     constructor() {
         this.firstWords = [
@@ -62,9 +78,12 @@ class AdminPortal {
             this.db = firebase.firestore();
             console.log('Firebase initialized successfully');
 
+            // Move these after Firebase initialization
             this.initializeAuth();
             this.setupEventListeners();
             this.initializeCalendar();
+            this.setupAutoArchiving(); // Move this here, after Firebase is initialized
+
         } catch (error) {
             console.error('Initialization error:', error);
             alert('Error initializing application: ' + error.message);
@@ -229,7 +248,13 @@ class AdminPortal {
             alert('Logout failed: ' + error.message);
         }
     }
-
+    setupAutoArchiving() {
+        // Run immediately
+        this.checkAndArchiveOldExams();
+    
+        // Then run every hour
+        setInterval(() => this.checkAndArchiveOldExams(), 60 * 60 * 1000);
+    }
     async saveExam(examData) {
         if (this.isSubmitting) {
             console.log('Already submitting, preventing duplicate submission');
@@ -396,13 +421,11 @@ class AdminPortal {
             usersList.innerHTML = 'Error loading teachers';
         }
     }
-
     async loadExams(filter = false) {
         const examsList = document.getElementById('examList');
         if (!examsList) return;
 
         try {
-            // Start with base collection reference
             let query = this.db.collection('exams');
 
             if (filter) {
@@ -410,42 +433,39 @@ class AdminPortal {
                 const typeFilter = document.getElementById('filterType').value;
                 const archiveFilter = document.getElementById('filterArchived').value;
 
-                // Build query based on filters
-                let hasFilter = false;
+                // First handle archive status
+                if (archiveFilter === 'active') {
+                    // For active, we want both false and non-existent archived fields
+                    query = query.where('archived', 'in', [false, null]);
+                } else if (archiveFilter === 'archived') {
+                    query = query.where('archived', '==', true);
+                }
+                // 'all' doesn't need any archived filter
 
+                // Add other filters
                 if (gradeFilter) {
                     query = query.where('grade', '==', Number(gradeFilter));
-                    hasFilter = true;
                 }
 
                 if (typeFilter) {
                     query = query.where('type', '==', typeFilter);
-                    hasFilter = true;
-                }
-
-                // Only apply archived filter if not "all"
-                if (archiveFilter !== 'all') {
-                    query = query.where('archived', '==', archiveFilter === 'archived');
-                    hasFilter = true;
                 }
             } else {
-                // Default view shows only active assessments
-                query = query.where('archived', '==', false);
+                // Default view shows active and unarchived assessments
+                query = query.where('archived', 'in', [false, null]);
             }
 
-            // Always add orderBy last
+            // Always order by date
             query = query.orderBy('scheduledDate', 'desc');
 
-            console.log('Executing query...'); // Debug log
             const snapshot = await query.get();
-            console.log('Query results:', snapshot.size); // Debug log
 
             if (snapshot.empty) {
                 examsList.innerHTML = '<p>No assessments found.</p>';
                 return;
             }
 
-            examsList.innerHTML = ''; // Clear existing content
+            examsList.innerHTML = '';
 
             snapshot.forEach(doc => {
                 const exam = doc.data();
@@ -456,9 +476,9 @@ class AdminPortal {
                         <strong>Grade ${exam.grade} - ${exam.subject}</strong>
                         ${exam.archived ? '<span class="archived-badge">Archived</span>' : ''}<br>
                         Password: ${exam.password}<br>
-                        Scheduled: ${new Date(exam.scheduledDate).toLocaleString()}<br>
-                        Added: ${new Date(exam.createdAt?.toDate()).toLocaleDateString()}
-                        ${exam.archived ? `<br>Archived: ${new Date(exam.archivedAt?.toDate()).toLocaleDateString()}` : ''}
+                        Scheduled: ${formatDate(exam.scheduledDate, true)}<br>
+                        Added: ${formatDate(exam.createdAt?.toDate())}<br>
+                        ${exam.archived ? `Archived: ${formatDate(exam.archivedAt?.toDate())}` : ''}
                     </div>
                     <div class="exam-actions">
                         <button onclick="adminPortal.copyPassword('${exam.password}')" class="copy-button">
@@ -482,6 +502,7 @@ class AdminPortal {
                 `;
                 examsList.appendChild(item);
             });
+
         } catch (error) {
             console.error('Error loading exams:', error);
             examsList.innerHTML = `<p>Error loading exams: ${error.message}</p>`;
@@ -836,6 +857,84 @@ class AdminPortal {
         } catch (error) {
             console.error('Error archiving assessments:', error);
             alert('Error archiving assessments: ' + error.message);
+        }
+
+    }
+
+    async fixMissingArchivedStatus() {
+        if (!confirm('This will update all exams without an archived status to set them as active. Continue?')) {
+            return;
+        }
+
+        try {
+            // Get ALL exams
+            const snapshot = await this.db.collection('exams').get();
+
+            if (snapshot.empty) {
+                alert('No exams found');
+                return;
+            }
+
+            const batch = this.db.batch();
+            let count = 0;
+
+            snapshot.forEach(doc => {
+                const examData = doc.data();
+                // Check if archived field exists at all
+                if (!examData.hasOwnProperty('archived')) {
+                    batch.update(doc.ref, {
+                        archived: false // Set them as active by default
+                    });
+                    count++;
+                }
+            });
+
+            if (count === 0) {
+                alert('No exams found needing update');
+                return;
+            }
+
+            await batch.commit();
+            alert(`Successfully updated ${count} exams`);
+            this.loadExams(true);
+        } catch (error) {
+            console.error('Error fixing archived status:', error);
+            alert('Error updating exams: ' + error.message);
+        }
+    }
+    async checkAndArchiveOldExams() {
+        try {
+            const now = new Date();
+            // Get exams that are either not archived or have no archive status
+            const snapshot = await this.db.collection('exams')
+                .where('archived', 'in', [false, null])
+                .get();
+
+            const batch = this.db.batch();
+            let count = 0;
+
+            snapshot.forEach(doc => {
+                const exam = doc.data();
+                const examDate = new Date(exam.scheduledDate);
+                const hoursSinceExam = (now - examDate) / (1000 * 60 * 60);
+
+                if (hoursSinceExam > 4) { // Archive if more than 4 hours old
+                    batch.update(doc.ref, {
+                        archived: true,
+                        archivedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        archivedBy: 'system',
+                        archiveReason: 'auto-archived after 4 hours'
+                    });
+                    count++;
+                }
+            });
+
+            if (count > 0) {
+                await batch.commit();
+                console.log(`Auto-archived ${count} old exams`);
+            }
+        } catch (error) {
+            console.error('Error in auto-archiving:', error);
         }
     }
 
