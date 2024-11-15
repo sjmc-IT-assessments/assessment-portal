@@ -568,3 +568,49 @@ body {
 .reset-filter-btn:hover {
     background-color: #e8eaed;
 }
+
+.archive-btn {
+    background-color: #6c757d;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.restore-button {
+    background-color: #28a745;
+    color: white;
+    padding: 4px 8px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.archive-button {
+    background-color: #6c757d;
+    color: white;
+    padding: 4px 8px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.archive-btn:hover {
+    background-color: #5a6268;
+}
+
+.archived-item {
+    opacity: 0.8;
+    background-color: #f8f9fa;
+}
+
+.archived-badge {
+    background-color: #6c757d;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    margin-left: 8px;
+}

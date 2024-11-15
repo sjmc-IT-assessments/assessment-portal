@@ -177,6 +177,10 @@ class AdminPortal {
             });
             filterControls.appendChild(resetFilterBtn);
         }
+        const archiveAllBtn = document.getElementById('archiveAll');
+        if (archiveAllBtn) {
+            archiveAllBtn.addEventListener('click', () => this.archiveAll());
+        }
     }
 
     async handleLogin() {
@@ -397,54 +401,64 @@ class AdminPortal {
         const examsList = document.getElementById('examList');
         if (!examsList) return;
 
-        examsList.innerHTML = '<h2>Current Assessments</h2>';
-
         try {
-            let query = this.db.collection('exams')
-                .orderBy('scheduledDate', 'desc');
+            // Start with base collection reference
+            let query = this.db.collection('exams');
 
-            // Apply filters if requested
             if (filter) {
                 const gradeFilter = document.getElementById('filterGrade').value;
                 const typeFilter = document.getElementById('filterType').value;
+                const archiveFilter = document.getElementById('filterArchived').value;
 
-                // Create a new query with filters
+                // Build query based on filters
+                let hasFilter = false;
+
                 if (gradeFilter) {
-                    // Convert grade to number since it's stored as number in Firestore
-                    query = this.db.collection('exams')
-                        .where('grade', '==', Number(gradeFilter));
-                }
-                if (typeFilter) {
-                    if (gradeFilter) {
-                        query = query.where('type', '==', typeFilter);
-                    } else {
-                        query = this.db.collection('exams')
-                            .where('type', '==', typeFilter);
-                    }
+                    query = query.where('grade', '==', Number(gradeFilter));
+                    hasFilter = true;
                 }
 
-                // Add the orderBy after the filters
-                query = query.orderBy('scheduledDate', 'desc');
+                if (typeFilter) {
+                    query = query.where('type', '==', typeFilter);
+                    hasFilter = true;
+                }
+
+                // Only apply archived filter if not "all"
+                if (archiveFilter !== 'all') {
+                    query = query.where('archived', '==', archiveFilter === 'archived');
+                    hasFilter = true;
+                }
+            } else {
+                // Default view shows only active assessments
+                query = query.where('archived', '==', false);
             }
+
+            // Always add orderBy last
+            query = query.orderBy('scheduledDate', 'desc');
 
             console.log('Executing query...'); // Debug log
             const snapshot = await query.get();
             console.log('Query results:', snapshot.size); // Debug log
 
             if (snapshot.empty) {
-                examsList.innerHTML += '<p>No assessments found.</p>';
+                examsList.innerHTML = '<p>No assessments found.</p>';
                 return;
             }
+
+            examsList.innerHTML = ''; // Clear existing content
+
             snapshot.forEach(doc => {
                 const exam = doc.data();
                 const item = document.createElement('div');
-                item.className = 'exam-item';
+                item.className = 'exam-item' + (exam.archived ? ' archived-item' : '');
                 item.innerHTML = `
                     <div>
-                        <strong>Grade ${exam.grade} - ${exam.subject}</strong><br>
+                        <strong>Grade ${exam.grade} - ${exam.subject}</strong>
+                        ${exam.archived ? '<span class="archived-badge">Archived</span>' : ''}<br>
                         Password: ${exam.password}<br>
                         Scheduled: ${new Date(exam.scheduledDate).toLocaleString()}<br>
                         Added: ${new Date(exam.createdAt?.toDate()).toLocaleDateString()}
+                        ${exam.archived ? `<br>Archived: ${new Date(exam.archivedAt?.toDate()).toLocaleDateString()}` : ''}
                     </div>
                     <div class="exam-actions">
                         <button onclick="adminPortal.copyPassword('${exam.password}')" class="copy-button">
@@ -453,6 +467,14 @@ class AdminPortal {
                         <button onclick="adminPortal.editExam('${doc.id}')" class="edit-button">
                             Edit Time
                         </button>
+                        ${exam.archived ?
+                        `<button onclick="adminPortal.restoreExam('${doc.id}')" class="restore-button">
+                                Restore
+                            </button>` :
+                        `<button onclick="adminPortal.archiveSingleExam('${doc.id}')" class="archive-button">
+                                Archive
+                            </button>`
+                    }
                         <button onclick="adminPortal.deleteExam('${doc.id}')" class="delete-button">
                             Delete
                         </button>
@@ -462,11 +484,72 @@ class AdminPortal {
             });
         } catch (error) {
             console.error('Error loading exams:', error);
-            examsList.innerHTML += `<p>Error loading exams: ${error.message}</p>`;
+            examsList.innerHTML = `<p>Error loading exams: ${error.message}</p>`;
         }
     }
 
+    async archiveAll() {
+        if (!confirm('Are you sure you want to archive all currently visible assessments?')) {
+            return;
+        }
 
+        try {
+            // Get current visible assessments
+            const snapshot = await this.db.collection('exams')
+                .where('archived', '==', false)
+                .get();
+
+            if (snapshot.empty) {
+                alert('No assessments to archive');
+                return;
+            }
+
+            // Use batched write for better performance
+            const batch = this.db.batch();
+
+            snapshot.docs.forEach(doc => {
+                batch.update(doc.ref, {
+                    archived: true,
+                    archivedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    archivedBy: this.auth.currentUser.email
+                });
+            });
+
+            await batch.commit();
+            alert('Successfully archived all assessments');
+            this.loadExams(true); // Refresh the list
+        } catch (error) {
+            console.error('Error archiving all assessments:', error);
+            alert('Error archiving assessments: ' + error.message);
+        }
+    }
+    async restoreExam(examId) {
+        try {
+            await this.db.collection('exams').doc(examId).update({
+                archived: false,
+                restoredAt: firebase.firestore.FieldValue.serverTimestamp(),
+                restoredBy: this.auth.currentUser.email
+            });
+            this.loadExams(true);
+        } catch (error) {
+            console.error('Error restoring exam:', error);
+            alert('Error restoring exam: ' + error.message);
+        }
+    }
+
+    async archiveSingleExam(examId) {
+        try {
+            await this.db.collection('exams').doc(examId).update({
+                archived: true,
+                archivedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                archivedBy: this.auth.currentUser.email
+            });
+            this.loadExams(true);
+        } catch (error) {
+            console.error('Error archiving exam:', error);
+            alert('Error archiving exam: ' + error.message);
+        }
+    }
     generatePassword() {
         const passwords = this.passwordGenerator.generateOptions(5);
 
@@ -723,6 +806,39 @@ class AdminPortal {
             alert('Error loading assessment: ' + error.message);
         }
     }
+    async archiveCurrentAssessments() {
+        if (!confirm('Are you sure you want to archive all currently displayed assessments? They will be hidden from students but can be restored through filters.')) {
+            return;
+        }
+
+        try {
+            const batch = this.db.batch();
+            const snapshot = await this.db.collection('exams')
+                .where('archived', '==', false)
+                .get();
+
+            if (snapshot.empty) {
+                alert('No assessments to archive');
+                return;
+            }
+
+            snapshot.docs.forEach(doc => {
+                batch.update(doc.ref, {
+                    archived: true,
+                    archivedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    archivedBy: this.auth.currentUser.email
+                });
+            });
+
+            await batch.commit();
+            alert('Assessments archived successfully');
+            this.loadExams(false);
+        } catch (error) {
+            console.error('Error archiving assessments:', error);
+            alert('Error archiving assessments: ' + error.message);
+        }
+    }
+
 }
 
 // Initialize admin portal when document is loaded
