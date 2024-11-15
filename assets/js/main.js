@@ -59,63 +59,78 @@ class AssessmentPortal {
             return;
         }
         container.innerHTML = '<div class="loading">Loading assessments...</div>';
+
         try {
+            // Get current time
             const now = new Date();
-            console.log('Current time:', now);
+            console.log('Current time:', now.toISOString());
 
             console.log('Querying Firestore for grade:', grade);
             const query = this.db.collection('exams')
                 .where('grade', '==', Number(grade))
                 .where('archived', 'in', [false, null])
-                .orderBy('scheduledDate', 'desc');
+                .orderBy('scheduledDate', 'asc');;
 
             console.log('Executing query...');
             const snapshot = await query.get();
             console.log('Query complete. Found documents:', snapshot.size);
 
-            if (snapshot.empty) {
-                console.log('No assessments found for grade', grade);
-                container.innerHTML = '<div class="no-assessments">No scheduled assessments for this grade.</div>';
-                return;
-            }
             snapshot.forEach(doc => {
                 const data = doc.data();
-                console.log('Found assessment:', {
+                console.log('Found exam:', {
                     id: doc.id,
+                    grade: data.grade,
                     subject: data.subject,
                     scheduledDate: data.scheduledDate,
-                    date: new Date(data.scheduledDate)
+                    archived: data.archived
                 });
             });
 
+
+            if (snapshot.empty) {
+                container.innerHTML = '<div class="no-assessments">No scheduled assessments for this grade.</div>';
+                return;
+            }
+
             container.innerHTML = '';
             const assessments = [];
+
+            // Process and filter assessments
             snapshot.forEach(doc => {
                 const assessment = doc.data();
                 const assessmentDate = new Date(assessment.scheduledDate);
-                if (assessmentDate >= now) {
+
+                // Calculate time difference in hours
+                const timeDiff = (assessmentDate - now) / (1000 * 60 * 60);
+
+                // Show assessment if it's scheduled within the next 24 hours
+                // or was scheduled within the last 4 hours
+                if (timeDiff >= -4 && timeDiff <= 24) {
                     assessments.push({
                         id: doc.id,
                         ...assessment,
                         date: assessmentDate
                     });
+                    console.log('Including assessment:', assessment.subject, 'Time diff:', timeDiff);
                 } else {
-                    console.log('Skipping past assessment:', assessment.subject, assessmentDate);
+                    console.log('Excluding assessment:', assessment.subject, 'Time diff:', timeDiff);
                 }
             });
             assessments.sort((a, b) => a.date - b.date);
-            console.log('Filtered assessments:', assessments);
+            console.log('Final filtered assessments:', assessments.length);
+
             if (assessments.length === 0) {
-                container.innerHTML = '<div class="no-assessments">No current or upcoming assessments for this grade.</div>';
+                container.innerHTML = '<div class="no-assessments">No current assessments available for this grade.</div>';
             } else {
                 assessments.forEach(assessment => {
                     const card = this.createAssessmentCard(assessment.id, assessment);
                     container.appendChild(card);
                 });
             }
+
         } catch (error) {
             console.error('Error loading assessments:', error);
-            container.innerHTML = '<div class="error">Error loading assessments. Please try again.</div>';
+            container.innerHTML = `<div class="error">Error loading assessments: ${error.message}</div>`;
         }
     }
 
@@ -123,42 +138,51 @@ class AssessmentPortal {
         const card = document.createElement('div');
         card.className = 'assessment-card';
 
-        const assessmentDate = new Date(assessment.scheduledDate);
+        const date = new Date(assessment.scheduledDate);
         const now = new Date();
-        const isToday = assessmentDate.toDateString() === now.toDateString();
-        const isFuture = assessmentDate > now;
-        const isAvailable = assessmentDate <= now; // Available if scheduled time has passed
+        const timeDiff = (date - now) / (1000 * 60);
+
+        // Assessment is available 15 minutes before scheduled time
+        const isAvailable = timeDiff <= 15 && timeDiff >= -240;
+        const isToday = date.toDateString() === now.toDateString();
+        const isFuture = date > now;
 
         let statusClass = '';
         let statusText = '';
+        let buttonText = '';
 
-        if (isToday) {
+        if (isAvailable) {
+            statusClass = 'status-available';
+            statusText = 'Available Now';
+            buttonText = 'Start Assessment';
+        } else if (isToday) {
             statusClass = 'status-today';
             statusText = 'Today';
+            buttonText = 'Not Yet Available';
         } else if (isFuture) {
             statusClass = 'status-upcoming';
             statusText = 'Upcoming';
+            buttonText = 'Not Yet Available';
         }
 
-        const formattedDate = this.formatDate(assessmentDate, true);
+        const formattedDate = this.formatDate(date, true);
 
         card.innerHTML = `
-        <div class="assessment-header">
-            <h3>${assessment.subject}</h3>
-            <span class="status-badge ${statusClass}">${statusText}</span>
-        </div>
-        <p class="assessment-type">${assessment.type}</p>
-        <p class="assessment-time">${formattedDate}</p>
-        <button onclick="portal.openAssessment('${id}')" 
-                class="start-btn ${!isAvailable ? 'disabled' : ''}"
-                ${!isAvailable ? 'disabled' : ''}>
-            ${isAvailable ? 'Start Assessment' : 'Not Yet Available'}
-        </button>
-    `;
+            <div class="assessment-header">
+                <h3>${assessment.subject}</h3>
+                <span class="status-badge ${statusClass}">${statusText}</span>
+            </div>
+            <p class="assessment-type">${assessment.type}</p>
+            <p class="assessment-time">${formattedDate}</p>
+            <button onclick="portal.openAssessment('${id}')" 
+                    class="start-btn ${!isAvailable ? 'disabled' : ''}"
+                    ${!isAvailable ? 'disabled' : ''}>
+                ${buttonText}
+            </button>
+        `;
 
         return card;
     }
-
     openAssessment(assessmentId) {
         this.currentAssessment = assessmentId;
         document.getElementById('modalOverlay').style.display = 'flex';
@@ -198,109 +222,6 @@ class AssessmentPortal {
             console.error('Error verifying password:', error);
             alert('Error verifying password. Please try again.');
         }
-    }
-    async loadAssessments(grade) {
-        console.log('Loading assessments for grade:', grade);
-        const container = document.querySelector('.assessments-grid');
-        if (!container) {
-            console.error('Container not found!');
-            return;
-        }
-
-
-        container.innerHTML = '<div class="loading">Loading assessments...</div>';
-        try {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-
-            console.log('Querying Firestore for grade:', grade);
-            const query = this.db.collection('exams')
-                .where('grade', '==', Number(grade))
-                .where('archived', 'in', [false, null]) // Only show active assessments
-                .orderBy('scheduledDate', 'desc');
-
-            console.log('Executing query...');
-            const snapshot = await query.get();
-            console.log('Query complete. Found documents:', snapshot.size);
-
-            if (snapshot.empty) {
-                console.log('No assessments found for grade', grade);
-                container.innerHTML = '<div class="no-assessments">No scheduled assessments for this grade.</div>';
-                return;
-            }
-
-            container.innerHTML = '';
-
-            const assessments = [];
-            snapshot.forEach(doc => {
-                const assessment = doc.data();
-                const assessmentDate = new Date(assessment.scheduledDate);
-                assessmentDate.setHours(0, 0, 0, 0);
-                if (assessmentDate >= today) {
-                    assessments.push({
-                        id: doc.id,
-                        ...assessment,
-                        date: assessmentDate
-                    });
-                }
-            });
-            // Sort by date (closest first)
-            assessments.sort((a, b) => a.date - b.date);
-
-            // Create cards for filtered assessments
-            if (assessments.length === 0) {
-                container.innerHTML = '<div class="no-assessments">No current or upcoming assessments for this grade.</div>';
-            } else {
-                assessments.forEach(assessment => {
-                    const card = this.createAssessmentCard(assessment.id, assessment);
-                    container.appendChild(card);
-                });
-            }
-        } catch (error) {
-            console.error('Error loading assessments:', error);
-            container.innerHTML = `<div class="error">Error loading assessments: ${error.message}</div>`;
-        }
-    }
-
-    createAssessmentCard(id, assessment) {
-        const card = document.createElement('div');
-        card.className = 'assessment-card';
-
-        const date = new Date(assessment.scheduledDate);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        const isToday = date.toDateString() === today.toDateString();
-        const isFuture = date > today;
-
-        let statusClass = '';
-        let statusText = '';
-
-        if (isToday) {
-            statusClass = 'status-today';
-            statusText = 'Today';
-        } else if (isFuture) {
-            statusClass = 'status-upcoming';
-            statusText = 'Upcoming';
-        }
-
-        const formattedDate = this.formatDate(date, true);
-
-        card.innerHTML = `
-        <div class="assessment-header">
-            <h3>${assessment.subject}</h3>
-            <span class="status-badge ${statusClass}">${statusText}</span>
-        </div>
-        <p class="assessment-type">${assessment.type}</p>
-        <p class="assessment-time">${formattedDate}</p>
-        <button onclick="portal.openAssessment('${id}')" 
-                class="start-btn ${!isToday ? 'disabled' : ''}"
-                ${!isToday ? 'disabled' : ''}>
-            ${isToday ? 'Start Assessment' : 'Not Yet Available'}
-        </button>
-    `;
-
-        return card;
     }
 }
 

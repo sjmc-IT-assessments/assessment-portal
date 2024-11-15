@@ -1,21 +1,29 @@
 import firebaseConfig, { calendarConfig } from '../../assets/js/config.js';
 import { CalendarService } from './calendar-service.js';
 
-// Format date as DD/MM/YYYY
+// Format date as DD/MM/YYYY with optional time in South African timezone
 function formatDate(date, includeTime = false) {
     if (!(date instanceof Date)) {
         date = new Date(date);
     }
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const year = date.getFullYear();
 
-    if (!includeTime) {
-        return `${day}/${month}/${year}`;
+    // Create formatter with South African timezone
+    const options = {
+        timeZone: 'Africa/Johannesburg',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    };
+
+    // Add time options if needed
+    if (includeTime) {
+        options.hour = '2-digit';
+        options.minute = '2-digit';
+        options.hour12 = false;
     }
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    return `${day}/${month}/${year}, ${hours}:${minutes}`;
+
+    // Format the date using the locale formatter
+    return new Intl.DateTimeFormat('en-ZA', options).format(date);
 }
 class PasswordGenerator {
     constructor() {
@@ -69,7 +77,7 @@ class AdminPortal {
         this.passwordGenerator = new PasswordGenerator();
         this.isSubmitting = false;
         this.calendarService = new CalendarService(calendarConfig);
-
+        this.fixExistingExams();
         try {
             if (!firebase.apps.length) {
                 firebase.initializeApp(firebaseConfig);
@@ -251,7 +259,7 @@ class AdminPortal {
     setupAutoArchiving() {
         // Run immediately
         this.checkAndArchiveOldExams();
-    
+
         // Then run every hour
         setInterval(() => this.checkAndArchiveOldExams(), 60 * 60 * 1000);
     }
@@ -456,7 +464,7 @@ class AdminPortal {
             }
 
             // Always order by date
-            query = query.orderBy('scheduledDate', 'desc');
+            query = query.orderBy('scheduledDate', 'asc');
 
             const snapshot = await query.get();
 
@@ -608,28 +616,40 @@ class AdminPortal {
         const date = document.getElementById('scheduledDate').value;
         const time = document.getElementById('scheduledTime').value;
         const scheduledDateTime = `${date}T${time}`;
+
+        const localDate = new Date(scheduledDateTime);
+        console.log('Time debug:', {
+            inputDate: date,
+            inputTime: time,
+            scheduledDateTime,
+            finalDate: localDate.toISOString()
+        });
         const formData = {
-            grade: document.getElementById('grade')?.value,
+            grade: Number(document.getElementById('grade')?.value),
             subject: document.getElementById('subject')?.value,
             type: document.getElementById('assessmentType')?.value,
             url: this.formatDriveUrl(document.getElementById('driveUrl')?.value || ''),
-            scheduledDate: scheduledDateTime,
+            scheduledDate: localDate.toISOString(), // Store as is
             password: document.getElementById('password')?.value,
+            archived: false,
             date: new Date().toISOString()
         };
 
-        console.log('Collected form data:', formData);
+        console.log('Form data:', formData);
 
         const missingFields = Object.entries(formData)
-            .filter(([key, value]) => !value)
+            .filter(([key, value]) => {
+                if (typeof value === 'boolean') return false;
+                return !value;
+            })
             .map(([key]) => key);
 
         if (missingFields.length > 0) {
             throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
         }
-
         return formData;
     }
+
 
     formatDriveUrl(url) {
         const fileId = url.match(/\/d\/(.*?)(\/|$)/)?.[1];
@@ -760,56 +780,59 @@ class AdminPortal {
 
     async editExam(examId) {
         try {
-            console.log('Starting edit for exam:', examId);
             const doc = await this.db.collection('exams').doc(examId).get();
             if (!doc.exists) {
                 alert('Assessment not found');
                 return;
             }
 
+
             const exam = doc.data();
-            console.log('Current exam data:', exam);
+            const scheduledDate = new Date(exam.scheduledDate);
+
+            const formattedDateTime = scheduledDate.toISOString().slice(0, 16);
+            console.log('Edit time debug:', {
+                original: exam.scheduledDate,
+                scheduledDate: scheduledDate,
+                formatted: formattedDateTime
+            });
 
             const dialog = document.createElement('div');
             dialog.className = 'edit-dialog-overlay';
-
-            const scheduledDate = new Date(exam.scheduledDate);
-            const formattedDate = scheduledDate.toISOString().slice(0, 16);
-
             dialog.innerHTML = `
-                <div class="edit-dialog">
-                    <h3>Edit Assessment</h3>
-                    <form id="editForm" class="edit-form">
-                        <div class="form-group">
-                            <label>Grade ${exam.grade} - ${exam.subject}</label>
-                        </div>
-                        <div class="form-group">
-                            <label for="editScheduledDate">Scheduled Date & Time</label>
-                            <input type="datetime-local" 
-                                id="editScheduledDate" 
-                                value="${formattedDate}" 
-                                required>
-                        </div>
-                        <div class="button-group">
-                            <button type="submit" class="save-btn">Save Changes</button>
-                            <button type="button" class="cancel-btn" onclick="this.closest('.edit-dialog-overlay').remove()">
-                                Cancel
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            `;
+            <div class="edit-dialog">
+                <h3>Edit Assessment</h3>
+                <form id="editForm" class="edit-form">
+                    <div class="form-group">
+                        <label>Grade ${exam.grade} - ${exam.subject}</label>
+                    </div>
+                    <div class="form-group">
+                        <label for="editScheduledDate">Scheduled Date & Time</label>
+                        <input type="datetime-local" 
+                            id="editScheduledDate" 
+                            value="${formattedDateTime}" 
+                            required>
+                    </div>
+                    <div class="button-group">
+                        <button type="submit" class="save-btn">Save Changes</button>
+                        <button type="button" class="cancel-btn" onclick="this.closest('.edit-dialog-overlay').remove()">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        `;
 
             document.body.appendChild(dialog);
 
             document.getElementById('editForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const newScheduledDate = document.getElementById('editScheduledDate').value;
-                console.log('Updating to new date:', newScheduledDate);
+                const newScheduledDate = document.getElementById('editScheduledDate').value + ':00+02:00';
+                const newDate = new Date(newScheduledDate);
 
                 try {
                     await this.db.collection('exams').doc(examId).update({
-                        scheduledDate: newScheduledDate
+                        scheduledDate: newDate.toISOString()
                     });
 
                     console.log('Update successful');
@@ -935,6 +958,33 @@ class AdminPortal {
             }
         } catch (error) {
             console.error('Error in auto-archiving:', error);
+        }
+    }
+    async fixExistingExams() {
+        try {
+            const snapshot = await this.db.collection('exams').get();
+            const batch = this.db.batch();
+            let count = 0;
+
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                if (!data.hasOwnProperty('archived')) {
+                    batch.update(doc.ref, {
+                        archived: false
+                    });
+                    count++;
+                }
+            });
+
+            if (count > 0) {
+                await batch.commit();
+                console.log(`Updated ${count} exams with missing archived status`);
+                this.loadExams(true);
+            } else {
+                console.log('No exams needed updating');
+            }
+        } catch (error) {
+            console.error('Error fixing exams:', error);
         }
     }
 
