@@ -1,5 +1,8 @@
 import { firebaseConfig, googleConfig } from './config.js';
-
+import { initClient, listAnnouncements } from './auth.js';
+document.addEventListener('DOMContentLoaded', () => {
+    initClient();
+});
 class AssessmentPortal {
     constructor() {
         // Initialize Firebase
@@ -11,77 +14,14 @@ class AssessmentPortal {
         this.currentGrade = '8';
         this.currentAssessment = null;
 
-        // Initialize everything after DOM is loaded
-        document.addEventListener('DOMContentLoaded', () => {
-            this.initializeAnnouncements();
-            this.setupEventListeners();
-            this.loadAssessments('8');
-        });
+        this.setupEventListeners();
+        this.loadAssessments('8');
+        this.initializeAnnouncements();
     }
-
-    async initializeAnnouncements() {
-        try {
-            await new Promise((resolve, reject) => {
-                gapi.load('client:auth2', { callback: resolve, onerror: reject });
-            });
-
-            await gapi.client.init({
-                apiKey: googleConfig.apiKey,
-                clientId: googleConfig.clientId,
-                scope: googleConfig.classroom.scopes.join(' '),
-                discoveryDocs: ['https://classroom.googleapis.com/$discovery/rest']
-            });
-
-            // Initial fetch
-            await this.fetchAnnouncements();
-
-            // Set up periodic refresh
-            setInterval(() => this.fetchAnnouncements(), 5 * 60 * 1000);
-
-        } catch (error) {
+    initializeAnnouncements() {
+        try { listAnnouncements(); } catch (error) {
             console.error('Failed to initialize announcements:', error);
         }
-    }
-
-    async fetchAnnouncements() {
-        try {
-            const response = await gapi.client.classroom.courses.announcements.list({
-                courseId: googleConfig.classroom.courseId,
-                pageSize: 10,
-                orderBy: 'updateTime desc'
-            });
-
-            const announcements = response.result.announcements || [];
-            this.updateAnnouncementFeed(announcements);
-
-        } catch (error) {
-            console.error('Failed to fetch announcements:', error);
-        }
-    }
-
-    updateAnnouncementFeed(announcements) {
-        const feed = document.querySelector('.announcement-feed');
-        if (!feed) return;
-
-        if (!announcements || announcements.length === 0) {
-            feed.innerHTML = '<div class="no-announcements">No announcements available.</div>';
-            return;
-        }
-
-        feed.innerHTML = announcements.map(announcement => `
-            <div class="announcement-card">
-                <div class="announcement-header">
-                    <div class="announcement-meta">
-                        <img src="assets/images/google-icon.png" alt="Google Classroom" class="source-icon">
-                        <div class="author">${announcement.creatorName || 'Unknown'}</div>
-                        <div class="date">${this.formatDate(announcement.updateTime)}</div>
-                    </div>
-                </div>
-                <div class="announcement-content">
-                    ${announcement.text || ''}
-                </div>
-            </div>
-        `).join('');
     }
 
     formatDate(date, includeTime = false) {
@@ -102,18 +42,15 @@ class AssessmentPortal {
         return `${day}/${month}/${year}, ${hours}:${minutes}`;
     }
     setupEventListeners() {
-        console.log('Setting up event listeners');
+        // Tab switching
         document.querySelectorAll('.tab-button').forEach(button => {
-            console.log('Adding listener to button:', button.dataset.grade);
-            button.addEventListener('click', (e) => {
-                e.preventDefault();
-                console.log('Grade button clicked:', button.dataset.grade);
+            button.addEventListener('click', () => {
                 this.switchGrade(button.dataset.grade);
             });
         });
     }
+
     switchGrade(grade) {
-        console.log('Switching to grade:', grade);
         // Update active tab
         document.querySelectorAll('.tab-button').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.grade === grade);
@@ -122,6 +59,7 @@ class AssessmentPortal {
         this.currentGrade = grade;
         this.loadAssessments(grade);
     }
+
     async loadAssessments(grade) {
         console.log('Loading assessments for grade:', grade);
         const container = document.querySelector('.assessments-grid');
@@ -294,7 +232,118 @@ class AssessmentPortal {
             alert('Error verifying password. Please try again.');
         }
     }
+    async initializeAnnouncements() {
+        try {
+            await new Promise((resolve, reject) => {
+                gapi.load('client:auth2', { callback: resolve, onerror: reject });
+            });
+
+            await gapi.client.init({
+                apiKey: googleConfig.apiKey,
+                clientId: googleConfig.clientId,
+                scope: googleConfig.classroom.scopes.join(' '),
+                discoveryDocs: ['https://classroom.googleapis.com/$discovery/rest']
+            });
+
+            // Initial fetch
+            await this.fetchAnnouncements();
+
+            // Set up periodic refresh
+            setInterval(() => this.fetchAnnouncements(), 5 * 60 * 1000);
+
+        } catch (error) {
+            console.error('Failed to initialize announcements:', error);
+        }
+    }
+    async fetchAnnouncements() {
+        try {
+            const response = await gapi.client.classroom.courses.announcements.list({
+                courseId: googleConfig.classroom.courseId,
+                pageSize: 10,
+                orderBy: 'updateTime desc'
+            });
+
+            const announcements = response.result.announcements || [];
+            this.updateAnnouncementFeed(announcements);
+
+        } catch (error) {
+            console.error('Failed to fetch announcements:', error);
+        }
+    }
+    updateAnnouncementFeed(announcements) {
+        const feed = document.querySelector('.announcement-feed');
+        if (!feed) return;
+
+        if (!announcements || announcements.length === 0) {
+            feed.innerHTML = '<div class="no-announcements">No announcements available.</div>';
+            return;
+        }
+        feed.innerHTML = announcements.map(announcement => `
+            <div class="announcement-card">
+                <div class="announcement-header">
+                    <div class="announcement-meta">
+                        <img src="assets/images/google-icon.png" alt="Google Classroom" class="source-icon">
+                        <div class="author">${announcement.creatorName || 'Unknown'}</div>
+                        <div class="date">${this.formatDate(announcement.updateTime)}</div>
+                    </div>
+                </div>
+                <div class="announcement-content">
+                    ${announcement.text || ''}
+                </div>
+            </div>
+        `).join('');
+    }
+}
+class ClassroomService {
+    constructor() {
+        this.auth = firebase.auth();
+        this.courseId = '73191617038905'; // Your specific course ID
+        console.log('ClassroomService initialized with courseId:', this.courseId);
+    }
+
+    async loadGapiClient() {
+        console.log('Starting GAPI client load...');
+        try {
+            await new Promise((resolve, reject) => {
+                gapi.load('client:auth2', {
+                    callback: () => {
+                        console.log('GAPI libraries loaded');
+                        resolve();
+                    },
+                    onerror: reject
+                });
+            });
+
+            await gapi.client.init({
+                apiKey: googleConfig.apiKey,
+                clientId: googleConfig.clientId,
+                scope: 'https://www.googleapis.com/auth/classroom.announcements.readonly',
+                discoveryDocs: ['https://classroom.googleapis.com/$discovery/rest']
+            });
+
+            console.log('GAPI client fully initialized');
+        } catch (error) {
+            console.error('Error in loadGapiClient:', error);
+        }
+    }
+
+    async getAnnouncements() {
+        console.log('Fetching announcements for course:', this.courseId);
+        try {
+            const response = await gapi.client.classroom.courses.announcements.list({
+                courseId: this.courseId,
+                orderBy: 'updateTime desc',
+                pageSize: 10
+            });
+
+            console.log('Announcements response:', response);
+            return response.result.announcements || [];
+        } catch (error) {
+            console.error('Error fetching announcements:', error);
+            return [];
+        }
+    }
 }
 
 // Initialize the portal
-window.portal = new AssessmentPortal();
+const portal = new AssessmentPortal();

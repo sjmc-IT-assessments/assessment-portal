@@ -50,7 +50,8 @@
                 <img src="../assets/images/school-logo.png" alt="SJMC Logo" class="school-logo">
             </div>
             <h2>SJMC Assessment Portal Admin</h2>
-            <button id="googleLogin" class="google-login-btn" onclick="window.adminPortal?.handleLogin()">
+            <button id="googleLogin" class="google-login-btn"
+                onclick="console.log('Button clicked'); firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider().setCustomParameters({prompt: 'select_account', hd: 'maristsj.co.za'}))">
                 <img src="../assets/images/google-icon.png" width="18" height="18" alt="Google">
                 Sign in with Google
             </button>
