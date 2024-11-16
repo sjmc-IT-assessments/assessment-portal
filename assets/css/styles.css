@@ -257,6 +257,7 @@ h1 {
     display: flex;
     justify-content: center;
     align-items: center;
+    z-index: 1000;
 }
 
 .modal-content {
@@ -289,58 +290,7 @@ h1 {
     gap: 1rem;
 }
 
-/* Modal Elements */
-.password-input {
-    padding: 0.75rem;
-    border: 1px solid #e5e7eb;
-    border-radius: 4px;
-    font-size: 1rem;
-}
-
-.submit-button {
-    background: var(--primary-color);
-    color: white;
-    padding: 0.75rem;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.submit-button:hover {
-    background: var(--secondary-color);
-    transform: translateY(-2px);
-}
-
-.close-button {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    padding: 0.5rem;
-    color: #666;
-    transition: color 0.3s ease;
-}
-
-.close-button:hover {
-    color: #000;
-}
-
-/* Modal Styles */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-/* Add back the password modal specific styles */
+/* Password Modal */
 .password-modal {
     background: white;
     padding: 2rem;
@@ -373,22 +323,28 @@ h1 {
     cursor: pointer;
 }
 
-.date-header {
-    margin: 2rem 0 1rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 2px solid var(--primary-color);
-    color: var(--primary-color);
+/* Two Column Layout */
+.two-column-layout {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px;
 }
 
-.submit-button:hover {
-    background: var(--secondary-color);
-    transform: translateY(-2px);
+.main-column {
+    min-width: 0;
 }
 
-.start-btn:hover {
-    background: var(--secondary-color);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+.feed-column {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 16px;
+    height: fit-content;
+    position: sticky;
+    top: 20px;
 }
 
 /* Utility Classes */
@@ -411,75 +367,17 @@ h1 {
     margin: 20px auto;
 }
 
-.two-column-layout {
-    display: grid;
-    grid-template-columns: 1fr 300px;
-    /* Adjust 300px to your preferred feed width */
-    gap: 20px;
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 0 20px;
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
-.main-column {
-    min-width: 0;
-    /* Prevents grid blowout */
-}
-
-.feed-column {
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    padding: 16px;
-    height: fit-content;
-    position: sticky;
-    top: 20px;
-    /* Keeps feed visible while scrolling */
-}
-
-.announcement-feed {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.announcement-feed h3 {
-    margin: 0 0 12px 0;
-    padding-bottom: 8px;
-    border-bottom: 1px solid #eee;
-}
-
-/* Announcement card styles */
-.announcement-card {
-    padding: 12px;
-    border-radius: 6px;
-    background: #f8f9fa;
-    border: 1px solid #eee;
-}
-
-.announcement-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 8px;
-}
-
-.announcement-source-icon {
-    width: 20px;
-    height: 20px;
-}
-
-.announcement-meta {
-    font-size: 0.875rem;
-    color: #666;
-}
-
-.announcement-content {
-    font-size: 0.9375rem;
-    line-height: 1.5;
-}
-
-/* Make it responsive */
+/* Responsive Layout */
 @media (max-width: 1024px) {
     .two-column-layout {
         grid-template-columns: 1fr;
@@ -489,53 +387,85 @@ h1 {
         position: static;
     }
 }
-
-/* Add to your existing styles.css */
-.announcement-feed {
+/* Google Classroom style announcements */
+.feed-column {
     background: #fff;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    margin: 20px 0;
+    box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 2px 6px 2px rgba(60,64,67,0.15);
+    padding: 0;
+    overflow: hidden;
+}
+
+.announcement-feed {
+    padding: 0;
+}
+
+.announcement-feed h3 {
+    background: #1967d2;
+    color: white;
+    padding: 16px 24px;
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 500;
+    border: none;
 }
 
 .announcement-card {
-    border-bottom: 1px solid #eee;
-    padding: 15px 0;
+    padding: 16px 24px;
+    border-bottom: 1px solid #e0e0e0;
+    transition: background-color 0.2s;
 }
 
-.announcement-card:last-child {
-    border-bottom: none;
+.announcement-card:hover {
+    background-color: #f8f9fa;
 }
 
 .announcement-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    gap: 12px;
+    margin-bottom: 12px;
 }
 
 .announcement-meta {
-    font-size: 0.9em;
-    color: #666;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.author {
+    color: #202124;
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
+.date {
+    color: #5f6368;
+    font-size: 0.75rem;
 }
 
 .announcement-content {
+    color: #3c4043;
+    font-size: 0.875rem;
     line-height: 1.5;
-    margin: 10px 0;
+    margin-bottom: 12px;
 }
 
 .materials {
     background: #f8f9fa;
-    padding: 10px;
+    border: 1px solid #e0e0e0;
     border-radius: 4px;
-    margin-top: 10px;
+    padding: 12px;
+    margin-top: 12px;
 }
 
 .materials h4 {
+    color: #3c4043;
+    font-size: 0.75rem;
+    font-weight: 500;
     margin: 0 0 8px 0;
-    font-size: 0.9em;
-    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
 }
 
 .materials ul {
@@ -545,12 +475,16 @@ h1 {
 }
 
 .materials li {
-    margin: 5px 0;
+    margin: 4px 0;
 }
 
 .materials a {
-    color: #1a73e8;
+    color: #1967d2;
     text-decoration: none;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .materials a:hover {
@@ -558,25 +492,15 @@ h1 {
 }
 
 .error-message {
-    color: #d32f2f;
-    padding: 10px;
-    text-align: center;
-    background: #fde8e8;
-    border-radius: 4px;
+    color: #d93025;
+    background: #fce8e6;
+    padding: 12px 24px;
+    font-size: 0.875rem;
 }
 
 .no-announcements {
+    padding: 24px;
     text-align: center;
-    color: #666;
-    padding: 20px;
-}
-
-@keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-
-    100% {
-        transform: rotate(360deg);
-    }
+    color: #5f6368;
+    font-size: 0.875rem;
 }

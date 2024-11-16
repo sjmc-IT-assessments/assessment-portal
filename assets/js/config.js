@@ -21,11 +21,10 @@ export const googleConfig = {
     clientId: '36563114370-ht96lqnq8nr2020dk61fhmq5b7p5iamf.apps.googleusercontent.com',
     apiKey: 'AIzaSyBQiktcs0S_K_8Uyh7PtxH2OgAa0fYp0P0',
     classroom: {
-        courseId: '73191617038905',
+        courseId: 'NzMxOTE2MTcwMzg5',  // Using the encoded ID from your URL
         scopes: [
             'https://www.googleapis.com/auth/classroom.announcements.readonly',
             'https://www.googleapis.com/auth/classroom.courses.readonly'
         ]
     }
 };
-
