@@ -3,9 +3,9 @@ const { readFileSync } = require('fs');
 
 async function listCourses() {
     const auth = new google.auth.GoogleAuth({
-        keyFile: 'path/to/service-account-key.json',
+        keyFile: 'service-account-key.json',
         scopes: [
-            'https://www.googleapis.com/auth/classroom.courses.readonly'
+            'https://www.googleapis.com/auth/classroom.courses'
         ],
     });
 
