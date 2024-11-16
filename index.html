@@ -7,6 +7,8 @@
     <title>SJMC Assessment Portal</title>
     <link rel="stylesheet" href="assets/css/styles.css">
     <!-- Firebase SDKs -->
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="https://accounts.google.com/gsi/client"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 </head>
@@ -26,21 +28,32 @@
         </div>
     </div>
 
-    <main class="main-content">
-        <div class="container">
-            <div class="grade-selector">
-                <div class="tabs" id="gradeTabs">
-                    <button class="tab-button active" data-grade="8">Grade 8</button>
-                    <button class="tab-button" data-grade="9">Grade 9</button>
-                    <button class="tab-button" data-grade="10">Grade 10</button>
-                    <button class="tab-button" data-grade="11">Grade 11</button>
-                    <button class="tab-button" data-grade="12">Grade 12</button>
+    <main class="main-content" role="main">
+        <div class="two-column-layout">
+            <!-- Left column: Existing grades and assessments -->
+            <div class="main-column">
+                <div class="grade-selector">
+                    <div id="gradeTabs" class="tabs">
+                        <button class="tab-button active" data-grade="8">Grade 8</button>
+                        <button class="tab-button" data-grade="9">Grade 9</button>
+                        <button class="tab-button" data-grade="10">Grade 10</button>
+                        <button class="tab-button" data-grade="11">Grade 11</button>
+                        <button class="tab-button" data-grade="12">Grade 12</button>
+                    </div>
+                </div>
+                <div id="gradeContent" class="grade-content active">
+                    <div class="assessments-grid">
+                        <!-- Assessments loaded here -->
+                    </div>
                 </div>
             </div>
-
-            <div id="gradeContent" class="grade-content active">
-                <div class="assessments-grid">
-                    <!-- Assessments will be loaded here -->
+            <!-- Right column: Announcements feed -->
+            <div class="feed-column">
+                <div class="announcement-feed">
+                    <h3>Announcements</h3>
+                    <div id="announcementsList">
+                        <!-- Announcements will be loaded here -->
+                    </div>
                 </div>
             </div>
         </div>

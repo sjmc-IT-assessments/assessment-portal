@@ -189,9 +189,20 @@ h1 {
     font-weight: 500;
 }
 
-.status-today { background-color: #10B981; color: white; }
-.status-upcoming { background-color: #6B7280; color: white; }
-.status-past { background-color: #EF4444; color: white; }
+.status-today {
+    background-color: #10B981;
+    color: white;
+}
+
+.status-upcoming {
+    background-color: #6B7280;
+    color: white;
+}
+
+.status-past {
+    background-color: #EF4444;
+    color: white;
+}
 
 /* Assessment Details */
 .assessment-header {
@@ -314,6 +325,7 @@ h1 {
 .close-button:hover {
     color: #000;
 }
+
 /* Modal Styles */
 .modal-overlay {
     position: fixed;
@@ -360,12 +372,14 @@ h1 {
     margin-top: 1rem;
     cursor: pointer;
 }
+
 .date-header {
     margin: 2rem 0 1rem;
     padding-bottom: 0.5rem;
     border-bottom: 2px solid var(--primary-color);
     color: var(--primary-color);
 }
+
 .submit-button:hover {
     background: var(--secondary-color);
     transform: translateY(-2px);
@@ -376,6 +390,7 @@ h1 {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
+
 /* Utility Classes */
 .loading,
 .no-assessments,
@@ -396,7 +411,91 @@ h1 {
     margin: 20px auto;
 }
 
+.two-column-layout {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    /* Adjust 300px to your preferred feed width */
+    gap: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.main-column {
+    min-width: 0;
+    /* Prevents grid blowout */
+}
+
+.feed-column {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 16px;
+    height: fit-content;
+    position: sticky;
+    top: 20px;
+    /* Keeps feed visible while scrolling */
+}
+
+.announcement-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.announcement-feed h3 {
+    margin: 0 0 12px 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #eee;
+}
+
+/* Announcement card styles */
+.announcement-card {
+    padding: 12px;
+    border-radius: 6px;
+    background: #f8f9fa;
+    border: 1px solid #eee;
+}
+
+.announcement-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.announcement-source-icon {
+    width: 20px;
+    height: 20px;
+}
+
+.announcement-meta {
+    font-size: 0.875rem;
+    color: #666;
+}
+
+.announcement-content {
+    font-size: 0.9375rem;
+    line-height: 1.5;
+}
+
+/* Make it responsive */
+@media (max-width: 1024px) {
+    .two-column-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .feed-column {
+        position: static;
+    }
+}
+
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}  
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}

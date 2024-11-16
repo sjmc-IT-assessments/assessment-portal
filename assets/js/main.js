@@ -1,4 +1,4 @@
-import firebaseConfig from './config.js';
+import { firebaseConfig, googleConfig } from './config.js';
 
 class AssessmentPortal {
     constructor() {
@@ -11,8 +11,77 @@ class AssessmentPortal {
         this.currentGrade = '8';
         this.currentAssessment = null;
 
-        this.setupEventListeners();
-        this.loadAssessments('8'); // Load Grade 8 by default
+        // Initialize everything after DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            this.initializeAnnouncements();
+            this.setupEventListeners();
+            this.loadAssessments('8');
+        });
+    }
+
+    async initializeAnnouncements() {
+        try {
+            await new Promise((resolve, reject) => {
+                gapi.load('client:auth2', { callback: resolve, onerror: reject });
+            });
+
+            await gapi.client.init({
+                apiKey: googleConfig.apiKey,
+                clientId: googleConfig.clientId,
+                scope: googleConfig.classroom.scopes.join(' '),
+                discoveryDocs: ['https://classroom.googleapis.com/$discovery/rest']
+            });
+
+            // Initial fetch
+            await this.fetchAnnouncements();
+
+            // Set up periodic refresh
+            setInterval(() => this.fetchAnnouncements(), 5 * 60 * 1000);
+
+        } catch (error) {
+            console.error('Failed to initialize announcements:', error);
+        }
+    }
+
+    async fetchAnnouncements() {
+        try {
+            const response = await gapi.client.classroom.courses.announcements.list({
+                courseId: googleConfig.classroom.courseId,
+                pageSize: 10,
+                orderBy: 'updateTime desc'
+            });
+
+            const announcements = response.result.announcements || [];
+            this.updateAnnouncementFeed(announcements);
+
+        } catch (error) {
+            console.error('Failed to fetch announcements:', error);
+        }
+    }
+
+    updateAnnouncementFeed(announcements) {
+        const feed = document.querySelector('.announcement-feed');
+        if (!feed) return;
+
+        if (!announcements || announcements.length === 0) {
+            feed.innerHTML = '<div class="no-announcements">No announcements available.</div>';
+            return;
+        }
+
+        feed.innerHTML = announcements.map(announcement => `
+            <div class="announcement-card">
+                <div class="announcement-header">
+                    <div class="announcement-meta">
+                        <img src="assets/images/google-icon.png" alt="Google Classroom" class="source-icon">
+                        <div class="author">${announcement.creatorName || 'Unknown'}</div>
+                        <div class="date">${this.formatDate(announcement.updateTime)}</div>
+                    </div>
+                </div>
+                <div class="announcement-content">
+                    ${announcement.text || ''}
+                </div>
+            </div>
+        `).join('');
     }
 
     formatDate(date, includeTime = false) {
@@ -33,15 +102,18 @@ class AssessmentPortal {
         return `${day}/${month}/${year}, ${hours}:${minutes}`;
     }
     setupEventListeners() {
-        // Tab switching
+        console.log('Setting up event listeners');
         document.querySelectorAll('.tab-button').forEach(button => {
-            button.addEventListener('click', () => {
+            console.log('Adding listener to button:', button.dataset.grade);
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('Grade button clicked:', button.dataset.grade);
                 this.switchGrade(button.dataset.grade);
             });
         });
     }
-
     switchGrade(grade) {
+        console.log('Switching to grade:', grade);
         // Update active tab
         document.querySelectorAll('.tab-button').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.grade === grade);
@@ -50,7 +122,6 @@ class AssessmentPortal {
         this.currentGrade = grade;
         this.loadAssessments(grade);
     }
-
     async loadAssessments(grade) {
         console.log('Loading assessments for grade:', grade);
         const container = document.querySelector('.assessments-grid');

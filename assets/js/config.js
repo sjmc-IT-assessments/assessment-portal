@@ -1,4 +1,4 @@
-// config.js
+
 const firebaseConfig = {
     apiKey: "AIzaSyDZCPR_aHLvZWhaGQJ5isd3t51snf-vbds",
     authDomain: "assessment-portal-sjmc.firebaseapp.com",
@@ -9,7 +9,18 @@ const firebaseConfig = {
     measurementId: "G-GW01WBG6C9"
 };
 
-export const calendarConfig = {
+const googleConfig = {
+    clientId: '36563114370-ht96lqnq8nr2020dk61fhmq5b7p5iamf.apps.googleusercontent.com',
+    apiKey: 'AIzaSyBQiktcs0S_K_8Uyh7PtxH2OgAa0fYp0P0',
+    classroom: {
+        courseId: '73191617038905',
+        scopes: [
+            'https://www.googleapis.com/auth/classroom.announcements.readonly',
+            'https://www.googleapis.com/auth/classroom.courses.readonly'
+        ]
+    }
+};
+const calendarConfig = {
     clientId: '36563114370-ht96lqnq8nr2020dk61fhmq5b7p5iamf.apps.googleusercontent.com',
     apiKey: 'AIzaSyBQiktcs0S_K_8Uyh7PtxH2OgAa0fYp0P0',
     scopes: [
@@ -18,4 +29,4 @@ export const calendarConfig = {
     ]
 };
 
-export default firebaseConfig;
+export { firebaseConfig, googleConfig, calendarConfig };

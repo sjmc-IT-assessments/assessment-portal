@@ -1,190 +1,36 @@
-import firebaseConfig, { calendarConfig } from '../../assets/js/config.js';
+import { firebaseConfig, calendarConfig } from '../../assets/js/config.js';
+import { auth, db } from './firebase-init.js';
 import { CalendarService } from './calendar-service.js';
-
-// Format date as DD/MM/YYYY with optional time in South African timezone
-function formatDate(date, includeTime = false) {
-    if (!(date instanceof Date)) {
-        date = new Date(date);
-    }
-
-    // Create formatter with South African timezone
-    const options = {
-        timeZone: 'Africa/Johannesburg',
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-    };
-
-    // Add time options if needed
-    if (includeTime) {
-        options.hour = '2-digit';
-        options.minute = '2-digit';
-        options.hour12 = false;
-    }
-
-    // Format the date using the locale formatter
-    return new Intl.DateTimeFormat('en-ZA', options).format(date);
-}
-class PasswordGenerator {
-    constructor() {
-        this.firstWords = [
-            'Sparkle', 'Dragon', 'Cosmic', 'Melody', 'Winter',
-            'Summer', 'Autumn', 'Spring', 'Thunder', 'Lightning',
-            'Crystal', 'Rainbow', 'Golden', 'Silver', 'Mystic',
-            'Whisper', 'Noble', 'Royal', 'Brave', 'Swift',
-            'Bright', 'Lunar', 'Solar', 'Star', 'Cloud',
-
-            // Science Words
-            'Quantum', 'Nucleus', 'Electron', 'Neutron', 'Proton',
-            'Molecule', 'Asteroid', 'Telescope', 'Laboratory', 'Chemical',
-            'Velocity', 'Momentum', 'Gravity', 'Magnetic', 'Atomic',
-
-            // Technology
-            'Digital', 'Cyber', 'Quantum', 'Virtual', 'Binary',
-            'Pixel', 'Neural', 'Vector', 'Matrix', 'Crypto',
-            'Quantum', 'Hologram', 'Wireless', 'Circuit', 'Android',
-
-            // Mythology
-            'Olympus', 'Poseidon', 'Mercury', 'Jupiter', 'Neptune',
-            'Hercules', 'Atlas', 'Pegasus', 'Phoenix', 'Hydra',
-            'Kraken', 'Cyclops', 'Titan', 'Oracle', 'Chimera',
-
-            // Architecture
-            'Cathedral', 'Pyramid', 'Colosseum', 'Palace', 'Castle',
-            'Citadel', 'Fortress', 'Mansion', 'Temple', 'Tower',
-            'Pavilion', 'Pantheon', 'Obelisk', 'Lighthouse', 'Bridge',
-            // Adventure Time inspired
-            'Algebraic', 'Mathematical', 'Radical', 'Wizard', 'Dungeon',
-            'Princess', 'Vampire', 'Candy', 'Ice', 'Flame',
-            'Lumpy', 'Cosmic', 'Adventure', 'Magic', 'Penguin',
-            'Prismo', 'Cosmic', 'Bubblegum', 'Marceline', 'Banana',
-            'Grass', 'Finn', 'Jake', 'Tree', 'Cosmic',
-            'Science', 'Wizard', 'Champion', 'Hero', 'Sword'
-        ];
-
-        this.secondWords = [
-            'Storm', 'Light', 'Shadow', 'Dream', 'Wave',
-            'Mountain', 'River', 'Forest', 'Meadow', 'Symphony',
-            'Cookie', 'Tornado', 'Whisper', 'Blossom', 'Dance',
-            'Spirit', 'Heart', 'Soul', 'Mind', 'Breeze',
-            'Phoenix', 'Dragon', 'Tiger', 'Eagle', 'Lion',
-
-            // Exploration
-            'Wanderer', 'Explorer', 'Adventure', 'Discovery', 'Journey',
-            'Expedition', 'Voyager', 'Pioneer', 'Navigator', 'Traveler',
-            'Pathfinder', 'Discoverer', 'Surveyor', 'Nomad', 'Scout',
-
-            // Elements & Materials
-            'Platinum', 'Titanium', 'Diamond', 'Sapphire', 'Emerald',
-            'Obsidian', 'Quartz', 'Marble', 'Crystal', 'Bronze',
-            'Graphene', 'Neon', 'Carbon', 'Silicon', 'Helium',
-
-            // Time Related
-            'Infinity', 'Eternity', 'Temporal', 'Chronicle', 'Dynasty',
-            'Century', 'Millennium', 'Moment', 'Legacy', 'Heritage',
-            'Ancestry', 'Destiny', 'Future', 'Epoch', 'Era',
-
-            // Weather Phenomena
-            'Hurricane', 'Avalanche', 'Blizzard', 'Tempest', 'Monsoon',
-            'Typhoon', 'Cyclone', 'Thunder', 'Lightning', 'Tornado',
-            'Whirlwind', 'Tsunami', 'Eclipse', 'Aurora', 'Rainbow',
-
-            // Fantasy Creatures
-            'Basilisk', 'Centaur', 'Griffon', 'Manticore', 'Sphinx',
-            'Minotaur', 'Pegasus', 'Unicorn', 'Dragon', 'Phoenix',
-            'Leviathan', 'Behemoth', 'Chimera', 'Wyrm', 'Hydra',
-
-            // Abstract Concepts
-            'Serenity', 'Harmony', 'Liberty', 'Victory', 'Destiny',
-            'Mystery', 'Fortune', 'Wisdom', 'Glory', 'Honor',
-            'Courage', 'Justice', 'Freedom', 'Unity', 'Peace'
-
-        ];
-
-        this.foodWords = [
-            'Habanero', 'Milkshake', 'Cookie', 'Pepper', 'Mango',
-            'Vanilla', 'Chocolate', 'Cinnamon', 'Nutmeg', 'Wasabi',
-            'Cupcake', 'Donut', 'Pretzel', 'Smoothie', 'Biscuit',
-
-            // International Foods
-            'Sushi', 'Paella', 'Lasagna', 'Croissant', 'Tiramisu',
-            'Baklava', 'Churros', 'Gelato', 'Ramen', 'Kimchi',
-            'Falafel', 'Hummus', 'Sashimi', 'Gnocchi', 'Tempura',
-
-            // Fancy Desserts
-            'Macaron', 'Eclair', 'Ganache', 'Praline', 'Souffle',
-            'Parfait', 'Profiterole', 'Meringue', 'Gelato', 'Gateau',
-            'Truffle', 'Toffee', 'Caramel', 'Fondant', 'Mousse',
-
-            // Beverages
-            'Espresso', 'Cappuccino', 'Lemonade', 'Frappe', 'Matcha',
-            'Boba', 'Slushie', 'Mojito', 'Nectar', 'Cordial',
-            'Smoothie', 'Latte', 'Mocha', 'Juice', 'Punch',
-            //AT
-            'Sandwich', 'Bacon', 'Pancake', 'Spaghetti', 'Everything',
-            'Burrito', 'BubbleGum', 'Candy', 'IceCream', 'Cookie',
-            'Pizza', 'Taco', 'Waffle', 'Pickle', 'Burger',
-            'Noodle', 'Meatball', 'Sundae', 'Lasagna', 'PieDay',
-            'Donut', 'Popcorn', 'Pretzel', 'Sugar', 'Sweet',
-
-            // Exotic Fruits
-            'Dragonfruit', 'Passionfruit', 'Lychee', 'Guava', 'Papaya',
-            'Kumquat', 'Pomelo', 'Durian', 'Jackfruit', 'Rambutan',
-            'Mangosteen', 'Persimmon', 'Tamarind', 'Starfruit', 'Plantain',
-
-            // Herbs & Spices
-            'Lavender', 'Rosemary', 'Saffron', 'Cardamom', 'Turmeric',
-            'Oregano', 'Thyme', 'Basil', 'Sage', 'Tarragon',
-            'Ginger', 'Clove', 'Anise', 'Fennel', 'Juniper'
-        ];
-    }
-
-    getRandomWord(wordList) {
-        return wordList[Math.floor(Math.random() * wordList.length)];
-    }
-
-    generatePassword() {
-        const styles = [
-            () => `${this.getRandomWord(this.firstWords)}${this.getRandomWord(this.secondWords)}`,
-            () => `${this.getRandomWord(this.firstWords)}${this.getRandomWord(this.secondWords)}${Math.floor(Math.random() * 100)}`,
-            () => `${this.getRandomWord(this.foodWords)}${this.getRandomWord(this.secondWords)}`,
-            () => `${this.getRandomWord(this.firstWords)}${Math.floor(Math.random() * 1000)}`
-        ];
-
-        const styleIndex = Math.floor(Math.random() * styles.length);
-        return styles[styleIndex]();
-    }
-
-    generateOptions(count = 5) {
-        return Array(count).fill(null).map(() => this.generatePassword());
-    }
-}
 
 class AdminPortal {
     constructor() {
         console.log('Starting AdminPortal initialization');
+
+        this.auth = auth;
+        this.db = db;
         this.passwordGenerator = new PasswordGenerator();
         this.isSubmitting = false;
         this.calendarService = new CalendarService(calendarConfig);
-        this.fixExistingExams();
-        try {
-            if (!firebase.apps.length) {
-                firebase.initializeApp(firebaseConfig);
-            }
-            this.auth = firebase.auth();
-            this.db = firebase.firestore();
-            console.log('Firebase initialized successfully');
 
-            // Move these after Firebase initialization
-            this.initializeAuth();
+        // Ensure DOM is loaded before setting up listeners
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                console.log('DOM Content Loaded - setting up listeners');
+                this.setupEventListeners();
+                this.initializeAuth();
+                this.initializeCalendar();
+            });
+        } else {
+            // DOM is already ready
+            console.log('DOM already loaded - setting up listeners immediately');
             this.setupEventListeners();
+            this.initializeAuth();
             this.initializeCalendar();
-            this.setupAutoArchiving(); // Move this here, after Firebase is initialized
-
-        } catch (error) {
-            console.error('Initialization error:', error);
-            alert('Error initializing application: ' + error.message);
         }
+
+        // Set up maintenance tasks
+        this.setupAutoArchiving();
+        this.fixExistingExams();
     }
 
     async initializeCalendar() {
@@ -225,11 +71,30 @@ class AdminPortal {
     }
 
     setupEventListeners() {
-        const loginButton = document.getElementById('googleLogin');
-        if (loginButton) {
-            loginButton.addEventListener('click', () => this.handleLogin());
-        }
+        console.log('Setting up event listeners...');
 
+        // Debug login button
+        const loginButton = document.getElementById('googleLogin');
+        console.log('Login button found:', loginButton);
+
+        if (loginButton) {
+            // Remove any existing click listeners
+            loginButton.replaceWith(loginButton.cloneNode(true));
+
+            // Get fresh reference after cloning
+            const freshLoginButton = document.getElementById('googleLogin');
+
+            // Add new click listener
+            freshLoginButton.addEventListener('click', (e) => {
+                console.log('Click event fired'); // Debug log
+                e.preventDefault();
+                this.handleLogin();
+            });
+
+            console.log('Click listener attached');
+        } else {
+            console.error('Login button not found!');
+        }
         const logoutButton = document.getElementById('logoutBtn');
         if (logoutButton) {
             logoutButton.addEventListener('click', () => this.handleLogout());
@@ -297,44 +162,34 @@ class AdminPortal {
         if (archiveAllBtn) {
             archiveAllBtn.addEventListener('click', () => this.archiveAll());
         }
+
     }
 
     async handleLogin() {
         try {
+            // Create provider
             const provider = new firebase.auth.GoogleAuthProvider();
+
+            // Set custom parameters
             provider.setCustomParameters({
-                prompt: 'select_account', // Force account selection every time
-                hd: 'maristsj.co.za'
+                prompt: 'select_account',  // Forces account selection
+                hd: 'maristsj.co.za',     // Restricts to your domain
+                immediate: false           // Forces the popup
             });
 
-            // Clear any existing auth state first
-            await this.auth.signOut();
+            console.log('Attempting login...');
+            const result = await firebase.auth().signInWithPopup(provider);
+            console.log('Login successful:', result.user.email);
 
-            const result = await this.auth.signInWithPopup(provider);
-            console.log('Sign in successful:', result.user.email);
-
-            // Force a UI update
-            if (result.user) {
-                const isAuthorized = await this.checkUserAuthorization(result.user.email);
-                if (isAuthorized) {
-                    this.showAdminPanel(result.user);
-                } else {
-                    alert('You are not authorized to access the admin panel. Please contact the administrator.');
-                    await this.auth.signOut();
-                }
-            }
         } catch (error) {
             console.error('Login error:', error);
             if (error.code === 'auth/popup-blocked') {
-                alert('Please allow popups for this site to login.');
-            } else if (error.code === 'auth/cancelled-popup-request') {
-                console.log('Previous popup closed');
+                alert('Please allow popups for this site.');
             } else {
                 alert('Login failed: ' + error.message);
             }
         }
     }
-
     async handleLogout() {
         try {
             await this.auth.signOut();
@@ -1075,14 +930,170 @@ class AdminPortal {
         } catch (error) {
             console.error('Error fixing exams:', error);
         }
+        // Format date as DD/MM/YYYY with optional time in South African timezone
+        function formatDate(date, includeTime = false) {
+            if (!(date instanceof Date)) {
+                date = new Date(date);
+            }
+
+            // Create formatter with South African timezone
+            const options = {
+                timeZone: 'Africa/Johannesburg',
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            };
+
+            // Add time options if needed
+            if (includeTime) {
+                options.hour = '2-digit';
+                options.minute = '2-digit';
+                options.hour12 = false;
+            }
+
+            // Format the date using the locale formatter
+            return new Intl.DateTimeFormat('en-ZA', options).format(date);
+        }
+        class PasswordGenerator {
+            constructor() {
+                this.firstWords = [
+                    'Sparkle', 'Dragon', 'Cosmic', 'Melody', 'Winter',
+                    'Summer', 'Autumn', 'Spring', 'Thunder', 'Lightning',
+                    'Crystal', 'Rainbow', 'Golden', 'Silver', 'Mystic',
+                    'Whisper', 'Noble', 'Royal', 'Brave', 'Swift',
+                    'Bright', 'Lunar', 'Solar', 'Star', 'Cloud',
+
+                    // Science Words
+                    'Quantum', 'Nucleus', 'Electron', 'Neutron', 'Proton',
+                    'Molecule', 'Asteroid', 'Telescope', 'Laboratory', 'Chemical',
+                    'Velocity', 'Momentum', 'Gravity', 'Magnetic', 'Atomic',
+
+                    // Technology
+                    'Digital', 'Cyber', 'Quantum', 'Virtual', 'Binary',
+                    'Pixel', 'Neural', 'Vector', 'Matrix', 'Crypto',
+                    'Quantum', 'Hologram', 'Wireless', 'Circuit', 'Android',
+
+                    // Mythology
+                    'Olympus', 'Poseidon', 'Mercury', 'Jupiter', 'Neptune',
+                    'Hercules', 'Atlas', 'Pegasus', 'Phoenix', 'Hydra',
+                    'Kraken', 'Cyclops', 'Titan', 'Oracle', 'Chimera',
+
+                    // Architecture
+                    'Cathedral', 'Pyramid', 'Colosseum', 'Palace', 'Castle',
+                    'Citadel', 'Fortress', 'Mansion', 'Temple', 'Tower',
+                    'Pavilion', 'Pantheon', 'Obelisk', 'Lighthouse', 'Bridge',
+                    // Adventure Time inspired
+                    'Algebraic', 'Mathematical', 'Radical', 'Wizard', 'Dungeon',
+                    'Princess', 'Vampire', 'Candy', 'Ice', 'Flame',
+                    'Lumpy', 'Cosmic', 'Adventure', 'Magic', 'Penguin',
+                    'Prismo', 'Cosmic', 'Bubblegum', 'Marceline', 'Banana',
+                    'Grass', 'Finn', 'Jake', 'Tree', 'Cosmic',
+                    'Science', 'Wizard', 'Champion', 'Hero', 'Sword'
+                ];
+
+                this.secondWords = [
+                    'Storm', 'Light', 'Shadow', 'Dream', 'Wave',
+                    'Mountain', 'River', 'Forest', 'Meadow', 'Symphony',
+                    'Cookie', 'Tornado', 'Whisper', 'Blossom', 'Dance',
+                    'Spirit', 'Heart', 'Soul', 'Mind', 'Breeze',
+                    'Phoenix', 'Dragon', 'Tiger', 'Eagle', 'Lion',
+
+                    // Exploration
+                    'Wanderer', 'Explorer', 'Adventure', 'Discovery', 'Journey',
+                    'Expedition', 'Voyager', 'Pioneer', 'Navigator', 'Traveler',
+                    'Pathfinder', 'Discoverer', 'Surveyor', 'Nomad', 'Scout',
+
+                    // Elements & Materials
+                    'Platinum', 'Titanium', 'Diamond', 'Sapphire', 'Emerald',
+                    'Obsidian', 'Quartz', 'Marble', 'Crystal', 'Bronze',
+                    'Graphene', 'Neon', 'Carbon', 'Silicon', 'Helium',
+
+                    // Time Related
+                    'Infinity', 'Eternity', 'Temporal', 'Chronicle', 'Dynasty',
+                    'Century', 'Millennium', 'Moment', 'Legacy', 'Heritage',
+                    'Ancestry', 'Destiny', 'Future', 'Epoch', 'Era',
+
+                    // Weather Phenomena
+                    'Hurricane', 'Avalanche', 'Blizzard', 'Tempest', 'Monsoon',
+                    'Typhoon', 'Cyclone', 'Thunder', 'Lightning', 'Tornado',
+                    'Whirlwind', 'Tsunami', 'Eclipse', 'Aurora', 'Rainbow',
+
+                    // Fantasy Creatures
+                    'Basilisk', 'Centaur', 'Griffon', 'Manticore', 'Sphinx',
+                    'Minotaur', 'Pegasus', 'Unicorn', 'Dragon', 'Phoenix',
+                    'Leviathan', 'Behemoth', 'Chimera', 'Wyrm', 'Hydra',
+
+                    // Abstract Concepts
+                    'Serenity', 'Harmony', 'Liberty', 'Victory', 'Destiny',
+                    'Mystery', 'Fortune', 'Wisdom', 'Glory', 'Honor',
+                    'Courage', 'Justice', 'Freedom', 'Unity', 'Peace'
+
+                ];
+
+                this.foodWords = [
+                    'Habanero', 'Milkshake', 'Cookie', 'Pepper', 'Mango',
+                    'Vanilla', 'Chocolate', 'Cinnamon', 'Nutmeg', 'Wasabi',
+                    'Cupcake', 'Donut', 'Pretzel', 'Smoothie', 'Biscuit',
+
+                    // International Foods
+                    'Sushi', 'Paella', 'Lasagna', 'Croissant', 'Tiramisu',
+                    'Baklava', 'Churros', 'Gelato', 'Ramen', 'Kimchi',
+                    'Falafel', 'Hummus', 'Sashimi', 'Gnocchi', 'Tempura',
+
+                    // Fancy Desserts
+                    'Macaron', 'Eclair', 'Ganache', 'Praline', 'Souffle',
+                    'Parfait', 'Profiterole', 'Meringue', 'Gelato', 'Gateau',
+                    'Truffle', 'Toffee', 'Caramel', 'Fondant', 'Mousse',
+
+                    // Beverages
+                    'Espresso', 'Cappuccino', 'Lemonade', 'Frappe', 'Matcha',
+                    'Boba', 'Slushie', 'Mojito', 'Nectar', 'Cordial',
+                    'Smoothie', 'Latte', 'Mocha', 'Juice', 'Punch',
+                    //AT
+                    'Sandwich', 'Bacon', 'Pancake', 'Spaghetti', 'Everything',
+                    'Burrito', 'BubbleGum', 'Candy', 'IceCream', 'Cookie',
+                    'Pizza', 'Taco', 'Waffle', 'Pickle', 'Burger',
+                    'Noodle', 'Meatball', 'Sundae', 'Lasagna', 'PieDay',
+                    'Donut', 'Popcorn', 'Pretzel', 'Sugar', 'Sweet',
+
+                    // Exotic Fruits
+                    'Dragonfruit', 'Passionfruit', 'Lychee', 'Guava', 'Papaya',
+                    'Kumquat', 'Pomelo', 'Durian', 'Jackfruit', 'Rambutan',
+                    'Mangosteen', 'Persimmon', 'Tamarind', 'Starfruit', 'Plantain',
+
+                    // Herbs & Spices
+                    'Lavender', 'Rosemary', 'Saffron', 'Cardamom', 'Turmeric',
+                    'Oregano', 'Thyme', 'Basil', 'Sage', 'Tarragon',
+                    'Ginger', 'Clove', 'Anise', 'Fennel', 'Juniper'
+                ];
+            }
+
+            getRandomWord(wordList) {
+                return wordList[Math.floor(Math.random() * wordList.length)];
+            }
+
+            generatePassword() {
+                const styles = [
+                    () => `${this.getRandomWord(this.firstWords)}${this.getRandomWord(this.secondWords)}`,
+                    () => `${this.getRandomWord(this.firstWords)}${this.getRandomWord(this.secondWords)}${Math.floor(Math.random() * 100)}`,
+                    () => `${this.getRandomWord(this.foodWords)}${this.getRandomWord(this.secondWords)}`,
+                    () => `${this.getRandomWord(this.firstWords)}${Math.floor(Math.random() * 1000)}`
+                ];
+
+                const styleIndex = Math.floor(Math.random() * styles.length);
+                return styles[styleIndex]();
+            }
+
+            generateOptions(count = 5) {
+                return Array(count).fill(null).map(() => this.generatePassword());
+            }
+        }
+
+        // Initialize admin portal when document is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Document loaded, initializing AdminPortal');
+            window.adminPortal = new AdminPortal();
+        });
     }
-
 }
-
-// Initialize admin portal when document is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('Document loaded, initializing AdminPortal');
-    window.adminPortal = new AdminPortal();
-});
-
 export default AdminPortal;
