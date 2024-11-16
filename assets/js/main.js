@@ -1,8 +1,6 @@
 import { firebaseConfig, googleConfig } from './config.js';
-import { initClient, listAnnouncements } from './auth.js';
-document.addEventListener('DOMContentLoaded', () => {
-    initClient();
-});
+import { GoogleClassroomService } from './googleClassroom.js';
+
 class AssessmentPortal {
     constructor() {
         // Initialize Firebase
@@ -13,15 +11,86 @@ class AssessmentPortal {
 
         this.currentGrade = '8';
         this.currentAssessment = null;
-
+        this.googleClassroom = new GoogleClassroomService(googleConfig);
         this.setupEventListeners();
         this.loadAssessments('8');
         this.initializeAnnouncements();
     }
-    initializeAnnouncements() {
-        try { listAnnouncements(); } catch (error) {
+    async initializeAnnouncements() {
+        try {
+            // Initial fetch
+            await this.fetchAndDisplayAnnouncements();
+
+            // Set up periodic refresh every 5 minutes
+            setInterval(() => this.fetchAndDisplayAnnouncements(), 5 * 60 * 1000);
+        } catch (error) {
             console.error('Failed to initialize announcements:', error);
         }
+    }
+    async fetchAndDisplayAnnouncements() {
+        try {
+            console.log('Fetching announcements...');
+            // First, list available courses to help with debugging
+            const courses = await this.googleClassroom.listCourses();
+            console.log('Available courses:', courses);
+
+            const announcements = await this.googleClassroom.getAnnouncements();
+            this.updateAnnouncementFeed(announcements);
+        } catch (error) {
+            console.error('Error fetching announcements:', error);
+            const feed = document.querySelector('.announcement-feed');
+            if (feed) {
+                let errorMessage = 'Unable to load announcements';
+                if (error.message.includes('Cannot access specified course')) {
+                    errorMessage = 'Cannot access the specified course. Please verify the course ID.';
+                }
+                feed.innerHTML = `<div class="error-message">${errorMessage}</div>`;
+            }
+        }
+    }
+    updateAnnouncementFeed(announcements) {
+        const feed = document.querySelector('.announcement-feed');
+        if (!feed) return;
+
+        if (!announcements || announcements.length === 0) {
+            feed.innerHTML = '<div class="no-announcements">No announcements available.</div>';
+            return;
+        }
+
+        feed.innerHTML = announcements.map(announcement => `
+            <div class="announcement-card">
+                <div class="announcement-header">
+                    <div class="announcement-meta">
+                        <span class="author">${announcement.creatorUserId || 'Teacher'}</span>
+                        <span class="date">${this.formatDate(announcement.updateTime)}</span>
+                    </div>
+                </div>
+                <div class="announcement-content">
+                    ${announcement.text || ''}
+                </div>
+                ${this.renderMaterials(announcement.materials)}
+            </div>
+        `).join('');
+    }
+
+    renderMaterials(materials) {
+        if (!materials || materials.length === 0) return '';
+
+        return `
+            <div class="materials">
+                <h4>Attachments</h4>
+                <ul>
+                    ${materials.map(material => {
+            if (material.driveFile) {
+                return `<li><a href="${material.driveFile.alternateLink}" target="_blank">${material.driveFile.title}</a></li>`;
+            } else if (material.link) {
+                return `<li><a href="${material.link.url}" target="_blank">${material.link.title}</a></li>`;
+            }
+            return '';
+        }).join('')}
+                </ul>
+            </div>
+        `;
     }
 
     formatDate(date, includeTime = false) {
@@ -232,101 +301,6 @@ class AssessmentPortal {
             alert('Error verifying password. Please try again.');
         }
     }
-    async initializeAnnouncements() {
-        try {
-            await new Promise((resolve, reject) => {
-                gapi.load('client:auth2', { callback: resolve, onerror: reject });
-            });
-
-            await gapi.client.init({
-                apiKey: googleConfig.apiKey,
-                clientId: googleConfig.clientId,
-                scope: googleConfig.classroom.scopes.join(' '),
-                discoveryDocs: ['https://classroom.googleapis.com/$discovery/rest']
-            });
-
-            // Initial fetch
-            await this.fetchAnnouncements();
-
-            // Set up periodic refresh
-            setInterval(() => this.fetchAnnouncements(), 5 * 60 * 1000);
-
-        } catch (error) {
-            console.error('Failed to initialize announcements:', error);
-        }
-    }
-    async fetchAnnouncements() {
-        try {
-            const response = await gapi.client.classroom.courses.announcements.list({
-                courseId: googleConfig.classroom.courseId,
-                pageSize: 10,
-                orderBy: 'updateTime desc'
-            });
-
-            const announcements = response.result.announcements || [];
-            this.updateAnnouncementFeed(announcements);
-
-        } catch (error) {
-            console.error('Failed to fetch announcements:', error);
-        }
-    }
-    updateAnnouncementFeed(announcements) {
-        const feed = document.querySelector('.announcement-feed');
-        if (!feed) return;
-
-        if (!announcements || announcements.length === 0) {
-            feed.innerHTML = '<div class="no-announcements">No announcements available.</div>';
-            return;
-        }
-        feed.innerHTML = announcements.map(announcement => `
-            <div class="announcement-card">
-                <div class="announcement-header">
-                    <div class="announcement-meta">
-                        <img src="assets/images/google-icon.png" alt="Google Classroom" class="source-icon">
-                        <div class="author">${announcement.creatorName || 'Unknown'}</div>
-                        <div class="date">${this.formatDate(announcement.updateTime)}</div>
-                    </div>
-                </div>
-                <div class="announcement-content">
-                    ${announcement.text || ''}
-                </div>
-            </div>
-        `).join('');
-    }
-}
-class ClassroomService {
-    constructor() {
-        this.auth = firebase.auth();
-        this.courseId = '73191617038905'; // Your specific course ID
-        console.log('ClassroomService initialized with courseId:', this.courseId);
-    }
-
-    async loadGapiClient() {
-        console.log('Starting GAPI client load...');
-        try {
-            await new Promise((resolve, reject) => {
-                gapi.load('client:auth2', {
-                    callback: () => {
-                        console.log('GAPI libraries loaded');
-                        resolve();
-                    },
-                    onerror: reject
-                });
-            });
-
-            await gapi.client.init({
-                apiKey: googleConfig.apiKey,
-                clientId: googleConfig.clientId,
-                scope: 'https://www.googleapis.com/auth/classroom.announcements.readonly',
-                discoveryDocs: ['https://classroom.googleapis.com/$discovery/rest']
-            });
-
-            console.log('GAPI client fully initialized');
-        } catch (error) {
-            console.error('Error in loadGapiClient:', error);
-        }
-    }
-
     async getAnnouncements() {
         console.log('Fetching announcements for course:', this.courseId);
         try {

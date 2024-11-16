@@ -1,3 +1,4 @@
+//admin.js
 import firebaseConfig, { calendarConfig } from '../../assets/js/config.js';
 import { CalendarService } from './calendar-service.js';
 
