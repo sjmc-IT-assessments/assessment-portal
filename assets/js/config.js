@@ -7,7 +7,6 @@ export const firebaseConfig = {
     appId: "1:881891153841:web:10c1fb448b76a2750b4f90",
     measurementId: "G-GW01WBG6C9"
 };
-
 export const calendarConfig = {
     clientId: '36563114370-ht96lqnq8nr2020dk61fhmq5b7p5iamf.apps.googleusercontent.com',
     apiKey: 'AIzaSyBQiktcs0S_K_8Uyh7PtxH2OgAa0fYp0P0',

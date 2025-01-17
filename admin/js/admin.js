@@ -1,5 +1,4 @@
-//admin.js
-import firebaseConfig, { calendarConfig } from '../../assets/js/config.js';
+import { firebaseConfig, calendarConfig } from '../../assets/js/config.js';
 import { CalendarService } from './calendar-service.js';
 
 // Format date as DD/MM/YYYY with optional time in South African timezone
