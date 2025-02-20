@@ -14,26 +14,6 @@ class AssessmentPortal {
         this.loadAssessments('8');
     }
 
-    renderMaterials(materials) {
-        if (!materials || materials.length === 0) return '';
-
-        return `
-            <div class="materials">
-                <h4>Attachments</h4>
-                <ul>
-                    ${materials.map(material => {
-            if (material.driveFile) {
-                return `<li><a href="${material.driveFile.alternateLink}" target="_blank">${material.driveFile.title}</a></li>`;
-            } else if (material.link) {
-                return `<li><a href="${material.link.url}" target="_blank">${material.link.title}</a></li>`;
-            }
-            return '';
-        }).join('')}
-                </ul>
-            </div>
-        `;
-    }
-
     formatDate(date, includeTime = false) {
         if (!(date instanceof Date)) {
             date = new Date(date);
@@ -58,6 +38,7 @@ class AssessmentPortal {
                 this.switchGrade(button.dataset.grade);
             });
         });
+
     }
 
     switchGrade(grade) {
@@ -193,9 +174,9 @@ class AssessmentPortal {
             </div>
             <p class="assessment-type">${assessment.type}</p>
             <p class="assessment-time">${formattedDate}</p>
-            <button onclick="portal.openAssessment('${id}')" 
-                    class="start-btn ${!isAvailable ? 'disabled' : ''}"
-                    ${!isAvailable ? 'disabled' : ''}>
+           <button data-assessment-id="${id}" 
+                class="start-btn ${!isAvailable ? 'disabled' : ''}"
+                ${!isAvailable ? 'disabled' : ''}>
                 ${buttonText}
             </button>
         `;
