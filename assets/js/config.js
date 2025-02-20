@@ -15,20 +15,3 @@ export const calendarConfig = {
         'https://www.googleapis.com/auth/calendar.events'
     ]
 };
-
-export const googleConfig = {
-    clientId: '36563114370-ht96lqnq8nr2020dk61fhmq5b7p5iamf.apps.googleusercontent.com',
-    apiKey: 'AIzaSyBQiktcs0S_K_8Uyh7PtxH2OgAa0fYp0P0',
-    classroom: {
-        courseId: 'NzMxOTE2MTcwMzg5',
-        scopes: [
-            'https://www.googleapis.com/auth/classroom.announcements.readonly',
-            'https://www.googleapis.com/auth/classroom.courses.readonly'
-        ]
-    },
-    serviceAccount: {
-        // This should be generated from your service account key JSON
-        accessToken: 'YOUR_SERVICE_ACCOUNT_ACCESS_TOKEN',
-        // You might want to add a function to refresh this token periodically
-    }
-};

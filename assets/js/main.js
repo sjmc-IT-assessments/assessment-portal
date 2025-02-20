@@ -1,5 +1,4 @@
-import { firebaseConfig, googleConfig } from './config.js';
-import { GoogleClassroomService } from './googleClassroom.js';
+import { firebaseConfig } from './config.js';
 
 class AssessmentPortal {
     constructor() {
@@ -11,66 +10,8 @@ class AssessmentPortal {
 
         this.currentGrade = '8';
         this.currentAssessment = null;
-        this.googleClassroom = new GoogleClassroomService(googleConfig);
         this.setupEventListeners();
         this.loadAssessments('8');
-        this.initializeAnnouncements();
-    }
-    async initializeAnnouncements() {
-        try {
-            // Initial fetch
-            await this.fetchAndDisplayAnnouncements();
-
-            // Set up periodic refresh every 5 minutes
-            setInterval(() => this.fetchAndDisplayAnnouncements(), 5 * 60 * 1000);
-        } catch (error) {
-            console.error('Failed to initialize announcements:', error);
-        }
-    }
-    async fetchAndDisplayAnnouncements() {
-        try {
-            console.log('Fetching announcements...');
-            // First, list available courses to help with debugging
-            const courses = await this.googleClassroom.listCourses();
-            console.log('Available courses:', courses);
-
-            const announcements = await this.googleClassroom.getAnnouncements();
-            this.updateAnnouncementFeed(announcements);
-        } catch (error) {
-            console.error('Error fetching announcements:', error);
-            const feed = document.querySelector('.announcement-feed');
-            if (feed) {
-                let errorMessage = 'Unable to load announcements';
-                if (error.message.includes('Cannot access specified course')) {
-                    errorMessage = 'Cannot access the specified course. Please verify the course ID.';
-                }
-                feed.innerHTML = `<div class="error-message">${errorMessage}</div>`;
-            }
-        }
-    }
-    updateAnnouncementFeed(announcements) {
-        const feed = document.querySelector('.announcement-feed');
-        if (!feed) return;
-
-        if (!announcements || announcements.length === 0) {
-            feed.innerHTML = '<div class="no-announcements">No announcements available.</div>';
-            return;
-        }
-
-        feed.innerHTML = announcements.map(announcement => `
-            <div class="announcement-card">
-                <div class="announcement-header">
-                    <div class="announcement-meta">
-                        <span class="author">${announcement.creatorUserId || 'Teacher'}</span>
-                        <span class="date">${this.formatDate(announcement.updateTime)}</span>
-                    </div>
-                </div>
-                <div class="announcement-content">
-                    ${announcement.text || ''}
-                </div>
-                ${this.renderMaterials(announcement.materials)}
-            </div>
-        `).join('');
     }
 
     renderMaterials(materials) {
