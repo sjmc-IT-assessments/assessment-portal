@@ -242,4 +242,4 @@ class AssessmentPortal {
 }
 
 // Initialize the portal
-const portal = new AssessmentPortal();
+window.portal = new AssessmentPortal();
