@@ -32,36 +32,33 @@
     </div>
 
     <main class="main-content" role="main">
-        <div class="two-column-layout">
-            <!-- Left column: Existing grades and assessments -->
-            <div class="main-column">
-                <div class="grade-selector">
-                    <div id="gradeTabs" class="tabs">
-                        <button class="tab-button active" data-grade="8">Grade 8</button>
-                        <button class="tab-button" data-grade="9">Grade 9</button>
-                        <button class="tab-button" data-grade="10">Grade 10</button>
-                        <button class="tab-button" data-grade="11">Grade 11</button>
-                        <button class="tab-button" data-grade="12">Grade 12</button>
-                    </div>
-                </div>
-                <div id="gradeContent" class="grade-content active">
-                    <div class="assessments-grid">
-                        <!-- Assessments loaded here -->
-                    </div>
+        <!-- Left column: Existing grades and assessments -->
+        <div class="main-column">
+            <div class="grade-selector">
+                <div id="gradeTabs" class="tabs">
+                    <button class="tab-button active" data-grade="8">Grade 8</button>
+                    <button class="tab-button" data-grade="9">Grade 9</button>
+                    <button class="tab-button" data-grade="10">Grade 10</button>
+                    <button class="tab-button" data-grade="11">Grade 11</button>
+                    <button class="tab-button" data-grade="12">Grade 12</button>
                 </div>
             </div>
-            <!-- Right column: Announcements feed -->
-           <!--  <div class="feed-column"> -->
-               <!-- <div class="announcement" id="announcement">
-                    <h3>Announcements</h3>
-                    <div id="announcementsList">
-                        Announcements will be loaded here
-                    </div> -->
+            <div id="gradeContent" class="grade-content active">
+                <div class="assessments-grid">
+                    <!-- Assessments loaded here -->
                 </div>
             </div>
         </div>
+        <!--  Right column: Announcements feed -->
+        <!--  <div class="feed-column"> -->
+        <!-- <div class="announcement" id="announcement">
+                    <h3>Announcements</h3>
+                    <div id="announcementsList">
+                        Announcements will be loaded here
+            </div>
+        </div>-->
     </main>
-    <!-- Password Modal -->
+    <!--  Password Modal -->
     <div class="modal-overlay" id="modalOverlay" style="display: none;">
         <div class="password-modal">
             <h3>Enter Assessment Password</h3>
