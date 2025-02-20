@@ -223,23 +223,7 @@ class AssessmentPortal {
             alert('Error verifying password. Please try again.');
         }
     }
-    async getAnnouncements() {
-        console.log('Fetching announcements for course:', this.courseId);
-        try {
-            const response = await gapi.client.classroom.courses.announcements.list({
-                courseId: this.courseId,
-                orderBy: 'updateTime desc',
-                pageSize: 10
-            });
 
-            console.log('Announcements response:', response);
-            return response.result.announcements || [];
-        } catch (error) {
-            console.error('Error fetching announcements:', error);
-            return [];
-        }
-    }
 }
-
 // Initialize the portal
 console.portal = new AssessmentPortal();
