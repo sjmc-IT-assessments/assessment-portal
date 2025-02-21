@@ -184,10 +184,15 @@ class AssessmentPortal {
         return card;
     }
     openAssessment(assessmentId) {
+        console.log('Opening assessment:', assessmentId);
         this.currentAssessment = assessmentId;
-        document.getElementById('modalOverlay').style.display = 'flex';
-        document.getElementById('assessmentPassword').value = '';
-        document.getElementById('assessmentPassword').focus();
+        const modalOverlay = document.getElementById('modalOverlay');
+        console.log('Modal overlay element:', modalOverlay);
+        modalOverlay.style.display = 'flex';
+        const passwordInput = document.getElementById('assessmentPassword');
+        console.log('Password input element:', passwordInput);
+        passwordInput.value = '';
+        passwordInput.focus();
     }
 
     closeModal() {
