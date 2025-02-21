@@ -1,4 +1,4 @@
-import { firebaseConfig } from './config.js';
+import firebaseConfig from './config.js';
 
 class AssessmentPortal {
     constructor() {
@@ -10,8 +10,9 @@ class AssessmentPortal {
 
         this.currentGrade = '8';
         this.currentAssessment = null;
+
         this.setupEventListeners();
-        this.loadAssessments('8');
+        this.loadAssessments('8'); // Load Grade 8 by default
     }
 
     formatDate(date, includeTime = false) {
@@ -38,7 +39,6 @@ class AssessmentPortal {
                 this.switchGrade(button.dataset.grade);
             });
         });
-
     }
 
     switchGrade(grade) {
@@ -174,9 +174,9 @@ class AssessmentPortal {
             </div>
             <p class="assessment-type">${assessment.type}</p>
             <p class="assessment-time">${formattedDate}</p>
-           <button data-assessment-id="${id}" 
-                class="start-btn ${!isAvailable ? 'disabled' : ''}"
-                ${!isAvailable ? 'disabled' : ''}>
+            <button onclick="portal.openAssessment('${id}')" 
+                    class="start-btn ${!isAvailable ? 'disabled' : ''}"
+                    ${!isAvailable ? 'disabled' : ''}>
                 ${buttonText}
             </button>
         `;
@@ -223,7 +223,7 @@ class AssessmentPortal {
             alert('Error verifying password. Please try again.');
         }
     }
-
 }
+
 // Initialize the portal
-console.portal = new AssessmentPortal();
+window.portal = new AssessmentPortal();
