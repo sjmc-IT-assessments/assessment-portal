@@ -12,7 +12,7 @@
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script type="module" src="js/admin.js"></script>
+    <script src="/admin/js/admin.js"></script>
 
 </head>
 
@@ -32,7 +32,6 @@
     </div>
 
     <main class="main-content" role="main">
-        <!-- Left column: Existing grades and assessments -->
         <div class="main-column">
             <div class="grade-selector">
                 <div id="gradeTabs" class="tabs">
@@ -45,19 +44,11 @@
             </div>
             <div id="gradeContent" class="grade-content active">
                 <div class="assessments-grid">
-                    <!-- Assessments loaded here -->
+        
                 </div>
             </div>
         </div>
-        <!--  Right column: Announcements feed -->
-        <!--  <div class="feed-column"> -->
-        <!-- <div class="announcement" id="announcement">
-                    <h3>Announcements</h3>
-                    <div id="announcementsList">
-                        Announcements will be loaded here
-            </div>
-        </div>-->
-    </main>
+         </main>
     <!--  Password Modal -->
     <div class="modal-overlay" id="modalOverlay" style="display: none;">
         <div class="password-modal">
@@ -69,7 +60,7 @@
             <button class="close-btn" onclick="portal.closeModal()">Close</button>
         </div>
     </div>
-    <script type="module" src="assets/js/main.js"></script>
+    <script src="assets/js/main.js"></script>
 </body>
 
 </html>
