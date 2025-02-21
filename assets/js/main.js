@@ -1,4 +1,4 @@
-import firebaseConfig from './config.js';
+import { firebaseConfig } from './config.js';
 
 class AssessmentPortal {
     constructor() {
