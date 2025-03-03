@@ -315,15 +315,8 @@ class AssessmentPortal {
                 console.log('Password correct, opening assessment viewer');
                 this.closeModal();
                 
-                // Extract the fileId from the Google Drive URL if it's a Google Drive link
+                // Use the URL directly without trying to transform it
                 let pdfUrl = assessment.url;
-                const googleDriveMatch = pdfUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
-                
-                if (googleDriveMatch && googleDriveMatch[1]) {
-                    // If it's a Google Drive URL, convert it to a direct download URL
-                    const fileId = googleDriveMatch[1];
-                    pdfUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
-                }
                 
                 // Use the dedicated viewer page
                 const viewerUrl = new URL('viewer.html', window.location.href);
@@ -345,6 +338,7 @@ class AssessmentPortal {
             alert('Error verifying password. Please try again.');
         }
     }
+    
     async openPdfViewer(assessment) {
         // Instead of using an iframe, we'll open the PDF in a controlled way
         console.log('Opening PDF viewer for:', assessment.subject);
