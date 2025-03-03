@@ -13,6 +13,7 @@ class AssessmentPortal {
 
         this.setupEventListeners();
         this.loadAssessments('8'); // Load Grade 8 by default
+        console.log('Assessment Portal initialized');
     }
 
     formatDate(date, includeTime = false) {
@@ -32,6 +33,7 @@ class AssessmentPortal {
         const minutes = date.getMinutes().toString().padStart(2, '0');
         return `${day}/${month}/${year}, ${hours}:${minutes}`;
     }
+
     setupEventListeners() {
         // Tab switching
         document.querySelectorAll('.tab-button').forEach(button => {
@@ -39,12 +41,42 @@ class AssessmentPortal {
                 this.switchGrade(button.dataset.grade);
             });
         });
+
+        // Set up the modal close button event listener
+        const closeModalBtn = document.querySelector('.close-btn');
+        if (closeModalBtn) {
+            closeModalBtn.addEventListener('click', () => this.closeModal());
+        }
+
+        // Set up the password form submit handler
+        const passwordForm = document.querySelector('.password-form');
+        if (passwordForm) {
+            passwordForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.verifyPassword();
+            });
+        }
+
+        // Allow pressing Enter in the password field to submit
+        const passwordInput = document.getElementById('assessmentPassword');
+        if (passwordInput) {
+            passwordInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    this.verifyPassword();
+                }
+            });
+        }
     }
 
     switchGrade(grade) {
         // Update active tab
         document.querySelectorAll('.tab-button').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.grade === grade);
+        });
+
+        document.querySelectorAll('.grade-content').forEach(content => {
+            content.classList.add('active');
         });
 
         this.currentGrade = grade;
@@ -69,7 +101,7 @@ class AssessmentPortal {
             const query = this.db.collection('exams')
                 .where('grade', '==', Number(grade))
                 .where('archived', 'in', [false, null])
-                .orderBy('scheduledDate', 'asc');;
+                .orderBy('scheduledDate', 'asc');
 
             console.log('Executing query...');
             const snapshot = await query.get();
@@ -116,6 +148,7 @@ class AssessmentPortal {
                     console.log('Excluding assessment:', assessment.subject, 'Time diff:', timeDiff);
                 }
             });
+
             assessments.sort((a, b) => a.date - b.date);
             console.log('Final filtered assessments:', assessments.length);
 
@@ -152,7 +185,7 @@ class AssessmentPortal {
         let buttonText = '';
 
         if (isAvailable) {
-            statusClass = 'status-available';
+            statusClass = 'status-today'; // Using today's style for available
             statusText = 'Available Now';
             buttonText = 'Start Assessment';
         } else if (isToday) {
@@ -163,9 +196,16 @@ class AssessmentPortal {
             statusClass = 'status-upcoming';
             statusText = 'Upcoming';
             buttonText = 'Not Yet Available';
+        } else {
+            statusClass = 'status-past';
+            statusText = 'Recent';
+            buttonText = 'View Assessment';
         }
 
         const formattedDate = this.formatDate(date, true);
+
+        // Store assessment ID as a data attribute for easier access
+        card.dataset.assessmentId = id;
 
         card.innerHTML = `
             <div class="assessment-header">
@@ -174,53 +214,90 @@ class AssessmentPortal {
             </div>
             <p class="assessment-type">${assessment.type}</p>
             <p class="assessment-time">${formattedDate}</p>
-            <button onclick="portal.openAssessment('${id}')" 
-                    class="start-btn ${!isAvailable ? 'disabled' : ''}"
+            <button class="start-btn ${!isAvailable ? 'disabled' : ''}"
                     ${!isAvailable ? 'disabled' : ''}>
                 ${buttonText}
             </button>
         `;
 
+        // Add click event listener directly to the button
+        const button = card.querySelector('.start-btn');
+        if (button && isAvailable) {
+            button.addEventListener('click', () => {
+                this.openAssessment(id);
+            });
+        }
+
         return card;
     }
+
     openAssessment(assessmentId) {
         console.log('Opening assessment:', assessmentId);
         this.currentAssessment = assessmentId;
+
         const modalOverlay = document.getElementById('modalOverlay');
         console.log('Modal overlay element:', modalOverlay);
-        modalOverlay.style.display = 'flex';
-        const passwordInput = document.getElementById('assessmentPassword');
-        console.log('Password input element:', passwordInput);
-        passwordInput.value = '';
-        passwordInput.focus();
+
+        if (modalOverlay) {
+            modalOverlay.style.display = 'flex';
+            modalOverlay.classList.add('active');
+
+            const passwordInput = document.getElementById('assessmentPassword');
+            console.log('Password input element:', passwordInput);
+
+            if (passwordInput) {
+                passwordInput.value = '';
+                passwordInput.focus();
+            } else {
+                console.error('Password input not found in modal');
+            }
+        } else {
+            console.error('Modal overlay not found');
+        }
     }
 
     closeModal() {
-        document.getElementById('modalOverlay').style.display = 'none';
+        const modalOverlay = document.getElementById('modalOverlay');
+        if (modalOverlay) {
+            modalOverlay.style.display = 'none';
+            modalOverlay.classList.remove('active');
+        }
         this.currentAssessment = null;
     }
 
     async verifyPassword() {
-        if (!this.currentAssessment) return;
+        if (!this.currentAssessment) {
+            console.error('No assessment selected');
+            return;
+        }
 
-        const password = document.getElementById('assessmentPassword').value;
+        const passwordInput = document.getElementById('assessmentPassword');
+        const password = passwordInput ? passwordInput.value : '';
+
         if (!password) {
             alert('Please enter a password');
             return;
         }
 
         try {
+            console.log('Verifying password for assessment:', this.currentAssessment);
             const doc = await this.db.collection('exams').doc(this.currentAssessment).get();
+
             if (!doc.exists) {
+                console.error('Assessment not found');
                 alert('Assessment not found');
                 return;
             }
 
             const assessment = doc.data();
+            console.log('Assessment data retrieved, checking password');
+
             if (password === assessment.password) {
+                console.log('Password correct, redirecting to:', assessment.url);
                 // Redirect to the assessment URL
                 window.location.href = assessment.url;
             } else {
+                console.log('Incorrect password');
                 alert('Incorrect password');
             }
         } catch (error) {
@@ -230,5 +307,11 @@ class AssessmentPortal {
     }
 }
 
-// Initialize the portal
-window.portal = new AssessmentPortal();
+// Initialize the portal when the document is fully loaded
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded, initializing Assessment Portal');
+    window.portal = new AssessmentPortal();
+});
+
+// Maintain backward compatibility for any existing references
+window.portal = window.portal || new AssessmentPortal();

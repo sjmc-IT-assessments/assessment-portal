@@ -12,8 +12,6 @@
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="/admin/js/admin.js"></script>
-
 </head>
 
 <body>
@@ -32,7 +30,7 @@
     </div>
 
     <main class="main-content" role="main">
-        <div class="main-column">
+        <div class="container">
             <div class="grade-selector">
                 <div id="gradeTabs" class="tabs">
                     <button class="tab-button active" data-grade="8">Grade 8</button>
@@ -44,23 +42,26 @@
             </div>
             <div id="gradeContent" class="grade-content active">
                 <div class="assessments-grid">
-        
+                    <!-- Assessments will be loaded here -->
                 </div>
             </div>
         </div>
-         </main>
-    <!--  Password Modal -->
+    </main>
+    
+    <!-- Password Modal -->
     <div class="modal-overlay" id="modalOverlay" style="display: none;">
         <div class="password-modal">
             <h3>Enter Assessment Password</h3>
-            <div class="password-form">
+            <form class="password-form">
                 <input type="password" id="assessmentPassword" placeholder="Enter password">
-                <button onclick="portal.verifyPassword()">Submit</button>
-            </div>
-            <button class="close-btn" onclick="portal.closeModal()">Close</button>
+                <button type="submit">Submit</button>
+            </form>
+            <button class="close-btn">Close</button>
         </div>
     </div>
-    <script src="assets/js/main.js"></script>
+
+    <!-- Load the fixed main.js script -->
+    <script type="module" src="assets/js/main.js"></script>
 </body>
 
 </html>
