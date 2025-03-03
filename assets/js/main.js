@@ -33,7 +33,7 @@ class AssessmentPortal {
         const minutes = date.getMinutes().toString().padStart(2, '0');
         return `${day}/${month}/${year}, ${hours}:${minutes}`;
     }
-
+    
     setupEventListeners() {
         // Tab switching
         document.querySelectorAll('.tab-button').forEach(button => {
@@ -67,6 +67,25 @@ class AssessmentPortal {
                 }
             });
         }
+
+        // PDF Modal controls
+        const closePdfBtn = document.getElementById('closePdfBtn');
+        if (closePdfBtn) {
+            closePdfBtn.addEventListener('click', () => this.closePdfViewer());
+        }
+
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        if (fullscreenBtn) {
+            fullscreenBtn.addEventListener('click', () => this.toggleFullscreen());
+        }
+
+        // Close modals on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                this.closeModal();
+                this.closePdfViewer();
+            }
+        });
     }
 
     switchGrade(grade) {
@@ -148,7 +167,7 @@ class AssessmentPortal {
                     console.log('Excluding assessment:', assessment.subject, 'Time diff:', timeDiff);
                 }
             });
-
+            
             assessments.sort((a, b) => a.date - b.date);
             console.log('Final filtered assessments:', assessments.length);
 
@@ -203,7 +222,7 @@ class AssessmentPortal {
         }
 
         const formattedDate = this.formatDate(date, true);
-
+        
         // Store assessment ID as a data attribute for easier access
         card.dataset.assessmentId = id;
 
@@ -219,7 +238,7 @@ class AssessmentPortal {
                 ${buttonText}
             </button>
         `;
-
+        
         // Add click event listener directly to the button
         const button = card.querySelector('.start-btn');
         if (button && isAvailable) {
@@ -230,21 +249,21 @@ class AssessmentPortal {
 
         return card;
     }
-
+    
     openAssessment(assessmentId) {
         console.log('Opening assessment:', assessmentId);
         this.currentAssessment = assessmentId;
-
+        
         const modalOverlay = document.getElementById('modalOverlay');
         console.log('Modal overlay element:', modalOverlay);
-
+        
         if (modalOverlay) {
             modalOverlay.style.display = 'flex';
             modalOverlay.classList.add('active');
-
+            
             const passwordInput = document.getElementById('assessmentPassword');
             console.log('Password input element:', passwordInput);
-
+            
             if (passwordInput) {
                 passwordInput.value = '';
                 passwordInput.focus();
@@ -273,7 +292,7 @@ class AssessmentPortal {
 
         const passwordInput = document.getElementById('assessmentPassword');
         const password = passwordInput ? passwordInput.value : '';
-
+        
         if (!password) {
             alert('Please enter a password');
             return;
@@ -282,7 +301,7 @@ class AssessmentPortal {
         try {
             console.log('Verifying password for assessment:', this.currentAssessment);
             const doc = await this.db.collection('exams').doc(this.currentAssessment).get();
-
+            
             if (!doc.exists) {
                 console.error('Assessment not found');
                 alert('Assessment not found');
@@ -291,11 +310,11 @@ class AssessmentPortal {
 
             const assessment = doc.data();
             console.log('Assessment data retrieved, checking password');
-
+            
             if (password === assessment.password) {
-                console.log('Password correct, redirecting to:', assessment.url);
-                // Redirect to the assessment URL
-                window.location.href = assessment.url;
+                console.log('Password correct, opening PDF viewer');
+                this.closeModal();
+                this.openPdfViewer(assessment);
             } else {
                 console.log('Incorrect password');
                 alert('Incorrect password');
@@ -303,6 +322,98 @@ class AssessmentPortal {
         } catch (error) {
             console.error('Error verifying password:', error);
             alert('Error verifying password. Please try again.');
+        }
+    }
+
+    openPdfViewer(assessment) {
+        const pdfModalOverlay = document.getElementById('pdfModalOverlay');
+        const pdfViewer = document.getElementById('pdfViewer');
+        const pdfModalTitle = document.getElementById('pdfModalTitle');
+        
+        if (!pdfModalOverlay || !pdfViewer) {
+            console.error('PDF viewer elements not found');
+            return;
+        }
+        
+        // Show loading indicator (optional)
+        pdfViewer.insertAdjacentHTML('afterend', `
+            <div class="pdf-loading" id="pdfLoading">
+                <div class="pdf-loading-spinner"></div>
+                <p>Loading assessment...</p>
+            </div>
+        `);
+        
+        // Set the title
+        if (pdfModalTitle) {
+            pdfModalTitle.textContent = `${assessment.subject} - ${assessment.type}`;
+        }
+        
+        // Set iframe source (Google Drive viewer)
+        // This works with both direct PDF links and Google Drive preview links
+        pdfViewer.src = assessment.url;
+        
+        // Remove loading indicator when iframe loads
+        pdfViewer.onload = () => {
+            const loadingEl = document.getElementById('pdfLoading');
+            if (loadingEl) loadingEl.remove();
+        };
+        
+        // Show the modal
+        pdfModalOverlay.style.display = 'flex';
+        setTimeout(() => {
+            pdfModalOverlay.classList.add('active');
+        }, 10);
+    }
+    
+    closePdfViewer() {
+        const pdfModalOverlay = document.getElementById('pdfModalOverlay');
+        const pdfViewer = document.getElementById('pdfViewer');
+        
+        if (pdfModalOverlay) {
+            pdfModalOverlay.classList.remove('active');
+            
+            // Remove src to stop loading
+            if (pdfViewer) {
+                setTimeout(() => {
+                    pdfViewer.src = '';
+                }, 300); // Wait for animation to complete
+            }
+            
+            setTimeout(() => {
+                pdfModalOverlay.style.display = 'none';
+                
+                // Remove fullscreen if active
+                const pdfModalContainer = document.querySelector('.pdf-modal-container');
+                if (pdfModalContainer) {
+                    pdfModalContainer.classList.remove('fullscreen');
+                }
+            }, 300);
+        }
+    }
+    
+    toggleFullscreen() {
+        const pdfModalContainer = document.querySelector('.pdf-modal-container');
+        
+        if (pdfModalContainer) {
+            pdfModalContainer.classList.toggle('fullscreen');
+            
+            // Update button icon (optional)
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
+            if (fullscreenBtn) {
+                if (pdfModalContainer.classList.contains('fullscreen')) {
+                    fullscreenBtn.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path>
+                        </svg>
+                    `;
+                } else {
+                    fullscreenBtn.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                        </svg>
+                    `;
+                }
+            }
         }
     }
 }

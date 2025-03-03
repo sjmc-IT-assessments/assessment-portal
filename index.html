@@ -60,7 +60,32 @@
         </div>
     </div>
 
-    <!-- Load the fixed main.js script -->
+    <!-- PDF Viewer Modal -->
+    <div class="pdf-modal-overlay" id="pdfModalOverlay" style="display: none;">
+        <div class="pdf-modal-container">
+            <div class="pdf-modal-header">
+                <h3 id="pdfModalTitle">Assessment</h3>
+                <div class="pdf-modal-controls">
+                    <button id="fullscreenBtn" class="fullscreen-btn" title="Toggle Fullscreen">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                        </svg>
+                    </button>
+                    <button id="closePdfBtn" class="close-pdf-btn" title="Close">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="pdf-modal-content">
+                <iframe id="pdfViewer" src="" frameborder="0" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load the main.js script -->
     <script type="module" src="assets/js/main.js"></script>
 </body>
 
