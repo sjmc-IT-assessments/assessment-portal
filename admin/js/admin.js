@@ -25,6 +25,7 @@ function formatDate(date, includeTime = false) {
     // Format the date using the locale formatter
     return new Intl.DateTimeFormat('en-ZA', options).format(date);
 }
+
 class PasswordGenerator {
     constructor() {
         this.firstWords = [
@@ -98,7 +99,6 @@ class PasswordGenerator {
             'Serenity', 'Harmony', 'Liberty', 'Victory', 'Destiny',
             'Mystery', 'Fortune', 'Wisdom', 'Glory', 'Honor',
             'Courage', 'Justice', 'Freedom', 'Unity', 'Peace'
-
         ];
 
         this.foodWords = [
@@ -183,8 +183,134 @@ class AdminPortal {
 
         } catch (error) {
             console.error('Initialization error:', error);
-            alert('Error initializing application: ' + error.message);
+            this.showToast('Error initializing application: ' + error.message, 'error');
         }
+    }
+
+    // Toast notification system
+    showToast(message, type = 'info', duration = 3000) {
+        // Create toast container if it doesn't exist
+        let toastContainer = document.getElementById('toast-container');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.id = 'toast-container';
+            document.body.appendChild(toastContainer);
+        }
+
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+
+        // Create toast content
+        const iconMap = {
+            success: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>',
+            error: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>',
+            info: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>',
+            warning: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>'
+        };
+
+        toast.innerHTML = `
+            <div class="toast-icon">${iconMap[type] || iconMap.info}</div>
+            <div class="toast-message">${message}</div>
+            <button class="toast-close">&times;</button>
+        `;
+
+        // Add toast to container
+        toastContainer.appendChild(toast);
+
+        // Add animation class after a tiny delay (for animation to work)
+        setTimeout(() => {
+            toast.classList.add('show');
+        }, 10);
+
+        // Set up close button
+        const closeBtn = toast.querySelector('.toast-close');
+        closeBtn.addEventListener('click', () => {
+            removeToast(toast);
+        });
+
+        // Auto close after duration
+        const timeoutId = setTimeout(() => {
+            removeToast(toast);
+        }, duration);
+
+        // Store timeout ID for potential early removal
+        toast.dataset.timeoutId = timeoutId;
+
+        // Function to remove toast with animation
+        function removeToast(toastElement) {
+            // Clear existing timeout
+            clearTimeout(parseInt(toastElement.dataset.timeoutId));
+
+            // Start exit animation
+            toastElement.classList.remove('show');
+            toastElement.classList.add('hiding');
+
+            // Remove after animation completes
+            setTimeout(() => {
+                if (toastElement.parentNode) {
+                    toastElement.parentNode.removeChild(toastElement);
+                }
+
+                // If no more toasts, remove the container
+                if (toastContainer.children.length === 0) {
+                    toastContainer.remove();
+                }
+            }, 300); // Match this with CSS transition time
+        }
+
+        return toast;
+    }
+
+    // Add confirmation dialog to replace JavaScript confirms
+    showConfirmDialog(message, onConfirm, onCancel = () => { }) {
+        const dialog = document.createElement('div');
+        dialog.className = 'confirm-dialog-overlay';
+        dialog.innerHTML = `
+            <div class="confirm-dialog">
+                <h3>Confirmation</h3>
+                <p>${message}</p>
+                <div class="button-group">
+                    <button class="confirm-btn">Confirm</button>
+                    <button class="cancel-btn">Cancel</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(dialog);
+
+        // Add event listeners
+        const confirmBtn = dialog.querySelector('.confirm-btn');
+        const cancelBtn = dialog.querySelector('.cancel-btn');
+
+        confirmBtn.addEventListener('click', () => {
+            dialog.remove();
+            onConfirm();
+        });
+
+        cancelBtn.addEventListener('click', () => {
+            dialog.remove();
+            onCancel();
+        });
+
+        // Close on click outside
+        dialog.addEventListener('click', (e) => {
+            if (e.target === dialog) {
+                dialog.remove();
+                onCancel();
+            }
+        });
+
+        // Press ESC to cancel
+        document.addEventListener('keydown', function escKeyPress(e) {
+            if (e.key === 'Escape') {
+                document.removeEventListener('keydown', escKeyPress);
+                if (document.body.contains(dialog)) {
+                    dialog.remove();
+                    onCancel();
+                }
+            }
+        });
     }
 
     async initializeCalendar() {
@@ -209,11 +335,11 @@ class AdminPortal {
                         document.getElementById('adminPanel').style.display = 'block';
                         this.showAdminPanel(user);
                     } else {
-                        alert('You are not authorized to access the admin panel. Please contact the administrator.');
+                        this.showToast('You are not authorized to access the admin panel. Please contact the administrator.', 'error');
                         await this.auth.signOut();
                     }
                 } else {
-                    alert('Please use your SJMC email address to login.');
+                    this.showToast('Please use your SJMC email address to login.', 'error');
                     await this.auth.signOut();
                 }
             } else {
@@ -264,7 +390,7 @@ class AdminPortal {
                     } catch (error) {
                         console.error('Failed to initialize calendar service:', error);
                         e.target.checked = false;
-                        alert('Unable to enable calendar reminders. Please try again later.');
+                        this.showToast('Unable to enable calendar reminders. Please try again later.', 'error');
                     }
                 }
             });
@@ -319,18 +445,18 @@ class AdminPortal {
                 if (isAuthorized) {
                     this.showAdminPanel(result.user);
                 } else {
-                    alert('You are not authorized to access the admin panel. Please contact the administrator.');
+                    this.showToast('You are not authorized to access the admin panel. Please contact the administrator.', 'error');
                     await this.auth.signOut();
                 }
             }
         } catch (error) {
             console.error('Login error:', error);
             if (error.code === 'auth/popup-blocked') {
-                alert('Please allow popups for this site to login.');
+                this.showToast('Please allow popups for this site to login.', 'error');
             } else if (error.code === 'auth/cancelled-popup-request') {
                 console.log('Previous popup closed');
             } else {
-                alert('Login failed: ' + error.message);
+                this.showToast('Login failed: ' + error.message, 'error');
             }
         }
     }
@@ -342,9 +468,10 @@ class AdminPortal {
             window.location.href = baseUrl + '/index.html';
         } catch (error) {
             console.error('Logout error:', error);
-            alert('Logout failed: ' + error.message);
+            this.showToast('Logout failed: ' + error.message, 'error');
         }
     }
+
     setupAutoArchiving() {
         // Run immediately
         this.checkAndArchiveOldExams();
@@ -352,6 +479,7 @@ class AdminPortal {
         // Then run every hour
         setInterval(() => this.checkAndArchiveOldExams(), 60 * 60 * 1000);
     }
+
     async saveExam(examData) {
         if (this.isSubmitting) {
             console.log('Already submitting, preventing duplicate submission');
@@ -378,18 +506,18 @@ class AdminPortal {
                     console.log('Calendar reminder created');
                 } catch (calendarError) {
                     console.error('Calendar error (continuing anyway):', calendarError);
-                    alert('Assessment saved, but calendar reminder failed to create. Please add it manually if needed.');
+                    this.showToast('Assessment saved, but calendar reminder failed to create. Please add it manually if needed.', 'warning');
                 }
             }
 
             document.getElementById('assessmentForm').reset();
-            alert('Assessment saved successfully!');
+            this.showToast('Assessment saved successfully!', 'success');
             await this.loadExams();
 
             return docRef;
         } catch (error) {
             console.error('Save exam error:', error);
-            alert('Error: ' + error.message);
+            this.showToast('Error: ' + error.message, 'error');
         } finally {
             this.isSubmitting = false;
             submitButton.disabled = false;
@@ -412,6 +540,13 @@ class AdminPortal {
         const adminPanel = document.getElementById('adminPanel');
         if (adminPanel) {
             adminPanel.style.display = 'block';
+
+            // Update user email display
+            const userEmailElement = document.getElementById('userEmail');
+            if (userEmailElement) {
+                userEmailElement.textContent = user.email;
+            }
+
             let examList = document.getElementById('examList');
             if (!examList) {
                 examList = document.createElement('div');
@@ -433,7 +568,7 @@ class AdminPortal {
 
     async manageUsers() {
         if (this.auth.currentUser.email !== 'acoetzee@maristsj.co.za') {
-            alert('Only the administrator can manage users.');
+            this.showToast('Only the administrator can manage users.', 'error');
             return;
         }
 
@@ -462,7 +597,7 @@ class AdminPortal {
     async addTeacher() {
         const email = document.getElementById('newUserEmail').value;
         if (!email.endsWith('@maristsj.co.za')) {
-            alert('Only @maristsj.co.za email addresses are allowed');
+            this.showToast('Only @maristsj.co.za email addresses are allowed', 'error');
             return;
         }
 
@@ -472,25 +607,25 @@ class AdminPortal {
                 addedBy: this.auth.currentUser.email,
                 addedAt: firebase.firestore.FieldValue.serverTimestamp()
             });
-            alert('Teacher added successfully');
+            this.showToast('Teacher added successfully', 'success');
             this.loadTeachers();
         } catch (error) {
             console.error('Error adding teacher:', error);
-            alert('Error adding teacher: ' + error.message);
+            this.showToast('Error adding teacher: ' + error.message, 'error');
         }
     }
 
     async removeTeacher(email) {
-        if (confirm(`Are you sure you want to remove ${email}?`)) {
+        this.showConfirmDialog(`Are you sure you want to remove ${email}?`, async () => {
             try {
                 await this.db.collection('users').doc(email).delete();
-                alert('Teacher removed successfully');
+                this.showToast('Teacher removed successfully', 'success');
                 this.loadTeachers();
             } catch (error) {
                 console.error('Error removing teacher:', error);
-                alert('Error removing teacher: ' + error.message);
+                this.showToast('Error removing teacher: ' + error.message, 'error');
             }
-        }
+        });
     }
 
     async loadTeachers() {
@@ -518,6 +653,7 @@ class AdminPortal {
             usersList.innerHTML = 'Error loading teachers';
         }
     }
+
     async loadExams(filter = false) {
         const examsList = document.getElementById('examList');
         if (!examsList) return;
@@ -607,40 +743,39 @@ class AdminPortal {
     }
 
     async archiveAll() {
-        if (!confirm('Are you sure you want to archive all currently visible assessments?')) {
-            return;
-        }
+        this.showConfirmDialog('Are you sure you want to archive all currently visible assessments?', async () => {
+            try {
+                // Get current visible assessments
+                const snapshot = await this.db.collection('exams')
+                    .where('archived', '==', false)
+                    .get();
 
-        try {
-            // Get current visible assessments
-            const snapshot = await this.db.collection('exams')
-                .where('archived', '==', false)
-                .get();
+                if (snapshot.empty) {
+                    this.showToast('No assessments to archive', 'info');
+                    return;
+                }
 
-            if (snapshot.empty) {
-                alert('No assessments to archive');
-                return;
-            }
+                // Use batched write for better performance
+                const batch = this.db.batch();
 
-            // Use batched write for better performance
-            const batch = this.db.batch();
-
-            snapshot.docs.forEach(doc => {
-                batch.update(doc.ref, {
-                    archived: true,
-                    archivedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    archivedBy: this.auth.currentUser.email
+                snapshot.docs.forEach(doc => {
+                    batch.update(doc.ref, {
+                        archived: true,
+                        archivedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        archivedBy: this.auth.currentUser.email
+                    });
                 });
-            });
 
-            await batch.commit();
-            alert('Successfully archived all assessments');
-            this.loadExams(true); // Refresh the list
-        } catch (error) {
-            console.error('Error archiving all assessments:', error);
-            alert('Error archiving assessments: ' + error.message);
-        }
+                await batch.commit();
+                this.showToast('Successfully archived all assessments', 'success');
+                this.loadExams(true); // Refresh the list
+            } catch (error) {
+                console.error('Error archiving all assessments:', error);
+                this.showToast('Error archiving assessments: ' + error.message, 'error');
+            }
+        });
     }
+
     async restoreExam(examId) {
         try {
             await this.db.collection('exams').doc(examId).update({
@@ -648,10 +783,11 @@ class AdminPortal {
                 restoredAt: firebase.firestore.FieldValue.serverTimestamp(),
                 restoredBy: this.auth.currentUser.email
             });
+            this.showToast('Assessment restored successfully', 'success');
             this.loadExams(true);
         } catch (error) {
             console.error('Error restoring exam:', error);
-            alert('Error restoring exam: ' + error.message);
+            this.showToast('Error restoring exam: ' + error.message, 'error');
         }
     }
 
@@ -662,12 +798,14 @@ class AdminPortal {
                 archivedAt: firebase.firestore.FieldValue.serverTimestamp(),
                 archivedBy: this.auth.currentUser.email
             });
+            this.showToast('Assessment archived successfully', 'success');
             this.loadExams(true);
         } catch (error) {
             console.error('Error archiving exam:', error);
-            alert('Error archiving exam: ' + error.message);
+            this.showToast('Error archiving exam: ' + error.message, 'error');
         }
     }
+
     generatePassword() {
         const passwords = this.passwordGenerator.generateOptions(5);
 
@@ -704,21 +842,30 @@ class AdminPortal {
     getExamFormData() {
         const date = document.getElementById('scheduledDate').value;
         const time = document.getElementById('scheduledTime').value;
-        const scheduledDateTime = `${date}T${time}`;
+        const scheduledDateTime = `${date}T${time}:00`;
 
+        // Create a date object in the local timezone
         const localDate = new Date(scheduledDateTime);
+
+        // Format in ISO string but keep the local timezone info
+        const isoDateWithoutTimezone = new Date(
+            localDate.getTime() - (localDate.getTimezoneOffset() * 60000)
+        ).toISOString();
+
         console.log('Time debug:', {
             inputDate: date,
             inputTime: time,
             scheduledDateTime,
-            finalDate: localDate.toISOString()
+            localDate: localDate.toString(),
+            finalDate: isoDateWithoutTimezone
         });
+
         const formData = {
             grade: Number(document.getElementById('grade')?.value),
             subject: document.getElementById('subject')?.value,
             type: document.getElementById('assessmentType')?.value,
             url: this.formatDriveUrl(document.getElementById('driveUrl')?.value || ''),
-            scheduledDate: localDate.toISOString(), // Store as is
+            scheduledDate: isoDateWithoutTimezone, // Store without timezone conversion
             password: document.getElementById('password')?.value,
             archived: false,
             date: new Date().toISOString()
@@ -765,25 +912,26 @@ class AdminPortal {
     }
 
     async deleteExam(examId) {
-        if (confirm('Are you sure you want to delete this exam?')) {
+        this.showConfirmDialog('Are you sure you want to delete this exam?', async () => {
             try {
                 await this.db.collection('exams').doc(examId).delete();
+                this.showToast('Exam deleted successfully', 'success');
                 this.loadExams();
             } catch (error) {
-                alert('Error deleting exam: ' + error.message);
+                this.showToast('Error deleting exam: ' + error.message, 'error');
             }
-        }
+        });
     }
 
     copyPassword(password) {
         navigator.clipboard.writeText(password);
-        alert('Password copied to clipboard!');
+        this.showToast('Password copied to clipboard!', 'success');
     }
 
     async generatePasswordReport() {
         const reportDate = document.getElementById('reportDate').value;
         if (!reportDate) {
-            alert('Please select a date');
+            this.showToast('Please select a date', 'warning');
             return;
         }
 
@@ -845,7 +993,7 @@ class AdminPortal {
 
         } catch (error) {
             console.error('Error generating report:', error);
-            alert('Error generating password report: ' + error.message);
+            this.showToast('Error generating password report: ' + error.message, 'error');
         }
     }
 
@@ -860,10 +1008,10 @@ class AdminPortal {
 
         try {
             await navigator.clipboard.writeText(reportText);
-            alert('Password report copied to clipboard!');
+            this.showToast('Password report copied to clipboard!', 'success');
         } catch (error) {
             console.error('Error copying report:', error);
-            alert('Error copying report: ' + error.message);
+            this.showToast('Error copying report: ' + error.message, 'error');
         }
     }
 
@@ -871,19 +1019,20 @@ class AdminPortal {
         try {
             const doc = await this.db.collection('exams').doc(examId).get();
             if (!doc.exists) {
-                alert('Assessment not found');
+                this.showToast('Assessment not found', 'error');
                 return;
             }
-
 
             const exam = doc.data();
             const scheduledDate = new Date(exam.scheduledDate);
 
-            const formattedDateTime = scheduledDate.toISOString().slice(0, 16);
+            // Format for datetime-local input (YYYY-MM-DDThh:mm)
+            const formattedDate = scheduledDate.toISOString().slice(0, 16);
+
             console.log('Edit time debug:', {
                 original: exam.scheduledDate,
-                scheduledDate: scheduledDate,
-                formatted: formattedDateTime
+                scheduledDate: scheduledDate.toString(),
+                formatted: formattedDate
             });
 
             const dialog = document.createElement('div');
@@ -899,7 +1048,7 @@ class AdminPortal {
                         <label for="editScheduledDate">Scheduled Date & Time</label>
                         <input type="datetime-local" 
                             id="editScheduledDate" 
-                            value="${formattedDateTime}" 
+                            value="${formattedDate}" 
                             required>
                     </div>
                     <div class="button-group">
@@ -916,104 +1065,108 @@ class AdminPortal {
 
             document.getElementById('editForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const newScheduledDate = document.getElementById('editScheduledDate').value + ':00+02:00';
+                const newScheduledDate = document.getElementById('editScheduledDate').value + ':00';
+
+                // Create date object in local timezone
                 const newDate = new Date(newScheduledDate);
+
+                // Format in ISO string but preserve local time
+                const isoDateWithoutTimezone = new Date(
+                    newDate.getTime() - (newDate.getTimezoneOffset() * 60000)
+                ).toISOString();
 
                 try {
                     await this.db.collection('exams').doc(examId).update({
-                        scheduledDate: newDate.toISOString()
+                        scheduledDate: isoDateWithoutTimezone
                     });
 
                     console.log('Update successful');
-                    alert('Assessment updated successfully');
+                    this.showToast('Assessment updated successfully', 'success');
                     dialog.remove();
                     this.loadExams();
                 } catch (error) {
                     console.error('Error updating assessment:', error);
-                    alert('Error updating assessment: ' + error.message);
+                    this.showToast('Error updating assessment: ' + error.message, 'error');
                 }
             });
 
         } catch (error) {
             console.error('Error loading assessment for edit:', error);
-            alert('Error loading assessment: ' + error.message);
+            this.showToast('Error loading assessment: ' + error.message, 'error');
         }
     }
+
     async archiveCurrentAssessments() {
-        if (!confirm('Are you sure you want to archive all currently displayed assessments? They will be hidden from students but can be restored through filters.')) {
-            return;
-        }
+        this.showConfirmDialog('Are you sure you want to archive all currently displayed assessments? They will be hidden from students but can be restored through filters.', async () => {
+            try {
+                const batch = this.db.batch();
+                const snapshot = await this.db.collection('exams')
+                    .where('archived', '==', false)
+                    .get();
 
-        try {
-            const batch = this.db.batch();
-            const snapshot = await this.db.collection('exams')
-                .where('archived', '==', false)
-                .get();
+                if (snapshot.empty) {
+                    this.showToast('No assessments to archive', 'info');
+                    return;
+                }
 
-            if (snapshot.empty) {
-                alert('No assessments to archive');
-                return;
-            }
-
-            snapshot.docs.forEach(doc => {
-                batch.update(doc.ref, {
-                    archived: true,
-                    archivedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    archivedBy: this.auth.currentUser.email
+                snapshot.docs.forEach(doc => {
+                    batch.update(doc.ref, {
+                        archived: true,
+                        archivedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        archivedBy: this.auth.currentUser.email
+                    });
                 });
-            });
 
-            await batch.commit();
-            alert('Assessments archived successfully');
-            this.loadExams(false);
-        } catch (error) {
-            console.error('Error archiving assessments:', error);
-            alert('Error archiving assessments: ' + error.message);
-        }
-
+                await batch.commit();
+                this.showToast('Assessments archived successfully', 'success');
+                this.loadExams(false);
+            } catch (error) {
+                console.error('Error archiving assessments:', error);
+                this.showToast('Error archiving assessments: ' + error.message, 'error');
+            }
+        });
     }
 
     async fixMissingArchivedStatus() {
-        if (!confirm('This will update all exams without an archived status to set them as active. Continue?')) {
-            return;
-        }
+        this.showConfirmDialog('This will update all exams without an archived status to set them as active. Continue?', async () => {
+            try {
+                // Get ALL exams
+                const snapshot = await this.db.collection('exams').get();
 
-        try {
-            // Get ALL exams
-            const snapshot = await this.db.collection('exams').get();
-
-            if (snapshot.empty) {
-                alert('No exams found');
-                return;
-            }
-
-            const batch = this.db.batch();
-            let count = 0;
-
-            snapshot.forEach(doc => {
-                const examData = doc.data();
-                // Check if archived field exists at all
-                if (!examData.hasOwnProperty('archived')) {
-                    batch.update(doc.ref, {
-                        archived: false // Set them as active by default
-                    });
-                    count++;
+                if (snapshot.empty) {
+                    this.showToast('No exams found', 'info');
+                    return;
                 }
-            });
 
-            if (count === 0) {
-                alert('No exams found needing update');
-                return;
+                const batch = this.db.batch();
+                let count = 0;
+
+                snapshot.forEach(doc => {
+                    const examData = doc.data();
+                    // Check if archived field exists at all
+                    if (!examData.hasOwnProperty('archived')) {
+                        batch.update(doc.ref, {
+                            archived: false // Set them as active by default
+                        });
+                        count++;
+                    }
+                });
+
+                if (count === 0) {
+                    this.showToast('No exams found needing update', 'info');
+                    return;
+                }
+
+                await batch.commit();
+                this.showToast(`Successfully updated ${count} exams`, 'success');
+                this.loadExams(true);
+            } catch (error) {
+                console.error('Error fixing archived status:', error);
+                this.showToast('Error updating exams: ' + error.message, 'error');
             }
-
-            await batch.commit();
-            alert(`Successfully updated ${count} exams`);
-            this.loadExams(true);
-        } catch (error) {
-            console.error('Error fixing archived status:', error);
-            alert('Error updating exams: ' + error.message);
-        }
+        });
     }
+
     async checkAndArchiveOldExams() {
         try {
             const now = new Date();
@@ -1049,6 +1202,7 @@ class AdminPortal {
             console.error('Error in auto-archiving:', error);
         }
     }
+
     async fixExistingExams() {
         try {
             const snapshot = await this.db.collection('exams').get();
@@ -1076,7 +1230,6 @@ class AdminPortal {
             console.error('Error fixing exams:', error);
         }
     }
-
 }
 
 // Initialize admin portal when document is loaded
