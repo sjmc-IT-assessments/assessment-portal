@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SJMC Assessment Viewer</title>
+    <style>
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        .header {
+            background-color: #0a2b72;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .school-logo {
+            height: 40px;
+            margin-right: 15px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .content {
+            height: calc(100% - 60px);
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #666;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #0a2b72;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .error {
+            padding: 20px;
+            background-color: #ffebee;
+            color: #c62828;
+            text-align: center;
+            margin: 40px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            margin-right: 15px;
+        }
+
+        .back-btn svg {
+            margin-right: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div class="header-left">
+            <button class="btn back-btn" id="backBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                Back
+            </button>
+            <img src="../assets/images/school-logo2.png" alt="SJMC Logo" class="school-logo">
+            <h1 id="assessmentTitle">Assessment Viewer</h1>
+        </div>
+        <div class="controls">
+            <button class="btn" id="fullscreenBtn">Fullscreen</button>
+            <button class="btn" id="printBtn">Print</button>
+        </div>
+    </div>
+
+    <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <p>Loading assessment...</p>
+    </div>
+
+    <div id="error" class="error">
+        Unable to load assessment. Please return to the portal and try again.
+    </div>
+
+    <div class="content">
+        <iframe id="viewerFrame" src="" frameborder="0" allowfullscreen></iframe>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Get parameters from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const pdfUrl = urlParams.get('url');
+            const title = urlParams.get('title');
+            const subject = urlParams.get('subject');
+            const type = urlParams.get('type');
+
+            // Set the page title
+            if (title) {
+                document.title = title;
+            }
+
+            // Set the assessment title
+            if (subject && type) {
+                document.getElementById('assessmentTitle').textContent = `${subject} - ${type}`;
+            } else if (title) {
+                document.getElementById('assessmentTitle').textContent = title;
+            }
+
+            // Set up the iframe
+            const viewerFrame = document.getElementById('viewerFrame');
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+
+            if (pdfUrl) {
+                viewerFrame.src = pdfUrl;
+
+                // Handle iframe load event
+                viewerFrame.onload = function () {
+                    loading.style.display = 'none';
+                };
+
+                // Handle iframe error
+                viewerFrame.onerror = function () {
+                    loading.style.display = 'none';
+                    error.style.display = 'block';
+                    viewerFrame.style.display = 'none';
+                };
+            } else {
+                loading.style.display = 'none';
+                error.style.display = 'block';
+                error.textContent = 'No assessment URL provided. Please return to the portal.';
+                viewerFrame.style.display = 'none';
+            }
+
+            // Back button
+            document.getElementById('backBtn').addEventListener('click', function () {
+                window.location.href = '../index.html';
+            });
+
+            // Fullscreen button
+            document.getElementById('fullscreenBtn').addEventListener('click', function () {
+                if (document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen();
+                } else if (document.documentElement.webkitRequestFullscreen) {
+                    document.documentElement.webkitRequestFullscreen();
+                } else if (document.documentElement.msRequestFullscreen) {
+                    document.documentElement.msRequestFullscreen();
+                }
+            });
+
+            // Print button
+            document.getElementById('printBtn').addEventListener('click', function () {
+                window.print();
+            });
+
+            // Handle ESC key to exit fullscreen
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && document.fullscreenElement) {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    } else if (document.webkitExitFullscreen) {
+                        document.webkitExitFullscreen();
+                    } else if (document.msExitFullscreen) {
+                        document.msExitFullscreen();
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

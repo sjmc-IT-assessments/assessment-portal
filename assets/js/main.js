@@ -33,7 +33,7 @@ class AssessmentPortal {
         const minutes = date.getMinutes().toString().padStart(2, '0');
         return `${day}/${month}/${year}, ${hours}:${minutes}`;
     }
-    
+
     setupEventListeners() {
         // Tab switching
         document.querySelectorAll('.tab-button').forEach(button => {
@@ -167,7 +167,7 @@ class AssessmentPortal {
                     console.log('Excluding assessment:', assessment.subject, 'Time diff:', timeDiff);
                 }
             });
-            
+
             assessments.sort((a, b) => a.date - b.date);
             console.log('Final filtered assessments:', assessments.length);
 
@@ -222,7 +222,7 @@ class AssessmentPortal {
         }
 
         const formattedDate = this.formatDate(date, true);
-        
+
         // Store assessment ID as a data attribute for easier access
         card.dataset.assessmentId = id;
 
@@ -238,7 +238,7 @@ class AssessmentPortal {
                 ${buttonText}
             </button>
         `;
-        
+
         // Add click event listener directly to the button
         const button = card.querySelector('.start-btn');
         if (button && isAvailable) {
@@ -249,21 +249,21 @@ class AssessmentPortal {
 
         return card;
     }
-    
+
     openAssessment(assessmentId) {
         console.log('Opening assessment:', assessmentId);
         this.currentAssessment = assessmentId;
-        
+
         const modalOverlay = document.getElementById('modalOverlay');
         console.log('Modal overlay element:', modalOverlay);
-        
+
         if (modalOverlay) {
             modalOverlay.style.display = 'flex';
             modalOverlay.classList.add('active');
-            
+
             const passwordInput = document.getElementById('assessmentPassword');
             console.log('Password input element:', passwordInput);
-            
+
             if (passwordInput) {
                 passwordInput.value = '';
                 passwordInput.focus();
@@ -292,7 +292,7 @@ class AssessmentPortal {
 
         const passwordInput = document.getElementById('assessmentPassword');
         const password = passwordInput ? passwordInput.value : '';
-        
+
         if (!password) {
             alert('Please enter a password');
             return;
@@ -301,7 +301,7 @@ class AssessmentPortal {
         try {
             console.log('Verifying password for assessment:', this.currentAssessment);
             const doc = await this.db.collection('exams').doc(this.currentAssessment).get();
-            
+
             if (!doc.exists) {
                 console.error('Assessment not found');
                 alert('Assessment not found');
@@ -310,11 +310,22 @@ class AssessmentPortal {
 
             const assessment = doc.data();
             console.log('Assessment data retrieved, checking password');
-            
+
             if (password === assessment.password) {
-                console.log('Password correct, opening PDF viewer');
+                console.log('Password correct, redirecting to viewer page');
                 this.closeModal();
-                this.openPdfViewer(assessment);
+
+                // Use the dedicated viewer page
+                const viewerUrl = new URL('viewer.html', window.location.href);
+
+                // Add query parameters
+                viewerUrl.searchParams.append('url', assessment.url);
+                viewerUrl.searchParams.append('title', `${assessment.subject} - ${assessment.type}`);
+                viewerUrl.searchParams.append('subject', assessment.subject);
+                viewerUrl.searchParams.append('type', assessment.type);
+
+                // Redirect to the viewer page
+                window.location.href = viewerUrl.toString();
             } else {
                 console.log('Incorrect password');
                 alert('Incorrect password');
@@ -324,97 +335,118 @@ class AssessmentPortal {
             alert('Error verifying password. Please try again.');
         }
     }
+    async openPdfViewer(assessment) {
+        // Instead of using an iframe, we'll open the PDF in a controlled way
+        console.log('Opening PDF viewer for:', assessment.subject);
 
-    openPdfViewer(assessment) {
-        const pdfModalOverlay = document.getElementById('pdfModalOverlay');
-        const pdfViewer = document.getElementById('pdfViewer');
-        const pdfModalTitle = document.getElementById('pdfModalTitle');
-        
-        if (!pdfModalOverlay || !pdfViewer) {
-            console.error('PDF viewer elements not found');
+        // Get the URL from the assessment
+        const pdfUrl = assessment.url;
+
+        // Create a new window with specific settings for kiosk mode
+        const pdfWindow = window.open('about:blank', '_blank',
+            'toolbar=0,location=0,menubar=0,width=1000,height=800,left=100,top=100');
+
+        if (!pdfWindow) {
+            alert('Please allow popups to view the assessment');
             return;
         }
-        
-        // Show loading indicator (optional)
-        pdfViewer.insertAdjacentHTML('afterend', `
-            <div class="pdf-loading" id="pdfLoading">
-                <div class="pdf-loading-spinner"></div>
-                <p>Loading assessment...</p>
-            </div>
-        `);
-        
-        // Set the title
-        if (pdfModalTitle) {
-            pdfModalTitle.textContent = `${assessment.subject} - ${assessment.type}`;
-        }
-        
-        // Set iframe source (Google Drive viewer)
-        // This works with both direct PDF links and Google Drive preview links
-        pdfViewer.src = assessment.url;
-        
-        // Remove loading indicator when iframe loads
-        pdfViewer.onload = () => {
-            const loadingEl = document.getElementById('pdfLoading');
-            if (loadingEl) loadingEl.remove();
-        };
-        
-        // Show the modal
-        pdfModalOverlay.style.display = 'flex';
-        setTimeout(() => {
-            pdfModalOverlay.classList.add('active');
-        }, 10);
-    }
-    
-    closePdfViewer() {
-        const pdfModalOverlay = document.getElementById('pdfModalOverlay');
-        const pdfViewer = document.getElementById('pdfViewer');
-        
-        if (pdfModalOverlay) {
-            pdfModalOverlay.classList.remove('active');
-            
-            // Remove src to stop loading
-            if (pdfViewer) {
-                setTimeout(() => {
-                    pdfViewer.src = '';
-                }, 300); // Wait for animation to complete
-            }
-            
-            setTimeout(() => {
-                pdfModalOverlay.style.display = 'none';
+
+        // Write content to the new window with styling and controls
+        pdfWindow.document.write(`
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>${assessment.subject} - ${assessment.type}</title>
+                <style>
+                    body, html {
+                        margin: 0;
+                        padding: 0;
+                        height: 100%;
+                        overflow: hidden;
+                        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                    }
+                    .header {
+                        background-color: #0a2b72;
+                        color: white;
+                        padding: 10px 20px;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                    }
+                    .header h1 {
+                        margin: 0;
+                        font-size: 18px;
+                    }
+                    .controls {
+                        display: flex;
+                        gap: 10px;
+                    }
+                    .btn {
+                        background: rgba(255,255,255,0.2);
+                        border: none;
+                        color: white;
+                        padding: 5px 10px;
+                        border-radius: 4px;
+                        cursor: pointer;
+                    }
+                    .btn:hover {
+                        background: rgba(255,255,255,0.3);
+                    }
+                    .content {
+                        height: calc(100% - 50px);
+                    }
+                    iframe {
+                        width: 100%;
+                        height: 100%;
+                        border: none;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h1>${assessment.subject} - ${assessment.type}</h1>
+                    <div class="controls">
+                        <button class="btn" id="fullscreenBtn">Fullscreen</button>
+                        <button class="btn" id="closeBtn">Close</button>
+                    </div>
+                </div>
+                <div class="content">
+                    <iframe src="${pdfUrl}" frameborder="0" allowfullscreen></iframe>
+                </div>
                 
-                // Remove fullscreen if active
-                const pdfModalContainer = document.querySelector('.pdf-modal-container');
-                if (pdfModalContainer) {
-                    pdfModalContainer.classList.remove('fullscreen');
-                }
-            }, 300);
-        }
-    }
-    
-    toggleFullscreen() {
-        const pdfModalContainer = document.querySelector('.pdf-modal-container');
-        
-        if (pdfModalContainer) {
-            pdfModalContainer.classList.toggle('fullscreen');
-            
-            // Update button icon (optional)
-            const fullscreenBtn = document.getElementById('fullscreenBtn');
-            if (fullscreenBtn) {
-                if (pdfModalContainer.classList.contains('fullscreen')) {
-                    fullscreenBtn.innerHTML = `
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path>
-                        </svg>
-                    `;
-                } else {
-                    fullscreenBtn.innerHTML = `
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
-                        </svg>
-                    `;
-                }
-            }
-        }
+                <script>
+                    // Fullscreen button
+                    document.getElementById('fullscreenBtn').addEventListener('click', () => {
+                        if (document.documentElement.requestFullscreen) {
+                            document.documentElement.requestFullscreen();
+                        } else if (document.documentElement.webkitRequestFullscreen) {
+                            document.documentElement.webkitRequestFullscreen();
+                        } else if (document.documentElement.msRequestFullscreen) {
+                            document.documentElement.msRequestFullscreen();
+                        }
+                    });
+                    
+                    // Close button
+                    document.getElementById('closeBtn').addEventListener('click', () => {
+                        window.close();
+                    });
+                    
+                    // Also handle Escape key for exiting fullscreen
+                    document.addEventListener('keydown', (e) => {
+                        if (e.key === 'Escape' && !document.fullscreenElement) {
+                            window.close();
+                        }
+                    });
+                </script>
+            </body>
+            </html>
+        `);
+
+        // Finalize the document
+        pdfWindow.document.close();
     }
 }
 
