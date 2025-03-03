@@ -289,41 +289,51 @@ class AssessmentPortal {
             console.error('No assessment selected');
             return;
         }
-
+    
         const passwordInput = document.getElementById('assessmentPassword');
         const password = passwordInput ? passwordInput.value : '';
-
+        
         if (!password) {
             alert('Please enter a password');
             return;
         }
-
+    
         try {
             console.log('Verifying password for assessment:', this.currentAssessment);
             const doc = await this.db.collection('exams').doc(this.currentAssessment).get();
-
+            
             if (!doc.exists) {
                 console.error('Assessment not found');
                 alert('Assessment not found');
                 return;
             }
-
+    
             const assessment = doc.data();
             console.log('Assessment data retrieved, checking password');
-
+            
             if (password === assessment.password) {
-                console.log('Password correct, redirecting to viewer page');
+                console.log('Password correct, opening assessment viewer');
                 this.closeModal();
-
+                
+                // Extract the fileId from the Google Drive URL if it's a Google Drive link
+                let pdfUrl = assessment.url;
+                const googleDriveMatch = pdfUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+                
+                if (googleDriveMatch && googleDriveMatch[1]) {
+                    // If it's a Google Drive URL, convert it to a direct download URL
+                    const fileId = googleDriveMatch[1];
+                    pdfUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+                }
+                
                 // Use the dedicated viewer page
                 const viewerUrl = new URL('viewer.html', window.location.href);
-
+                
                 // Add query parameters
-                viewerUrl.searchParams.append('url', assessment.url);
+                viewerUrl.searchParams.append('url', pdfUrl);
                 viewerUrl.searchParams.append('title', `${assessment.subject} - ${assessment.type}`);
                 viewerUrl.searchParams.append('subject', assessment.subject);
                 viewerUrl.searchParams.append('type', assessment.type);
-
+                
                 // Redirect to the viewer page
                 window.location.href = viewerUrl.toString();
             } else {

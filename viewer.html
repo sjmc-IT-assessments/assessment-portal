@@ -66,6 +66,7 @@
         .content {
             height: calc(100% - 60px);
             overflow: auto;
+            background-color: #525659;
         }
         
         #pdfContainer {
@@ -73,7 +74,6 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            background-color: #525659;
             min-height: 100%;
         }
         
@@ -172,6 +172,18 @@
             min-width: 60px;
             text-align: center;
         }
+        
+        .embed-fallback {
+            display: none;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .embed-fallback iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
     </style>
 </head>
 <body>
@@ -203,9 +215,12 @@
     
     <div class="content">
         <div id="pdfContainer"></div>
+        <div id="embedFallback" class="embed-fallback">
+            <iframe id="embedFrame" src="" frameborder="0" allowfullscreen></iframe>
+        </div>
     </div>
     
-    <div class="navigation">
+    <div class="navigation" id="navigation">
         <div class="page-controls">
             <button id="prevPage" class="page-btn">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -244,10 +259,13 @@
             let pageNumPending = null;
             let scale = 1.0;
             const pdfContainer = document.getElementById('pdfContainer');
+            const embedFallback = document.getElementById('embedFallback');
+            const embedFrame = document.getElementById('embedFrame');
             const loading = document.getElementById('loading');
             const error = document.getElementById('error');
             const pageStatus = document.getElementById('pageStatus');
             const zoomLevel = document.getElementById('zoomLevel');
+            const navigation = document.getElementById('navigation');
             
             // Get parameters from URL
             const urlParams = new URLSearchParams(window.location.search);
@@ -268,19 +286,62 @@
                 document.getElementById('assessmentTitle').textContent = title;
             }
             
-            // Load the PDF
+            // Check if it's a Google Drive URL
+            const isGoogleDriveUrl = pdfUrl && (
+                pdfUrl.includes('drive.google.com') || 
+                pdfUrl.includes('docs.google.com')
+            );
+            
+            // Load the PDF or fallback to embed
             if (pdfUrl) {
-                loadPdf(pdfUrl);
+                if (isGoogleDriveUrl && pdfUrl.includes('/preview')) {
+                    // If it's a Google Drive preview URL, use iframe
+                    useEmbedFallback(pdfUrl);
+                } else {
+                    // Otherwise try to load as PDF
+                    loadPdf(pdfUrl);
+                }
             } else {
+                showError('No assessment URL provided. Please return to the portal.');
+            }
+            
+            // Function to show error
+            function showError(message) {
                 loading.style.display = 'none';
                 error.style.display = 'block';
-                error.textContent = 'No assessment URL provided. Please return to the portal.';
+                error.textContent = message;
+            }
+            
+            // Function to use embed fallback when PDF.js fails
+            function useEmbedFallback(url) {
+                console.log('Using embed fallback with URL:', url);
+                
+                // Hide PDF container and navigation
+                pdfContainer.style.display = 'none';
+                navigation.style.display = 'none';
+                
+                // Show embed container
+                embedFallback.style.display = 'block';
+                embedFrame.src = url;
+                
+                // Hide loading when iframe loads
+                embedFrame.onload = function() {
+                    loading.style.display = 'none';
+                };
+                
+                // Set error handler
+                embedFrame.onerror = function() {
+                    showError('Failed to load the assessment. Please try again later.');
+                };
             }
             
             // Function to load and initialize the PDF
             function loadPdf(url) {
+                console.log('Attempting to load PDF from URL:', url);
+                
                 // Fetch the PDF document
                 pdfjsLib.getDocument(url).promise.then(function(pdf) {
+                    console.log('PDF loaded successfully');
                     pdfDoc = pdf;
                     pageStatus.textContent = `Page 1 of ${pdfDoc.numPages}`;
                     
@@ -292,8 +353,20 @@
                 }).catch(function(err) {
                     // PDF loading error
                     console.error('Error loading PDF:', err);
-                    loading.style.display = 'none';
-                    error.style.display = 'block';
+                    
+                    // Try fallback to Google Drive embed if it's a Google Drive URL
+                    if (isGoogleDriveUrl) {
+                        // Convert to embed URL if needed
+                        let embedUrl = url;
+                        if (url.includes('uc?export=download&id=')) {
+                            const fileId = url.split('id=')[1].split('&')[0];
+                            embedUrl = `https://drive.google.com/file/d/${fileId}/preview`;
+                        }
+                        
+                        useEmbedFallback(embedUrl);
+                    } else {
+                        showError('Failed to load the PDF. Please try again later.');
+                    }
                 });
             }
             
@@ -357,21 +430,21 @@
             
             // Go to previous page
             document.getElementById('prevPage').addEventListener('click', function() {
-                if (pageNum <= 1) return;
+                if (!pdfDoc || pageNum <= 1) return;
                 pageNum--;
                 queueRenderPage(pageNum);
             });
             
             // Go to next page
             document.getElementById('nextPage').addEventListener('click', function() {
-                if (pageNum >= pdfDoc.numPages) return;
+                if (!pdfDoc || pageNum >= pdfDoc.numPages) return;
                 pageNum++;
                 queueRenderPage(pageNum);
             });
             
             // Zoom in
             document.getElementById('zoomIn').addEventListener('click', function() {
-                if (scale >= 3.0) return; // Maximum zoom
+                if (!pdfDoc || scale >= 3.0) return; // Maximum zoom
                 scale += 0.25;
                 zoomLevel.textContent = `${Math.round(scale * 100)}%`;
                 queueRenderPage(pageNum);
@@ -379,7 +452,7 @@
             
             // Zoom out
             document.getElementById('zoomOut').addEventListener('click', function() {
-                if (scale <= 0.5) return; // Minimum zoom
+                if (!pdfDoc || scale <= 0.5) return; // Minimum zoom
                 scale -= 0.25;
                 zoomLevel.textContent = `${Math.round(scale * 100)}%`;
                 queueRenderPage(pageNum);
@@ -387,11 +460,7 @@
             
             // Back button
             document.getElementById('backBtn').addEventListener('click', function() {
-                // Get the current URL and go back to the parent directory
-                const currentUrl = window.location.href;
-                // Extract the base URL by removing the viewer.html part
-                const baseUrl = currentUrl.substring(0, currentUrl.lastIndexOf('/'));
-                window.location.href = baseUrl; // This will go back to the root directory
+                window.location.href = './';  // Simply go to the site root
             });
             
             // Fullscreen button
@@ -427,7 +496,7 @@
                         pageNum--;
                         queueRenderPage(pageNum);
                     }
-                } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
                     if (pageNum < pdfDoc.numPages) {
                         pageNum++;
                         queueRenderPage(pageNum);
