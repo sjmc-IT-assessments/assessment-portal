@@ -1,20 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SJMC Assessment Viewer</title>
+    <!-- PDF.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        // Set the PDF.js worker path
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
     <style>
-        body,
-        html {
+        body, html {
             margin: 0;
             padding: 0;
             height: 100%;
             overflow: hidden;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
-
+        
         .header {
             background-color: #0a2b72;
             color: white;
@@ -22,31 +26,31 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-
+        
         .header h1 {
             margin: 0;
             font-size: 18px;
         }
-
+        
         .school-logo {
             height: 40px;
             margin-right: 15px;
         }
-
+        
         .header-left {
             display: flex;
             align-items: center;
         }
-
+        
         .controls {
             display: flex;
             gap: 10px;
         }
-
+        
         .btn {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255,255,255,0.2);
             border: none;
             color: white;
             padding: 6px 12px;
@@ -54,50 +58,89 @@
             cursor: pointer;
             transition: background-color 0.2s;
         }
-
+        
         .btn:hover {
-            background: rgba(255, 255, 255, 0.3);
+            background: rgba(255,255,255,0.3);
         }
-
+        
         .content {
             height: calc(100% - 60px);
+            overflow: auto;
         }
-
-        iframe {
+        
+        #pdfContainer {
             width: 100%;
-            height: 100%;
-            border: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #525659;
+            min-height: 100%;
         }
-
+        
+        #pdfContainer canvas {
+            margin: 10px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        
+        .navigation {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0,0,0,0.5);
+            padding: 5px 15px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            z-index: 1000;
+        }
+        
+        .page-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+        }
+        
+        .page-btn {
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 5px;
+            cursor: pointer;
+        }
+        
+        .page-status {
+            font-size: 14px;
+            user-select: none;
+        }
+        
         .loading {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             text-align: center;
-            color: #666;
+            color: white;
+            z-index: 100;
         }
-
+        
         .spinner {
             width: 40px;
             height: 40px;
-            border: 4px solid rgba(0, 0, 0, 0.1);
-            border-left-color: #0a2b72;
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-left-color: white;
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin: 0 auto 20px;
         }
-
+        
         @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
-
+        
         .error {
             padding: 20px;
             background-color: #ffebee;
@@ -107,106 +150,252 @@
             border-radius: 4px;
             display: none;
         }
-
+        
         .back-btn {
             display: inline-flex;
             align-items: center;
             margin-right: 15px;
         }
-
+        
         .back-btn svg {
             margin-right: 5px;
         }
+        
+        .zoom-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+        }
+        
+        #zoomLevel {
+            min-width: 60px;
+            text-align: center;
+        }
     </style>
 </head>
-
 <body>
     <div class="header">
         <div class="header-left">
             <button class="btn back-btn" id="backBtn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="19" y1="12" x2="5" y2="12"></line>
                     <polyline points="12 19 5 12 12 5"></polyline>
                 </svg>
                 Back
             </button>
-            <img src="../assets/images/school-logo2.png" alt="SJMC Logo" class="school-logo">
+            <img src="assets/images/school-logo2.png" alt="SJMC Logo" class="school-logo">
             <h1 id="assessmentTitle">Assessment Viewer</h1>
         </div>
         <div class="controls">
             <button class="btn" id="fullscreenBtn">Fullscreen</button>
-            <button class="btn" id="printBtn">Print</button>
         </div>
     </div>
-
+    
     <div id="loading" class="loading">
         <div class="spinner"></div>
         <p>Loading assessment...</p>
     </div>
-
+    
     <div id="error" class="error">
         Unable to load assessment. Please return to the portal and try again.
     </div>
-
+    
     <div class="content">
-        <iframe id="viewerFrame" src="" frameborder="0" allowfullscreen></iframe>
+        <div id="pdfContainer"></div>
     </div>
-
+    
+    <div class="navigation">
+        <div class="page-controls">
+            <button id="prevPage" class="page-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+            </button>
+            <span class="page-status" id="pageStatus">Page 0 of 0</span>
+            <button id="nextPage" class="page-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </button>
+        </div>
+        <div class="zoom-controls">
+            <button id="zoomOut" class="page-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+            </button>
+            <span id="zoomLevel">100%</span>
+            <button id="zoomIn" class="page-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+            </button>
+        </div>
+    </div>
+    
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function() {
+            // Variables
+            let pdfDoc = null;
+            let pageNum = 1;
+            let pageRendering = false;
+            let pageNumPending = null;
+            let scale = 1.0;
+            const pdfContainer = document.getElementById('pdfContainer');
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const pageStatus = document.getElementById('pageStatus');
+            const zoomLevel = document.getElementById('zoomLevel');
+            
             // Get parameters from URL
             const urlParams = new URLSearchParams(window.location.search);
             const pdfUrl = urlParams.get('url');
             const title = urlParams.get('title');
             const subject = urlParams.get('subject');
             const type = urlParams.get('type');
-
+            
             // Set the page title
             if (title) {
                 document.title = title;
             }
-
+            
             // Set the assessment title
             if (subject && type) {
                 document.getElementById('assessmentTitle').textContent = `${subject} - ${type}`;
             } else if (title) {
                 document.getElementById('assessmentTitle').textContent = title;
             }
-
-            // Set up the iframe
-            const viewerFrame = document.getElementById('viewerFrame');
-            const loading = document.getElementById('loading');
-            const error = document.getElementById('error');
-
+            
+            // Load the PDF
             if (pdfUrl) {
-                viewerFrame.src = pdfUrl;
-
-                // Handle iframe load event
-                viewerFrame.onload = function () {
-                    loading.style.display = 'none';
-                };
-
-                // Handle iframe error
-                viewerFrame.onerror = function () {
-                    loading.style.display = 'none';
-                    error.style.display = 'block';
-                    viewerFrame.style.display = 'none';
-                };
+                loadPdf(pdfUrl);
             } else {
                 loading.style.display = 'none';
                 error.style.display = 'block';
                 error.textContent = 'No assessment URL provided. Please return to the portal.';
-                viewerFrame.style.display = 'none';
             }
-
-            // Back button
-            document.getElementById('backBtn').addEventListener('click', function () {
-                window.location.href = '../index.html';
+            
+            // Function to load and initialize the PDF
+            function loadPdf(url) {
+                // Fetch the PDF document
+                pdfjsLib.getDocument(url).promise.then(function(pdf) {
+                    pdfDoc = pdf;
+                    pageStatus.textContent = `Page 1 of ${pdfDoc.numPages}`;
+                    
+                    // Initial render
+                    renderPage(pageNum);
+                    
+                    // Hide loading indicator
+                    loading.style.display = 'none';
+                }).catch(function(err) {
+                    // PDF loading error
+                    console.error('Error loading PDF:', err);
+                    loading.style.display = 'none';
+                    error.style.display = 'block';
+                });
+            }
+            
+            // Function to render a specific page
+            function renderPage(num) {
+                pageRendering = true;
+                
+                // Remove any existing canvas for this page
+                const existingCanvas = document.getElementById(`page-${num}`);
+                if (existingCanvas) {
+                    existingCanvas.remove();
+                }
+                
+                // Get the page
+                pdfDoc.getPage(num).then(function(page) {
+                    // Calculate the viewport based on scale
+                    const viewport = page.getViewport({ scale: scale });
+                    
+                    // Create canvas for this page
+                    const canvas = document.createElement('canvas');
+                    canvas.id = `page-${num}`;
+                    const context = canvas.getContext('2d');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+                    
+                    // Append the canvas to the page container
+                    pdfContainer.appendChild(canvas);
+                    
+                    // Render the PDF page into the canvas context
+                    const renderContext = {
+                        canvasContext: context,
+                        viewport: viewport
+                    };
+                    
+                    const renderTask = page.render(renderContext);
+                    
+                    // Wait for rendering to finish
+                    renderTask.promise.then(function() {
+                        pageRendering = false;
+                        
+                        // Update page status
+                        pageStatus.textContent = `Page ${num} of ${pdfDoc.numPages}`;
+                        
+                        // If another page rendering is pending, process that
+                        if (pageNumPending !== null) {
+                            renderPage(pageNumPending);
+                            pageNumPending = null;
+                        }
+                    });
+                });
+            }
+            
+            // Function to queue page rendering
+            function queueRenderPage(num) {
+                if (pageRendering) {
+                    pageNumPending = num;
+                } else {
+                    renderPage(num);
+                }
+            }
+            
+            // Go to previous page
+            document.getElementById('prevPage').addEventListener('click', function() {
+                if (pageNum <= 1) return;
+                pageNum--;
+                queueRenderPage(pageNum);
             });
-
+            
+            // Go to next page
+            document.getElementById('nextPage').addEventListener('click', function() {
+                if (pageNum >= pdfDoc.numPages) return;
+                pageNum++;
+                queueRenderPage(pageNum);
+            });
+            
+            // Zoom in
+            document.getElementById('zoomIn').addEventListener('click', function() {
+                if (scale >= 3.0) return; // Maximum zoom
+                scale += 0.25;
+                zoomLevel.textContent = `${Math.round(scale * 100)}%`;
+                queueRenderPage(pageNum);
+            });
+            
+            // Zoom out
+            document.getElementById('zoomOut').addEventListener('click', function() {
+                if (scale <= 0.5) return; // Minimum zoom
+                scale -= 0.25;
+                zoomLevel.textContent = `${Math.round(scale * 100)}%`;
+                queueRenderPage(pageNum);
+            });
+            
+            // Back button
+            document.getElementById('backBtn').addEventListener('click', function() {
+                // Get the current URL and go back to the parent directory
+                const currentUrl = window.location.href;
+                // Extract the base URL by removing the viewer.html part
+                const baseUrl = currentUrl.substring(0, currentUrl.lastIndexOf('/'));
+                window.location.href = baseUrl; // This will go back to the root directory
+            });
+            
             // Fullscreen button
-            document.getElementById('fullscreenBtn').addEventListener('click', function () {
+            document.getElementById('fullscreenBtn').addEventListener('click', function() {
                 if (document.documentElement.requestFullscreen) {
                     document.documentElement.requestFullscreen();
                 } else if (document.documentElement.webkitRequestFullscreen) {
@@ -215,14 +404,9 @@
                     document.documentElement.msRequestFullscreen();
                 }
             });
-
-            // Print button
-            document.getElementById('printBtn').addEventListener('click', function () {
-                window.print();
-            });
-
+            
             // Handle ESC key to exit fullscreen
-            document.addEventListener('keydown', function (e) {
+            document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape' && document.fullscreenElement) {
                     if (document.exitFullscreen) {
                         document.exitFullscreen();
@@ -233,8 +417,24 @@
                     }
                 }
             });
+            
+            // Keyboard shortcuts for page navigation
+            document.addEventListener('keydown', function(e) {
+                if (!pdfDoc) return;
+                
+                if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                    if (pageNum > 1) {
+                        pageNum--;
+                        queueRenderPage(pageNum);
+                    }
+                } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                    if (pageNum < pdfDoc.numPages) {
+                        pageNum++;
+                        queueRenderPage(pageNum);
+                    }
+                }
+            });
         });
     </script>
 </body>
-
 </html>
