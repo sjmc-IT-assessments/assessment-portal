@@ -705,14 +705,14 @@ class AdminPortal {
                 const item = document.createElement('div');
                 item.className = 'exam-item' + (exam.archived ? ' archived-item' : '');
                 item.innerHTML = `
-                    <div>
-                        <strong>Grade ${exam.grade} - ${exam.subject}</strong>
-                        ${exam.archived ? '<span class="archived-badge">Archived</span>' : ''}<br>
-                        Password: ${exam.password}<br>
-                        Scheduled: ${formatDate(exam.scheduledDate, true)}<br>
-                        Added: ${formatDate(exam.createdAt?.toDate())}<br>
-                        ${exam.archived ? `Archived: ${formatDate(exam.archivedAt?.toDate())}` : ''}
-                    </div>
+                <div>
+                    <strong>Grade ${exam.grade} - ${exam.subject}</strong>
+                    ${exam.archived ? '<span class="archived-badge">Archived</span>' : ''}<br>
+                    Password: ${exam.password}<br>
+                    Scheduled: ${exam.scheduledLocalTime || formatDate(exam.scheduledDate, true)}<br>
+                    Added: ${formatDate(exam.createdAt?.toDate())}<br>
+                    ${exam.archived ? `Archived: ${formatDate(exam.archivedAt?.toDate())}` : ''}
+                </div>
                     <div class="exam-actions">
                         <button onclick="adminPortal.copyPassword('${exam.password}')" class="copy-button">
                             Copy Password
@@ -844,20 +844,31 @@ class AdminPortal {
         const time = document.getElementById('scheduledTime').value;
         const scheduledDateTime = `${date}T${time}:00`;
 
-        // Create a date object in the local timezone
+        // Create a date object in the specified timezone (South Africa)
+        const formatter = new Intl.DateTimeFormat('en-ZA', {
+            timeZone: 'Africa/Johannesburg',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        });
+
+        // Parse the date in the local timezone
         const localDate = new Date(scheduledDateTime);
 
-        // Format in ISO string but keep the local timezone info
-        const isoDateWithoutTimezone = new Date(
-            localDate.getTime() - (localDate.getTimezoneOffset() * 60000)
-        ).toISOString();
+        // Generate an ISO string but preserve the time as entered
+        // This stores the time exactly as entered without timezone conversion
+        const timezoneIndependentISO = localDate.toISOString();
 
         console.log('Time debug:', {
             inputDate: date,
             inputTime: time,
             scheduledDateTime,
             localDate: localDate.toString(),
-            finalDate: isoDateWithoutTimezone
+            timezoneIndependentISO: timezoneIndependentISO
         });
 
         const formData = {
@@ -865,10 +876,12 @@ class AdminPortal {
             subject: document.getElementById('subject')?.value,
             type: document.getElementById('assessmentType')?.value,
             url: this.formatDriveUrl(document.getElementById('driveUrl')?.value || ''),
-            scheduledDate: isoDateWithoutTimezone, // Store without timezone conversion
+            scheduledDate: timezoneIndependentISO,
+            scheduledLocalTime: time, // Store the actual selected time as a separate field
             password: document.getElementById('password')?.value,
             archived: false,
-            date: new Date().toISOString()
+            date: new Date().toISOString(),
+            timeZone: 'Africa/Johannesburg' // Store the timezone for reference
         };
 
         console.log('Form data:', formData);
@@ -876,6 +889,8 @@ class AdminPortal {
         const missingFields = Object.entries(formData)
             .filter(([key, value]) => {
                 if (typeof value === 'boolean') return false;
+                if (key === 'timeZone') return false;
+                if (key === 'scheduledLocalTime') return false;
                 return !value;
             })
             .map(([key]) => key);
