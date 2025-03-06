@@ -289,46 +289,45 @@ class AssessmentPortal {
             console.error('No assessment selected');
             return;
         }
-    
+
         const passwordInput = document.getElementById('assessmentPassword');
         const password = passwordInput ? passwordInput.value : '';
-        
+
         if (!password) {
             alert('Please enter a password');
             return;
         }
-    
+
         try {
             console.log('Verifying password for assessment:', this.currentAssessment);
             const doc = await this.db.collection('exams').doc(this.currentAssessment).get();
-            
+
             if (!doc.exists) {
                 console.error('Assessment not found');
                 alert('Assessment not found');
                 return;
             }
-    
+
             const assessment = doc.data();
             console.log('Assessment data retrieved, checking password');
-            
+
             if (password === assessment.password) {
                 console.log('Password correct, opening assessment viewer');
                 this.closeModal();
-                
-                // Use the URL directly without trying to transform it
-                let pdfUrl = assessment.url;
-                
-                // Use the dedicated viewer page
-                const viewerUrl = new URL('viewer.html', window.location.href);
-                
-                // Add query parameters
-                viewerUrl.searchParams.append('url', pdfUrl);
-                viewerUrl.searchParams.append('title', `${assessment.subject} - ${assessment.type}`);
-                viewerUrl.searchParams.append('subject', assessment.subject);
-                viewerUrl.searchParams.append('type', assessment.type);
-                
-                // Redirect to the viewer page
-                window.location.href = viewerUrl.toString();
+
+                // Store assessment data in session storage
+                const examData = {
+                    url: assessment.url,
+                    title: `${assessment.subject} - ${assessment.type}`,
+                    subject: assessment.subject,
+                    type: assessment.type
+                };
+
+                // Save to session storage
+                sessionStorage.setItem('examData', JSON.stringify(examData));
+
+                // Navigate to viewer page - no query parameters
+                window.location.href = 'viewer.html';
             } else {
                 console.log('Incorrect password');
                 alert('Incorrect password');
@@ -338,7 +337,7 @@ class AssessmentPortal {
             alert('Error verifying password. Please try again.');
         }
     }
-    
+
     async openPdfViewer(assessment) {
         // Instead of using an iframe, we'll open the PDF in a controlled way
         console.log('Opening PDF viewer for:', assessment.subject);
