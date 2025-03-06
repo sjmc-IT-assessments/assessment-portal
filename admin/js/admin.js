@@ -637,16 +637,43 @@ class AdminPortal {
             usersList.innerHTML = '<h4>Authorized Teachers</h4>';
 
             snapshot.forEach(doc => {
-                const userData = doc.data();
+                const exam = doc.data();
                 const item = document.createElement('div');
-                item.className = 'user-item';
+                item.className = 'exam-item' + (exam.archived ? ' archived-item' : '');
+
+                // Use the stored display date-time if available, otherwise fall back to formatted date
+                const scheduledDateTime = exam.scheduledDisplayDateTime || formatDate(exam.scheduledDate, true);
+
                 item.innerHTML = `
-                    <span>${userData.email}</span>
-                    <button onclick="adminPortal.removeTeacher('${userData.email}')" class="remove-button">
-                        Remove
-                    </button>
+                    <div>
+                        <strong>Grade ${exam.grade} - ${exam.subject}</strong>
+                        ${exam.archived ? '<span class="archived-badge">Archived</span>' : ''}<br>
+                        Password: ${exam.password}<br>
+                        Scheduled: ${scheduledDateTime}<br>
+                        Added: ${formatDate(exam.createdAt?.toDate())}<br>
+                        ${exam.archived ? `Archived: ${formatDate(exam.archivedAt?.toDate())}` : ''}
+                    </div>
+                    <div class="exam-actions">
+                        <button onclick="adminPortal.copyPassword('${exam.password}')" class="copy-button">
+                            Copy Password
+                        </button>
+                        <button onclick="adminPortal.editExam('${doc.id}')" class="edit-button">
+                            Edit Time
+                        </button>
+                        ${exam.archived ?
+                        `<button onclick="adminPortal.restoreExam('${doc.id}')" class="restore-button">
+                                Restore
+                            </button>` :
+                        `<button onclick="adminPortal.archiveSingleExam('${doc.id}')" class="archive-button">
+                                Archive
+                            </button>`
+                    }
+                        <button onclick="adminPortal.deleteExam('${doc.id}')" class="delete-button">
+                            Delete
+                        </button>
+                    </div>
                 `;
-                usersList.appendChild(item);
+                examsList.appendChild(item);
             });
         } catch (error) {
             console.error('Error loading teachers:', error);
@@ -840,35 +867,42 @@ class AdminPortal {
     }
 
     getExamFormData() {
-        const date = document.getElementById('scheduledDate').value;
-        const time = document.getElementById('scheduledTime').value;
-        const scheduledDateTime = `${date}T${time}:00`;
+        const dateInput = document.getElementById('scheduledDate').value;
+        const timeInput = document.getElementById('scheduledTime').value;
 
-        // Create a date object in the specified timezone (South Africa)
-        const formatter = new Intl.DateTimeFormat('en-ZA', {
-            timeZone: 'Africa/Johannesburg',
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: false
-        });
+        // Store the raw input values
+        const rawDate = dateInput;
+        const rawTime = timeInput;
 
-        // Parse the date in the local timezone
-        const localDate = new Date(scheduledDateTime);
+        // Create Date objects that preserve the input times exactly
+        const [year, month, day] = dateInput.split('-').map(num => parseInt(num, 10));
+        const [hours, minutes] = timeInput.split(':').map(num => parseInt(num, 10));
 
-        // Generate an ISO string but preserve the time as entered
-        // This stores the time exactly as entered without timezone conversion
-        const timezoneIndependentISO = localDate.toISOString();
+        // Create a simple timestamp object with the raw values
+        // This ensures we store exactly what the user entered without timezone conversions
+        const timestamp = {
+            year: year,
+            month: month,
+            day: day,
+            hours: hours,
+            minutes: minutes,
+            raw: `${dateInput}T${timeInput}:00`
+        };
+
+        // Create a formatted display string
+        const displayDate = `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year}`;
+        const displayTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        const displayDateTime = `${displayDate}, ${displayTime}`;
+
+        // Create a date object in local time zone (just for reference)
+        const localDate = new Date(year, month - 1, day, hours, minutes, 0);
 
         console.log('Time debug:', {
-            inputDate: date,
-            inputTime: time,
-            scheduledDateTime,
-            localDate: localDate.toString(),
-            timezoneIndependentISO: timezoneIndependentISO
+            inputDate: dateInput,
+            inputTime: timeInput,
+            timestamp: timestamp,
+            displayDateTime: displayDateTime,
+            localDate: localDate.toString()
         });
 
         const formData = {
@@ -876,12 +910,16 @@ class AdminPortal {
             subject: document.getElementById('subject')?.value,
             type: document.getElementById('assessmentType')?.value,
             url: this.formatDriveUrl(document.getElementById('driveUrl')?.value || ''),
-            scheduledDate: timezoneIndependentISO,
-            scheduledLocalTime: time, // Store the actual selected time as a separate field
+            // Store the timestamp object and display strings
+            scheduledTimestamp: timestamp,
+            scheduledDisplayDateTime: displayDateTime,
+            scheduledDisplayDate: displayDate,
+            scheduledDisplayTime: displayTime,
+            // Keep original ISO for backward compatibility
+            scheduledDate: localDate.toISOString(),
             password: document.getElementById('password')?.value,
             archived: false,
-            date: new Date().toISOString(),
-            timeZone: 'Africa/Johannesburg' // Store the timezone for reference
+            date: new Date().toISOString()
         };
 
         console.log('Form data:', formData);
@@ -889,8 +927,7 @@ class AdminPortal {
         const missingFields = Object.entries(formData)
             .filter(([key, value]) => {
                 if (typeof value === 'boolean') return false;
-                if (key === 'timeZone') return false;
-                if (key === 'scheduledLocalTime') return false;
+                if (key.startsWith('scheduled') && key !== 'scheduledDate') return false;
                 return !value;
             })
             .map(([key]) => key);
@@ -900,6 +937,7 @@ class AdminPortal {
         }
         return formData;
     }
+
 
 
     formatDriveUrl(url) {
@@ -1039,60 +1077,85 @@ class AdminPortal {
             }
 
             const exam = doc.data();
-            const scheduledDate = new Date(exam.scheduledDate);
 
-            // Format for datetime-local input (YYYY-MM-DDThh:mm)
-            const formattedDate = scheduledDate.toISOString().slice(0, 16);
+            // If we have the timestamp object, use it
+            let dateValue = '';
+            let timeValue = '';
 
-            console.log('Edit time debug:', {
-                original: exam.scheduledDate,
-                scheduledDate: scheduledDate.toString(),
-                formatted: formattedDate
-            });
+            if (exam.scheduledTimestamp) {
+                const ts = exam.scheduledTimestamp;
+                dateValue = `${ts.year}-${ts.month.toString().padStart(2, '0')}-${ts.day.toString().padStart(2, '0')}`;
+                timeValue = `${ts.hours.toString().padStart(2, '0')}:${ts.minutes.toString().padStart(2, '0')}`;
+            } else {
+                // Fallback to the old method
+                const scheduledDate = new Date(exam.scheduledDate);
+                dateValue = scheduledDate.toISOString().split('T')[0];
+                timeValue = scheduledDate.toTimeString().slice(0, 5);
+            }
 
             const dialog = document.createElement('div');
             dialog.className = 'edit-dialog-overlay';
             dialog.innerHTML = `
-            <div class="edit-dialog">
-                <h3>Edit Assessment</h3>
-                <form id="editForm" class="edit-form">
-                    <div class="form-group">
-                        <label>Grade ${exam.grade} - ${exam.subject}</label>
-                    </div>
-                    <div class="form-group">
-                        <label for="editScheduledDate">Scheduled Date & Time</label>
-                        <input type="datetime-local" 
-                            id="editScheduledDate" 
-                            value="${formattedDate}" 
-                            required>
-                    </div>
-                    <div class="button-group">
-                        <button type="submit" class="save-btn">Save Changes</button>
-                        <button type="button" class="cancel-btn" onclick="this.closest('.edit-dialog-overlay').remove()">
-                            Cancel
-                        </button>
-                    </div>
-                </form>
-            </div>
-        `;
+                <div class="edit-dialog">
+                    <h3>Edit Assessment</h3>
+                    <form id="editForm" class="edit-form">
+                        <div class="form-group">
+                            <label>Grade ${exam.grade} - ${exam.subject}</label>
+                        </div>
+                        <div class="form-group">
+                            <label for="editScheduledDate">Scheduled Date</label>
+                            <input type="date" id="editScheduledDate" value="${dateValue}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editScheduledTime">Scheduled Time</label>
+                            <input type="time" id="editScheduledTime" value="${timeValue}" required>
+                        </div>
+                        <div class="button-group">
+                            <button type="submit" class="save-btn">Save Changes</button>
+                            <button type="button" class="cancel-btn" onclick="this.closest('.edit-dialog-overlay').remove()">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            `;
 
             document.body.appendChild(dialog);
 
             document.getElementById('editForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const newScheduledDate = document.getElementById('editScheduledDate').value + ':00';
+                const newDateInput = document.getElementById('editScheduledDate').value;
+                const newTimeInput = document.getElementById('editScheduledTime').value;
 
-                // Create date object in local timezone
-                const newDate = new Date(newScheduledDate);
+                // Parse the inputs
+                const [year, month, day] = newDateInput.split('-').map(num => parseInt(num, 10));
+                const [hours, minutes] = newTimeInput.split(':').map(num => parseInt(num, 10));
 
-                // Format in ISO string but preserve local time
-                const isoDateWithoutTimezone = new Date(
-                    newDate.getTime() - (newDate.getTimezoneOffset() * 60000)
-                ).toISOString();
+                // Create the timestamp object
+                const timestamp = {
+                    year: year,
+                    month: month,
+                    day: day,
+                    hours: hours,
+                    minutes: minutes,
+                    raw: `${newDateInput}T${newTimeInput}:00`
+                };
+
+                // Create formatted display strings
+                const displayDate = `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year}`;
+                const displayTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                const displayDateTime = `${displayDate}, ${displayTime}`;
+
+                // Create a local date object (for compatibility)
+                const localDate = new Date(year, month - 1, day, hours, minutes, 0);
 
                 try {
                     await this.db.collection('exams').doc(examId).update({
-                        scheduledDate: isoDateWithoutTimezone
+                        scheduledTimestamp: timestamp,
+                        scheduledDisplayDateTime: displayDateTime,
+                        scheduledDisplayDate: displayDate,
+                        scheduledDisplayTime: displayTime,
+                        scheduledDate: localDate.toISOString()
                     });
 
                     console.log('Update successful');
@@ -1110,7 +1173,6 @@ class AdminPortal {
             this.showToast('Error loading assessment: ' + error.message, 'error');
         }
     }
-
     async archiveCurrentAssessments() {
         this.showConfirmDialog('Are you sure you want to archive all currently displayed assessments? They will be hidden from students but can be restored through filters.', async () => {
             try {

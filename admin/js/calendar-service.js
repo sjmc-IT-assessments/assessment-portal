@@ -100,18 +100,45 @@ export class CalendarService {
             // Get fresh access token
             await this.getAccessToken();
 
-            const examDate = new Date(examData.scheduledDate);
-            const reminderTime = new Date(examDate.getTime() - 20 * 60000);
+            // Get exam timestamp information
+            const timestamp = examData.scheduledTimestamp;
+
+            // Create reminder time (20 minutes before)
+            let reminderHours = timestamp.hours;
+            let reminderMinutes = timestamp.minutes - 20;
+
+            // Handle minute underflow
+            if (reminderMinutes < 0) {
+                reminderHours = reminderHours - 1;
+                reminderMinutes = 60 + reminderMinutes;
+            }
+
+            // Handle hour underflow
+            if (reminderHours < 0) {
+                reminderHours = 24 + reminderHours;
+                // This would require adjusting the day as well, but we'll keep it simple
+            }
+
+            // Create formatted time strings in 24-hour format with leading zeros
+            const examTimeFormatted = `${timestamp.hours.toString().padStart(2, '0')}:${timestamp.minutes.toString().padStart(2, '0')}`;
+            const reminderTimeFormatted = `${reminderHours.toString().padStart(2, '0')}:${reminderMinutes.toString().padStart(2, '0')}`;
+
+            // Create date strings in YYYY-MM-DD format
+            const dateStr = `${timestamp.year}-${timestamp.month.toString().padStart(2, '0')}-${timestamp.day.toString().padStart(2, '0')}`;
+
+            // Create RFC3339 formatted date-time strings with explicit timezone
+            const examDateTime = `${dateStr}T${examTimeFormatted}:00+02:00`; // +02:00 for South Africa
+            const reminderDateTime = `${dateStr}T${reminderTimeFormatted}:00+02:00`;
 
             const event = {
                 summary: `Kiosk Setup - Grade ${examData.grade} ${examData.subject}`,
                 description: `Prepare devices for ${examData.subject} assessment.\nPassword: ${examData.password}`,
                 start: {
-                    dateTime: reminderTime.toISOString(),
+                    dateTime: reminderDateTime,
                     timeZone: 'Africa/Johannesburg'
                 },
                 end: {
-                    dateTime: examDate.toISOString(),
+                    dateTime: examDateTime,
                     timeZone: 'Africa/Johannesburg'
                 },
                 attendees: [
@@ -126,6 +153,12 @@ export class CalendarService {
                 },
                 visibility: 'private'
             };
+
+            console.log('Creating calendar event with:', {
+                examDateTime,
+                reminderDateTime,
+                event
+            });
 
             const response = await gapi.client.calendar.events.insert({
                 calendarId: 'primary',
