@@ -285,51 +285,37 @@ class AssessmentPortal {
     }
 
     async verifyPassword() {
-        if (!this.currentAssessment) {
-            console.error('No assessment selected');
-            return;
-        }
+        if (!this.currentAssessment) return;
 
-        const passwordInput = document.getElementById('assessmentPassword');
-        const password = passwordInput ? passwordInput.value : '';
-
+        const password = document.getElementById('assessmentPassword').value;
         if (!password) {
             alert('Please enter a password');
             return;
         }
 
         try {
-            console.log('Verifying password for assessment:', this.currentAssessment);
             const doc = await this.db.collection('exams').doc(this.currentAssessment).get();
-
             if (!doc.exists) {
-                console.error('Assessment not found');
                 alert('Assessment not found');
                 return;
             }
 
             const assessment = doc.data();
-            console.log('Assessment data retrieved, checking password');
-
             if (password === assessment.password) {
-                console.log('Password correct, opening assessment viewer');
                 this.closeModal();
 
-                // Store assessment data in session storage
+                // Store minimal information in session storage
                 const examData = {
                     url: assessment.url,
-                    title: `${assessment.subject} - ${assessment.type}`,
-                    subject: assessment.subject,
-                    type: assessment.type
+                    title: `${assessment.subject} - ${assessment.type}`
                 };
 
                 // Save to session storage
                 sessionStorage.setItem('examData', JSON.stringify(examData));
 
-                // Navigate to viewer page - no query parameters
+                // Navigate to the viewer with no parameters
                 window.location.href = 'viewer.html';
             } else {
-                console.log('Incorrect password');
                 alert('Incorrect password');
             }
         } catch (error) {

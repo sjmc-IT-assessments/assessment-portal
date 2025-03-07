@@ -5,12 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SJMC Assessment Viewer</title>
-    <!-- PDF.js library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script>
-        // Set the PDF.js worker path
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    </script>
+    <link rel="stylesheet" href="assets/css/styles.css">
     <style>
         body,
         html {
@@ -18,7 +13,6 @@
             padding: 0;
             height: 100%;
             overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
 
         .header {
@@ -28,266 +22,125 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            z-index: 10;
         }
 
-        .header h1 {
-            margin: 0;
-            font-size: 18px;
+        .content {
+            height: calc(100% - 60px);
+            position: relative;
         }
 
-        .school-logo {
-            height: 40px;
-            margin-right: 15px;
-        }
-
-        .header-left {
-            display: flex;
-            align-items: center;
-        }
-
-        .controls {
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn {
+        .back-btn,
+        .fullscreen-btn {
             background: rgba(255, 255, 255, 0.2);
             border: none;
             color: white;
             padding: 6px 12px;
             border-radius: 4px;
             cursor: pointer;
-            transition: background-color 0.2s;
         }
 
-        .btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        .content {
-            height: calc(100% - 60px);
-            position: relative;
-            background-color: #525659;
-        }
-
-        .iframe-container {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .iframe-container iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-
-        #pdfContainer {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100%;
-        }
-
-        #pdfContainer canvas {
-            margin: 10px 0;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-        }
-
-        .navigation {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(0, 0, 0, 0.5);
-            padding: 5px 15px;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            z-index: 1000;
-        }
-
-        .page-controls {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: white;
-        }
-
-        .page-btn {
-            background: transparent;
-            border: none;
-            color: white;
-            padding: 5px;
-            cursor: pointer;
-        }
-
-        .page-status {
-            font-size: 14px;
-            user-select: none;
-        }
-
-        .loading {
+        #proxyFrame {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            color: white;
-            z-index: 5;
+            width: 100%;
+            height: 100%;
+            border: none;
+            opacity: 0;
+            z-index: -1;
         }
 
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid rgba(255, 255, 255, 0.2);
-            border-left-color: white;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        .error {
-            padding: 20px;
-            background-color: #ffebee;
-            color: #c62828;
-            text-align: center;
-            margin: 40px;
-            border-radius: 4px;
-            display: none;
-        }
-
-        .back-btn {
-            display: inline-flex;
-            align-items: center;
-            margin-right: 15px;
-        }
-
-        .back-btn svg {
-            margin-right: 5px;
-        }
-
-        .zoom-controls {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: white;
-        }
-
-        #zoomLevel {
-            min-width: 60px;
-            text-align: center;
+        #displayFrame {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: none;
+            z-index: 1;
         }
     </style>
 </head>
 
 <body>
     <div class="header">
-        <div class="header-left">
-            <button class="btn back-btn" id="backBtn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="19" y1="12" x2="5" y2="12"></line>
-                    <polyline points="12 19 5 12 12 5"></polyline>
-                </svg>
-                Back
-            </button>
-            <img src="assets/images/school-logo2.png" alt="SJMC Logo" class="school-logo">
-            <h1 id="assessmentTitle">Assessment Viewer</h1>
+        <div style="display: flex; align-items: center;">
+            <button class="back-btn" id="backBtn">Back</button>
+            <img src="assets/images/school-logo2.png" alt="SJMC Logo" class="school-logo"
+                style="height: 40px; margin: 0 15px;">
+            <h2 id="assessmentTitle" style="margin: 0;">Assessment</h2>
         </div>
-        <div class="controls">
-            <button class="btn" id="fullscreenBtn">Fullscreen</button>
-        </div>
-    </div>
-
-    <div id="loading" class="loading">
-        <div class="spinner"></div>
-        <p>Loading assessment...</p>
-    </div>
-
-    <div id="error" class="error">
-        Unable to load assessment. Please return to the portal and try again.
+        <button class="fullscreen-btn" id="fullscreenBtn">Fullscreen</button>
     </div>
 
     <div class="content">
-        <!-- Direct Google Drive embed container -->
-        <div id="driveContainer" class="iframe-container">
-            <!-- Will be populated with iframe by JavaScript -->
-        </div>
+        <!-- The proxy frame loads the Google Drive URL but isn't directly visible -->
+        <iframe id="proxyFrame" src="about:blank"></iframe>
+
+        <!-- This frame displays the content from the proxy frame -->
+        <iframe id="displayFrame" src="about:blank"></iframe>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // DOM elements
+            const proxyFrame = document.getElementById('proxyFrame');
+            const displayFrame = document.getElementById('displayFrame');
             const backBtn = document.getElementById('backBtn');
             const fullscreenBtn = document.getElementById('fullscreenBtn');
-            const loading = document.getElementById('loading');
-            const error = document.getElementById('error');
-            const driveContainer = document.getElementById('driveContainer');
-            const assessmentTitle = document.getElementById('assessmentTitle');
 
-            // Session storage is used for passing data between pages without URL parameters
+            // Get assessment data from session storage
             const examData = JSON.parse(sessionStorage.getItem('examData') || '{}');
-            sessionStorage.removeItem('examData'); // Clear after use for security
+            sessionStorage.removeItem('examData'); // Clear after use
 
             if (examData && examData.url) {
-                // Set page title
+                // Set title
                 document.title = examData.title || 'Assessment Viewer';
+                document.getElementById('assessmentTitle').textContent = examData.title || 'Assessment';
 
-                // Set header title
-                if (examData.subject && examData.type) {
-                    assessmentTitle.textContent = `${examData.subject} - ${examData.type}`;
-                } else if (examData.title) {
-                    assessmentTitle.textContent = examData.title;
-                }
+                // First, navigate the proxy frame to the Google Drive URL
+                proxyFrame.src = examData.url;
 
-                // Create iframe for Google Drive
-                const iframe = document.createElement('iframe');
-                iframe.src = examData.url;
-                iframe.allowFullscreen = true;
-                iframe.frameBorder = "0";
+                // When the proxy frame loads, forward its content to the display frame
+                proxyFrame.onload = function () {
+                    // Instead of directly displaying the proxy frame (which would show Google Drive URL),
+                    // we use a data URL for the display frame which keeps the URL clean
+                    try {
+                        // Create a simple HTML document that includes the Google Drive PDF in an iframe
+                        const content = `
+                            <!DOCTYPE html>
+                            <html>
+                            <head>
+                                <meta charset="UTF-8">
+                                <style>
+                                    body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+                                    iframe { width: 100%; height: 100%; border: none; }
+                                </style>
+                                <title>${examData.title || 'Assessment'}</title>
+                            </head>
+                            <body>
+                                <iframe src="${examData.url}" frameborder="0" allowfullscreen></iframe>
+                            </body>
+                            </html>
+                        `;
 
-                // Add loading and error handlers
-                iframe.onload = function () {
-                    loading.style.display = 'none';
+                        // Convert this HTML to a data URL (this keeps the URL clean in the address bar)
+                        const dataUrl = 'data:text/html;charset=utf-8,' + encodeURIComponent(content);
+
+                        // Set the display frame source to our data URL
+                        displayFrame.src = dataUrl;
+                    } catch (err) {
+                        console.error('Error setting display frame:', err);
+                        // Fallback: directly set the src (this would show Google Drive in URL)
+                        displayFrame.src = examData.url;
+                    }
                 };
-
-                iframe.onerror = function () {
-                    loading.style.display = 'none';
-                    error.style.display = 'block';
-                };
-
-                // Add iframe to container
-                driveContainer.appendChild(iframe);
             } else {
-                // No data found
-                loading.style.display = 'none';
-                error.style.display = 'block';
-                error.textContent = 'No assessment information found. Please return to the portal.';
+                // No assessment data
+                displayFrame.srcdoc = '<html><body style="text-align:center;padding-top:100px;font-family:sans-serif;"><h2>Assessment not found</h2><p>Please return to the portal.</p></body></html>';
             }
 
-            // Back button handler
+            // Back button
             backBtn.addEventListener('click', function () {
                 window.location.href = './';
             });
 
-            // Fullscreen button handler
+            // Fullscreen button
             fullscreenBtn.addEventListener('click', function () {
                 if (document.documentElement.requestFullscreen) {
                     document.documentElement.requestFullscreen();
@@ -298,7 +151,7 @@
                 }
             });
 
-            // Handle ESC key for exiting fullscreen
+            // Handle escape key for exiting fullscreen
             document.addEventListener('keydown', function (e) {
                 if (e.key === 'Escape' && document.fullscreenElement) {
                     if (document.exitFullscreen) {
