@@ -21,23 +21,44 @@
             align-items: center;
             padding: 10px 15px;
             flex-wrap: wrap;
-            /* Allow wrapping on very small screens */
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        .header-right {
+            margin-left: auto;
+            padding-right: 10px;
         }
 
         .fullscreen-btn {
             margin-left: 10px;
             min-width: 90px;
             white-space: nowrap;
+            margin-right: 10px;
+            padding: 8px 10px;
+
         }
 
-        /* For very small screens */
         @media (max-width: 480px) {
             .header {
                 gap: 8px;
+                padding: 8px;
+                /* Smaller padding on small screens */
             }
 
             .header-title {
-                font-size: 1.2rem;
+                font-size: 1.1rem;
+            }
+
+            .fullscreen-btn {
+                min-width: 70px;
+                /* Smaller min-width on small screens */
+                padding: 6px 8px;
+                font-size: 0.9rem;
+            }
+
+            #assessmentTitle {
+                font-size: 0.95rem;
             }
         }
 
@@ -112,7 +133,7 @@
             </h2>
         </div>
         <div class="header-right">
-            <button class="fullscreen-btn" id="fullscreenBtn">Fullscreen</button>
+            <button class="fullscreen-btn" id="fullscreenBtn">Full</button>
         </div>
     </div>
 
