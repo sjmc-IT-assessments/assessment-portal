@@ -117,6 +117,102 @@
             font-size: 0.9rem;
             font-weight: normal;
         }
+
+        /* Accessibility Tools */
+        .accessibility-tools {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 100;
+        }
+
+        .accessibility-toggle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #0a2b72;
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .accessibility-panel {
+            position: absolute;
+            right: 50px;
+            top: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            width: 150px;
+        }
+
+        .accessibility-panel.active {
+            display: flex;
+        }
+
+        .tool-btn {
+            padding: 8px 12px;
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tool-btn:hover {
+            background: #e5e7eb;
+        }
+
+        /* Password modal for tools */
+        .tool-password-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            width: 300px;
+            display: none;
+        }
+
+        .tool-password-modal.active {
+            display: block;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .button-group button {
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+        }
+
+        #submitToolPassword {
+            background: #0a2b72;
+            color: white;
+        }
+
+        #cancelToolPassword {
+            background: #e5e7eb;
+            color: #374151;
+        }
     </style>
 </head>
 
@@ -151,7 +247,144 @@
             const displayFrame = document.getElementById('displayFrame');
             const backBtn = document.getElementById('backBtn');
             const fullscreenBtn = document.getElementById('fullscreenBtn');
+            const accessibilityToggle = document.getElementById('accessibilityToggle');
+            const accessibilityPanel = document.querySelector('.accessibility-panel');
+            accessibilityToggle.addEventListener('click', function () {
+                accessibilityPanel.classList.toggle('active');
+            });
+            document.getElementById('translateBtn').addEventListener('click', function () {
+                showToolPasswordModal('translate');
+            });
 
+            document.getElementById('readAloudBtn').addEventListener('click', function () {
+                showToolPasswordModal('readAloud');
+            });
+
+            document.getElementById('typeAnswersBtn').addEventListener('click', function () {
+                showToolPasswordModal('typeAnswers');
+            });
+
+            document.getElementById('dictationBtn').addEventListener('click', function () {
+                showToolPasswordModal('dictation');
+            });
+
+            // Function to show password modal for tools
+            function showToolPasswordModal(toolType) {
+                // Create modal if it doesn't exist
+                let modal = document.querySelector('.tool-password-modal');
+                if (!modal) {
+                    modal = document.createElement('div');
+                    modal.className = 'tool-password-modal';
+                    modal.innerHTML = `
+            <h3>Enter Access Code</h3>
+            <input type="password" id="toolPassword" placeholder="Enter code">
+            <div class="button-group">
+                <button id="submitToolPassword">Submit</button>
+                <button id="cancelToolPassword">Cancel</button>
+            </div>
+        `;
+                    document.body.appendChild(modal);
+                }
+
+                modal.classList.add('active');
+
+                // Store the tool type as a data attribute
+                modal.dataset.toolType = toolType;
+
+                // Focus on the password input
+                setTimeout(() => {
+                    document.getElementById('toolPassword').focus();
+                }, 100);
+
+                // Set up event listeners
+                document.getElementById('submitToolPassword').onclick = verifyToolPassword;
+                document.getElementById('cancelToolPassword').onclick = closeToolPasswordModal;
+
+                // Allow Enter key to submit
+                document.getElementById('toolPassword').onkeypress = function (e) {
+                    if (e.key === 'Enter') {
+                        verifyToolPassword();
+                    }
+                };
+            }
+
+            // Function to close the tool password modal
+            function closeToolPasswordModal() {
+                const modal = document.querySelector('.tool-password-modal');
+                if (modal) {
+                    modal.classList.remove('active');
+                }
+            }
+
+            // Function to verify the tool password
+            function verifyToolPassword() {
+                const password = document.getElementById('toolPassword').value;
+                const modal = document.querySelector('.tool-password-modal');
+                const toolType = modal.dataset.toolType;
+
+                // Here you would check against your special accommodation passwords
+                // This is just an example - you'll need to implement your actual verification logic
+                const specialPasswords = {
+                    translate: 'translate123',
+                    readAloud: 'reader123',
+                    typeAnswers: 'typing123',
+                    dictation: 'dictate123'
+                };
+
+                if (password === specialPasswords[toolType]) {
+                    // Password is correct, activate the tool
+                    activateTool(toolType);
+                    closeToolPasswordModal();
+                } else {
+                    alert('Invalid access code');
+                }
+            }
+
+            // Function to activate the appropriate tool
+            function activateTool(toolType) {
+                switch (toolType) {
+                    case 'translate':
+                        // Open Google Translate in a side panel
+                        const translateWindow = window.open('https://translate.google.com', 'translateWindow',
+                            'width=400,height=600,right=0,top=0');
+                        break;
+                    case 'readAloud':
+                        // Implement text-to-speech functionality
+                        alert('Read Aloud tool activated');
+                        // You could implement this with the Web Speech API
+                        break;
+                    case 'typeAnswers':
+                        // Open a text editor for typing answers
+                        const editorContainer = document.createElement('div');
+                        editorContainer.className = 'answers-editor';
+                        editorContainer.innerHTML = `
+                <div class="editor-header">
+                    <h3>Type Answers</h3>
+                    <button id="closeEditor">Close</button>
+                </div>
+                <textarea id="answersText" placeholder="Type your answers here..."></textarea>
+                <button id="saveAnswers">Save</button>
+            `;
+                        document.body.appendChild(editorContainer);
+
+                        document.getElementById('closeEditor').onclick = function () {
+                            editorContainer.remove();
+                        };
+
+                        document.getElementById('saveAnswers').onclick = function () {
+                            const text = document.getElementById('answersText').value;
+                            // Here you would save the answers - could be to localStorage, 
+                            // or to download as a file
+                            alert('Answers saved');
+                        };
+                        break;
+                    case 'dictation':
+                        // Implement speech recognition
+                        alert('Dictation tool activated');
+                        // You could implement this with the Web Speech API
+                        break;
+                }
+            }
             // Get assessment data from session storage
             // Get assessment data from session storage
             const examData = JSON.parse(sessionStorage.getItem('examData') || '{}');
@@ -254,6 +487,24 @@
             });
         });
     </script>
+    <!-- Accessibility Tools -->
+    <div class="accessibility-tools" id="accessibilityTools">
+        <button class="accessibility-toggle" id="accessibilityToggle">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 8v8"></path>
+                <path d="M8 12h8"></path>
+            </svg>
+        </button>
+
+        <div class="accessibility-panel">
+            <button class="tool-btn" id="translateBtn">Translator</button>
+            <button class="tool-btn" id="readAloudBtn">Read Aloud</button>
+            <button class="tool-btn" id="typeAnswersBtn">Type Answers</button>
+            <button class="tool-btn" id="dictationBtn">Dictation</button>
+        </div>
+    </div>
 </body>
 
 </html>
