@@ -16,12 +16,29 @@
         }
 
         .header {
-            background-color: #0a2b72;
-            color: white;
-            padding: 10px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 10px 15px;
+            flex-wrap: wrap;
+            /* Allow wrapping on very small screens */
+        }
+
+        .fullscreen-btn {
+            margin-left: 10px;
+            min-width: 90px;
+            white-space: nowrap;
+        }
+
+        /* For very small screens */
+        @media (max-width: 480px) {
+            .header {
+                gap: 8px;
+            }
+
+            .header-title {
+                font-size: 1.2rem;
+            }
         }
 
         .content {
@@ -60,13 +77,19 @@
 
 <body>
     <div class="header">
-        <div style="display: flex; align-items: center;">
+        <div class="header-left">
             <button class="back-btn" id="backBtn">Back</button>
-            <img src="assets/images/school-logo2.png" alt="SJMC Logo" class="school-logo"
-                style="height: 40px; margin: 0 15px;">
-            <h2 id="assessmentTitle" style="margin: 0;">Assessment</h2>
         </div>
-        <button class="fullscreen-btn" id="fullscreenBtn">Fullscreen</button>
+        <div class="header-center">
+            <h2 id="assessmentTitle">
+                <span id="gradeSubject">Grade 10 - Natural Science</span>
+                <span id="assessmentDate">Monday 10/March/25</span>
+                <span id="assessmentType">Test</span>
+            </h2>
+        </div>
+        <div class="header-right">
+            <button class="fullscreen-btn" id="fullscreenBtn">Fullscreen</button>
+        </div>
     </div>
 
     <div class="content">
