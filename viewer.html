@@ -132,14 +132,35 @@
             const fullscreenBtn = document.getElementById('fullscreenBtn');
 
             // Get assessment data from session storage
+            // Get assessment data from session storage
             const examData = JSON.parse(sessionStorage.getItem('examData') || '{}');
             sessionStorage.removeItem('examData'); // Clear after use
 
             if (examData && examData.url) {
                 // Set title
                 document.title = examData.title || 'Assessment Viewer';
-                document.getElementById('assessmentTitle').textContent = examData.title || 'Assessment';
 
+                // Update header information
+                document.getElementById('gradeSubject').textContent = `Grade ${examData.grade} - ${examData.subject}`;
+                document.getElementById('assessmentDate').textContent = examData.scheduledDate || '';
+                document.getElementById('assessmentType').textContent = examData.type || 'Assessment';
+
+                // Update header information
+                if (examData.title) {
+                    // Parse the title which is typically in format "Subject - Type"
+                    const titleParts = examData.title.split(' - ');
+                    const subject = titleParts[0] || 'Subject';
+                    const type = titleParts[1] || 'Assessment';
+
+                    // Set the subject and type
+                    document.getElementById('gradeSubject').textContent = subject;
+                    document.getElementById('assessmentType').textContent = type;
+
+                    // Set the date (current date in proper format)
+                    const today = new Date();
+                    const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+                    document.getElementById('assessmentDate').textContent = today.toLocaleDateString('en-ZA', options);
+                }
                 // First, navigate the proxy frame to the Google Drive URL
                 proxyFrame.src = examData.url;
 

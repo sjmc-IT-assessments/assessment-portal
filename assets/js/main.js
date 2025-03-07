@@ -304,16 +304,20 @@ class AssessmentPortal {
             if (password === assessment.password) {
                 this.closeModal();
 
-                // Store minimal information in session storage
+                // Store more comprehensive information
                 const examData = {
                     url: assessment.url,
-                    title: `${assessment.subject} - ${assessment.type}`
+                    title: `${assessment.subject} - ${assessment.type}`,
+                    grade: assessment.grade,
+                    subject: assessment.subject,
+                    type: assessment.type,
+                    scheduledDate: assessment.scheduledDisplayDate || this.formatDate(assessment.scheduledDate)
                 };
 
                 // Save to session storage
                 sessionStorage.setItem('examData', JSON.stringify(examData));
 
-                // Navigate to the viewer with no parameters
+                // Navigate to the viewer
                 window.location.href = 'viewer.html';
             } else {
                 alert('Incorrect password');
