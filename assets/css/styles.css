@@ -497,7 +497,6 @@ h1 {
         transition: background-color 0.2s;
         margin-left: 10px;
         min-width: 90px;
-        /* Ensure minimum width */
         white-space: nowrap;
     }
     @media (max-width: 480px) {
