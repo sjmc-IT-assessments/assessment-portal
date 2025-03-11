@@ -37,6 +37,220 @@ body {
     padding: 1rem;
 }
 
+.preview-dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    animation: fadeIn 0.2s ease;
+}
+
+.preview-dialog {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    max-width: 90%;
+    width: 90%;
+    height: 90%;
+    display: flex;
+    flex-direction: column;
+    animation: scaleIn 0.3s ease;
+}
+
+.preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    background: var(--primary-color);
+    color: white;
+    border-radius: 8px 8px 0 0;
+}
+
+.preview-header h3 {
+    margin: 0;
+}
+
+.close-preview-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.close-preview-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.preview-content {
+    flex: 1;
+    overflow: hidden;
+    padding: 0;
+    border-radius: 0 0 8px 8px;
+}
+
+.preview-content iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.preview-btn {
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.exam-actions button {
+    border: none;
+    border-radius: 4px;
+    padding: 0.5rem;
+    cursor: pointer;
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    margin-right: 0.25rem;
+    font-size: 0.875rem;
+}
+
+.exam-actions button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.exam-actions button:active {
+    transform: translateY(0);
+}
+
+/* View link button */
+.view-link-btn {
+    background-color: #10B981;
+}
+
+.view-link-btn:hover {
+    background-color: #059669;
+}
+
+/* Edit link button */
+.edit-link-btn {
+    background-color: #6366F1;
+}
+
+.edit-link-btn:hover {
+    background-color: #4F46E5;
+}
+
+/* Copy Password button */
+.copy-button {
+    background-color: #3B82F6;
+}
+
+.copy-button:hover {
+    background-color: #2563EB;
+}
+
+/* Edit Time button */
+.edit-button {
+    background-color: #8B5CF6;
+}
+
+.edit-button:hover {
+    background-color: #7C3AED;
+}
+
+/* Archive button */
+.archive-button {
+    background-color: #6B7280;
+}
+
+.archive-button:hover {
+    background-color: #4B5563;
+}
+
+/* Restore button */
+.restore-button {
+    background-color: #10B981;
+}
+
+.restore-button:hover {
+    background-color: #059669;
+}
+
+/* Delete button */
+.delete-button {
+    background-color: #EF4444;
+}
+
+.delete-button:hover {
+    background-color: #DC2626;
+}
+
+.restore-button::before {
+    content: "";
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin-right: 5px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 2v6h6'%3E%3C/path%3E%3Cpath d='M3 13a9 9 0 1 0 3-7.7L3 8'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.exam-actions button svg {
+    margin-right: 6px;
+}
+
+
+.exam-actions button {
+    padding: 0.5rem 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    /* Adds consistent spacing between icon and text */
+}
+
+.exam-actions button:not(:has(svg)) {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+}
+
+
+.view-link-btn {
+
+    background-color: #10B981;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 0.25rem;
+}
+
+.edit-link-btn {
+    background-color: #6366F1;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 0.25rem;
+}
+
 .header-content {
     max-width: 1200px;
     margin: 0 auto;
@@ -74,6 +288,7 @@ body {
     margin-bottom: 2rem;
     box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
 }
+
 /* Toast Notifications */
 #toast-container {
     position: fixed;
@@ -173,6 +388,7 @@ body {
 .toast-warning .toast-icon {
     color: #f59e0b;
 }
+
 /* Confirmation Dialog */
 .confirm-dialog-overlay {
     position: fixed;
@@ -247,14 +463,27 @@ body {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 @keyframes scaleIn {
-    from { transform: scale(0.9); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
+
 /* Form Styles */
 .assessment-form {
     display: grid;
@@ -350,14 +579,6 @@ body {
     cursor: pointer;
 }
 
-.delete-btn {
-    background-color: var(--error-color);
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    cursor: pointer;
-}
 
 .password-dialog {
     position: fixed;
