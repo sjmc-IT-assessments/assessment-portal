@@ -227,17 +227,19 @@ class AssessmentPortal {
         card.dataset.assessmentId = id;
 
         card.innerHTML = `
-            <div class="assessment-header">
-                <h3>${assessment.subject}</h3>
-                <span class="status-badge ${statusClass}">${statusText}</span>
-            </div>
-            <p class="assessment-type">${assessment.type}</p>
-            <p class="assessment-time">${formattedDate}</p>
-            <button class="start-btn ${!isAvailable ? 'disabled' : ''}"
-                    ${!isAvailable ? 'disabled' : ''}>
-                ${buttonText}
-            </button>
-        `;
+    <div class="assessment-header">
+        <h3>${assessment.subject}</h3>
+        <span class="status-badge ${statusClass}">${statusText}</span>
+    </div>
+    <p class="assessment-type">
+        ${assessment.type === 'googleform' ? '<span class="form-icon">📝</span> ' : ''}${assessment.type}
+    </p>
+    <p class="assessment-time">${formattedDate}</p>
+    <button class="start-btn ${!isAvailable ? 'disabled' : ''}"
+            ${!isAvailable ? 'disabled' : ''}>
+        ${buttonText}
+    </button>
+`;
 
         // Add click event listener directly to the button
         const button = card.querySelector('.start-btn');

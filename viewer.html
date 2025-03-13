@@ -420,35 +420,42 @@
 
                 // When the proxy frame loads, forward its content to the display frame
                 proxyFrame.onload = function () {
-                    // Instead of directly displaying the proxy frame (which would show Google Drive URL),
-                    // we use a data URL for the display frame which keeps the URL clean
                     try {
-                        // Create a simple HTML document that includes the Google Drive PDF in an iframe
-                        const content = `
-                            <!DOCTYPE html>
-                            <html>
-                            <head>
-                                <meta charset="UTF-8">
-                                <style>
-                                    body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }
-                                    iframe { width: 100%; height: 100%; border: none; }
-                                </style>
-                                <title>${examData.title || 'Assessment'}</title>
-                            </head>
-                            <body>
-                                <iframe src="${examData.url}" frameborder="0" allowfullscreen></iframe>
-                            </body>
-                            </html>
-                        `;
+                        // Check if this is a Google Form
+                        const isGoogleForm = examData.url.includes('forms.gle') ||
+                            examData.url.includes('docs.google.com/forms');
 
-                        // Convert this HTML to a data URL (this keeps the URL clean in the address bar)
-                        const dataUrl = 'data:text/html;charset=utf-8,' + encodeURIComponent(content);
+                        if (isGoogleForm) {
+                            // For Google Forms, directly set the URL to the form
+                            displayFrame.src = examData.url;
+                        } else {
+                            // For PDFs, use the existing approach with data URL
+                            const content = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <style>
+                        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+                        iframe { width: 100%; height: 100%; border: none; }
+                    </style>
+                    <title>${examData.title || 'Assessment'}</title>
+                </head>
+                <body>
+                    <iframe src="${examData.url}" frameborder="0" allowfullscreen></iframe>
+                </body>
+                </html>
+            `;
 
-                        // Set the display frame source to our data URL
-                        displayFrame.src = dataUrl;
+                            // Convert this HTML to a data URL (this keeps the URL clean in the address bar)
+                            const dataUrl = 'data:text/html;charset=utf-8,' + encodeURIComponent(content);
+
+                            // Set the display frame source to our data URL
+                            displayFrame.src = dataUrl;
+                        }
                     } catch (err) {
                         console.error('Error setting display frame:', err);
-                        // Fallback: directly set the src (this would show Google Drive in URL)
+                        // Fallback: directly set the src
                         displayFrame.src = examData.url;
                     }
                 };

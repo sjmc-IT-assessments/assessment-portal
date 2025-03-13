@@ -1445,8 +1445,18 @@ class AdminPortal {
   }
 
   formatDriveUrl(url) {
-    const fileId = url.match(/\/d\/(.*?)(\/|$)/)?.[1];
-    return fileId ? `https://drive.google.com/file/d/${fileId}/preview` : url;
+    // Check if it's a Google Form URL
+    if (url.includes('forms.gle') || url.includes('docs.google.com/forms')) {
+      // Google Forms - return as is or ensure it's in viewform mode
+      if (url.includes('/edit')) {
+        return url.replace('/edit', '/viewform');
+      }
+      return url;
+    } else {
+      // Handle Drive URLs as before
+      const fileId = url.match(/\/d\/(.*?)(\/|$)/)?.[1];
+      return fileId ? `https://drive.google.com/file/d/${fileId}/preview` : url;
+    }
   }
 
   setupTimeSelect() {
