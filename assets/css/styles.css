@@ -241,6 +241,7 @@ h1 {
 
 .password-form input {
     padding-right: 35px;
+    width: 100%;
 }
 
 .assessment-header h3 {
