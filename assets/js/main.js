@@ -285,7 +285,6 @@ class AssessmentPortal {
         }
         this.currentAssessment = null;
     }
-
     async verifyPassword() {
         if (!this.currentAssessment) return;
 
@@ -306,21 +305,31 @@ class AssessmentPortal {
             if (password === assessment.password) {
                 this.closeModal();
 
-                // Store more comprehensive information
-                const examData = {
-                    url: assessment.url,
-                    title: `${assessment.subject} - ${assessment.type}`,
-                    grade: assessment.grade,
-                    subject: assessment.subject,
-                    type: assessment.type,
-                    scheduledDate: assessment.scheduledDisplayDate || this.formatDate(assessment.scheduledDate)
-                };
+                // Check if this is a Google Form
+                const isGoogleForm = assessment.type === 'googleform' ||
+                    assessment.url.includes('forms.gle') ||
+                    assessment.url.includes('docs.google.com/forms');
 
-                // Save to session storage
-                sessionStorage.setItem('examData', JSON.stringify(examData));
+                if (isGoogleForm) {
+                    // For Google Forms, redirect directly to the form URL
+                    window.location.href = assessment.url;
+                } else {
+                    // For PDFs and other assessments, use the viewer as before
+                    const examData = {
+                        url: assessment.url,
+                        title: `${assessment.subject} - ${assessment.type}`,
+                        grade: assessment.grade,
+                        subject: assessment.subject,
+                        type: assessment.type,
+                        scheduledDate: assessment.scheduledDisplayDate || this.formatDate(assessment.scheduledDate)
+                    };
 
-                // Navigate to the viewer
-                window.location.href = 'viewer.html';
+                    // Save to session storage
+                    sessionStorage.setItem('examData', JSON.stringify(examData));
+
+                    // Navigate to the viewer
+                    window.location.href = 'viewer.html';
+                }
             } else {
                 alert('Incorrect password');
             }
