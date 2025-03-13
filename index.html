@@ -47,13 +47,22 @@
             </div>
         </div>
     </main>
-    
+
     <!-- Password Modal -->
     <div class="modal-overlay" id="modalOverlay" style="display: none;">
         <div class="password-modal">
             <h3>Enter Assessment Password</h3>
             <form class="password-form">
-                <input type="password" id="assessmentPassword" placeholder="Enter password">
+                <div class="password-input-container">
+                    <input type="password" id="assessmentPassword" placeholder="Enter password">
+                    <button type="button" id="togglePassword" class="toggle-password">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
+                </div>
                 <button type="submit">Submit</button>
             </form>
             <button class="close-btn">Close</button>
@@ -67,12 +76,16 @@
                 <h3 id="pdfModalTitle">Assessment</h3>
                 <div class="pdf-modal-controls">
                     <button id="fullscreenBtn" class="fullscreen-btn" title="Toggle Fullscreen">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3">
+                            </path>
                         </svg>
                     </button>
                     <button id="closePdfBtn" class="close-pdf-btn" title="Close">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="18" y1="6" x2="6" y2="18"></line>
                             <line x1="6" y1="6" x2="18" y2="18"></line>
                         </svg>
