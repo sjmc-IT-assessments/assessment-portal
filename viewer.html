@@ -5,12 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SJMC Assessment Viewer</title>
-    <!-- PDF.js library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script>
-        // Set the PDF.js worker path
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    </script>
+    <link rel="stylesheet" href="assets/css/styles.css">
     <style>
         body,
         html {
@@ -18,181 +13,205 @@
             padding: 0;
             height: 100%;
             overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
 
         .header {
-            background-color: #0a2b72;
-            color: white;
-            padding: 10px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            z-index: 10;
+            padding: 10px 15px;
+            flex-wrap: wrap;
+            box-sizing: border-box;
+            width: 100%;
         }
 
-        .header h1 {
-            margin: 0;
-            font-size: 18px;
+        .header-right {
+            margin-left: auto;
+            padding-right: 10px;
         }
 
-        .school-logo {
-            height: 40px;
-            margin-right: 15px;
+        .fullscreen-btn {
+            margin-left: 10px;
+            min-width: 90px;
+            white-space: nowrap;
+            margin-right: 10px;
+            padding: 8px 10px;
+
         }
 
-        .header-left {
-            display: flex;
-            align-items: center;
+        @media (max-width: 480px) {
+            .header {
+                gap: 8px;
+                padding: 8px;
+                /* Smaller padding on small screens */
+            }
+
+            .header-title {
+                font-size: 1.1rem;
+            }
+
+            .fullscreen-btn {
+                min-width: 70px;
+                /* Smaller min-width on small screens */
+                padding: 6px 8px;
+                font-size: 0.9rem;
+            }
+
+            #assessmentTitle {
+                font-size: 0.95rem;
+            }
         }
 
-        .controls {
-            display: flex;
-            gap: 10px;
+        .content {
+            height: calc(100% - 60px);
+            position: relative;
         }
 
-        .btn {
+        .back-btn,
+        .fullscreen-btn {
             background: rgba(255, 255, 255, 0.2);
             border: none;
             color: white;
             padding: 6px 12px;
             border-radius: 4px;
             cursor: pointer;
-            transition: background-color 0.2s;
         }
 
-        .btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        .content {
-            height: calc(100% - 60px);
-            position: relative;
-            background-color: #525659;
-        }
-
-        .iframe-container {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .iframe-container iframe {
+        #proxyFrame {
+            position: absolute;
             width: 100%;
             height: 100%;
             border: none;
+            opacity: 0;
+            z-index: -1;
         }
 
-        #pdfContainer {
+        #displayFrame {
+            position: absolute;
             width: 100%;
+            height: 100%;
+            border: none;
+            z-index: 1;
+        }
+
+        .header-center {
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        #assessmentTitle {
+            margin: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-height: 100%;
+            line-height: 1.3;
         }
 
-        #pdfContainer canvas {
-            margin: 10px 0;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        #gradeSubject {
+            font-size: 1.1rem;
+            font-weight: 600;
         }
 
-        .navigation {
+        #assessmentDate,
+        #assessmentType {
+            font-size: 0.9rem;
+            font-weight: normal;
+        }
+
+        /* Accessibility Tools */
+        .accessibility-tools {
             position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(0, 0, 0, 0.5);
-            padding: 5px 15px;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            z-index: 1000;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 100;
         }
 
-        .page-controls {
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .accessibility-toggle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #0a2b72;
             color: white;
-        }
-
-        .page-btn {
-            background: transparent;
             border: none;
-            color: white;
-            padding: 5px;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         }
 
-        .page-status {
-            font-size: 14px;
-            user-select: none;
-        }
-
-        .loading {
+        .accessibility-panel {
             position: absolute;
+            right: 50px;
+            top: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            width: 150px;
+        }
+
+        .accessibility-panel.active {
+            display: flex;
+        }
+
+        .tool-btn {
+            padding: 8px 12px;
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tool-btn:hover {
+            background: #e5e7eb;
+        }
+
+        /* Password modal for tools */
+        .tool-password-modal {
+            position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            text-align: center;
-            color: white;
-            z-index: 5;
-        }
-
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid rgba(255, 255, 255, 0.2);
-            border-left-color: white;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        .error {
+            background: white;
             padding: 20px;
-            background-color: #ffebee;
-            color: #c62828;
-            text-align: center;
-            margin: 40px;
-            border-radius: 4px;
+            border-radius: 8px;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            width: 300px;
             display: none;
         }
 
-        .back-btn {
-            display: inline-flex;
-            align-items: center;
-            margin-right: 15px;
+        .tool-password-modal.active {
+            display: block;
         }
 
-        .back-btn svg {
-            margin-right: 5px;
-        }
-
-        .zoom-controls {
+        .button-group {
             display: flex;
-            align-items: center;
             gap: 10px;
+            margin-top: 15px;
+        }
+
+        .button-group button {
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+        }
+
+        #submitToolPassword {
+            background: #0a2b72;
             color: white;
         }
 
-        #zoomLevel {
-            min-width: 60px;
-            text-align: center;
+        #cancelToolPassword {
+            background: #e5e7eb;
+            color: #374151;
         }
     </style>
 </head>
@@ -200,94 +219,250 @@
 <body>
     <div class="header">
         <div class="header-left">
-            <button class="btn back-btn" id="backBtn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="19" y1="12" x2="5" y2="12"></line>
-                    <polyline points="12 19 5 12 12 5"></polyline>
-                </svg>
-                Back
-            </button>
-            <img src="assets/images/school-logo2.png" alt="SJMC Logo" class="school-logo">
-            <h1 id="assessmentTitle">Assessment Viewer</h1>
+            <button class="back-btn" id="backBtn">Back</button>
         </div>
-        <div class="controls">
-            <button class="btn" id="fullscreenBtn">Fullscreen</button>
+        <div class="header-center">
+            <h2 id="assessmentTitle">
+                <span id="gradeSubject">Grade 10 - Natural Science</span>
+                <span id="assessmentDate">Monday 10/March/25</span>
+                <span id="assessmentType">Test</span>
+            </h2>
         </div>
-    </div>
-
-    <div id="loading" class="loading">
-        <div class="spinner"></div>
-        <p>Loading assessment...</p>
-    </div>
-
-    <div id="error" class="error">
-        Unable to load assessment. Please return to the portal and try again.
+        <div class="header-right">
+            <button class="fullscreen-btn" id="fullscreenBtn">Full</button>
+        </div>
     </div>
 
     <div class="content">
-        <!-- Direct Google Drive embed container -->
-        <div id="driveContainer" class="iframe-container">
-            <!-- Will be populated with iframe by JavaScript -->
-        </div>
+        <!-- The proxy frame loads the Google Drive URL but isn't directly visible -->
+        <iframe id="proxyFrame" src="about:blank"></iframe>
+
+        <!-- This frame displays the content from the proxy frame -->
+        <iframe id="displayFrame" src="about:blank"></iframe>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // DOM elements
+            const proxyFrame = document.getElementById('proxyFrame');
+            const displayFrame = document.getElementById('displayFrame');
             const backBtn = document.getElementById('backBtn');
             const fullscreenBtn = document.getElementById('fullscreenBtn');
-            const loading = document.getElementById('loading');
-            const error = document.getElementById('error');
-            const driveContainer = document.getElementById('driveContainer');
-            const assessmentTitle = document.getElementById('assessmentTitle');
+            const accessibilityToggle = document.getElementById('accessibilityToggle');
+            const accessibilityPanel = document.querySelector('.accessibility-panel');
+            accessibilityToggle.addEventListener('click', function () {
+                accessibilityPanel.classList.toggle('active');
+            });
+            document.getElementById('translateBtn').addEventListener('click', function () {
+                showToolPasswordModal('translate');
+            });
 
-            // Session storage is used for passing data between pages without URL parameters
-            const examData = JSON.parse(sessionStorage.getItem('examData') || '{}');
-            sessionStorage.removeItem('examData'); // Clear after use for security
+            document.getElementById('readAloudBtn').addEventListener('click', function () {
+                showToolPasswordModal('readAloud');
+            });
 
-            if (examData && examData.url) {
-                // Set page title
-                document.title = examData.title || 'Assessment Viewer';
+            document.getElementById('typeAnswersBtn').addEventListener('click', function () {
+                showToolPasswordModal('typeAnswers');
+            });
 
-                // Set header title
-                if (examData.subject && examData.type) {
-                    assessmentTitle.textContent = `${examData.subject} - ${examData.type}`;
-                } else if (examData.title) {
-                    assessmentTitle.textContent = examData.title;
+            document.getElementById('dictationBtn').addEventListener('click', function () {
+                showToolPasswordModal('dictation');
+            });
+
+            // Function to show password modal for tools
+            function showToolPasswordModal(toolType) {
+                // Create modal if it doesn't exist
+                let modal = document.querySelector('.tool-password-modal');
+                if (!modal) {
+                    modal = document.createElement('div');
+                    modal.className = 'tool-password-modal';
+                    modal.innerHTML = `
+            <h3>Enter Access Code</h3>
+            <input type="password" id="toolPassword" placeholder="Enter code">
+            <div class="button-group">
+                <button id="submitToolPassword">Submit</button>
+                <button id="cancelToolPassword">Cancel</button>
+            </div>
+        `;
+                    document.body.appendChild(modal);
                 }
 
-                // Create iframe for Google Drive
-                const iframe = document.createElement('iframe');
-                iframe.src = examData.url;
-                iframe.allowFullscreen = true;
-                iframe.frameBorder = "0";
+                modal.classList.add('active');
 
-                // Add loading and error handlers
-                iframe.onload = function () {
-                    loading.style.display = 'none';
+                // Store the tool type as a data attribute
+                modal.dataset.toolType = toolType;
+
+                // Focus on the password input
+                setTimeout(() => {
+                    document.getElementById('toolPassword').focus();
+                }, 100);
+
+                // Set up event listeners
+                document.getElementById('submitToolPassword').onclick = verifyToolPassword;
+                document.getElementById('cancelToolPassword').onclick = closeToolPasswordModal;
+
+                // Allow Enter key to submit
+                document.getElementById('toolPassword').onkeypress = function (e) {
+                    if (e.key === 'Enter') {
+                        verifyToolPassword();
+                    }
                 };
-
-                iframe.onerror = function () {
-                    loading.style.display = 'none';
-                    error.style.display = 'block';
-                };
-
-                // Add iframe to container
-                driveContainer.appendChild(iframe);
-            } else {
-                // No data found
-                loading.style.display = 'none';
-                error.style.display = 'block';
-                error.textContent = 'No assessment information found. Please return to the portal.';
             }
 
-            // Back button handler
+            // Function to close the tool password modal
+            function closeToolPasswordModal() {
+                const modal = document.querySelector('.tool-password-modal');
+                if (modal) {
+                    modal.classList.remove('active');
+                }
+            }
+
+            // Function to verify the tool password
+            function verifyToolPassword() {
+                const password = document.getElementById('toolPassword').value;
+                const modal = document.querySelector('.tool-password-modal');
+                const toolType = modal.dataset.toolType;
+
+                // Here you would check against your special accommodation passwords
+                // This is just an example - you'll need to implement your actual verification logic
+                const specialPasswords = {
+                    translate: 'translate123',
+                    readAloud: 'reader123',
+                    typeAnswers: 'typing123',
+                    dictation: 'dictate123'
+                };
+
+                if (password === specialPasswords[toolType]) {
+                    // Password is correct, activate the tool
+                    activateTool(toolType);
+                    closeToolPasswordModal();
+                } else {
+                    alert('Invalid access code');
+                }
+            }
+
+            // Function to activate the appropriate tool
+            function activateTool(toolType) {
+                switch (toolType) {
+                    case 'translate':
+                        // Open Google Translate in a side panel
+                        const translateWindow = window.open('https://translate.google.com', 'translateWindow',
+                            'width=400,height=600,right=0,top=0');
+                        break;
+                    case 'readAloud':
+                        // Implement text-to-speech functionality
+                        alert('Read Aloud tool activated');
+                        // You could implement this with the Web Speech API
+                        break;
+                    case 'typeAnswers':
+                        // Open a text editor for typing answers
+                        const editorContainer = document.createElement('div');
+                        editorContainer.className = 'answers-editor';
+                        editorContainer.innerHTML = `
+                <div class="editor-header">
+                    <h3>Type Answers</h3>
+                    <button id="closeEditor">Close</button>
+                </div>
+                <textarea id="answersText" placeholder="Type your answers here..."></textarea>
+                <button id="saveAnswers">Save</button>
+            `;
+                        document.body.appendChild(editorContainer);
+
+                        document.getElementById('closeEditor').onclick = function () {
+                            editorContainer.remove();
+                        };
+
+                        document.getElementById('saveAnswers').onclick = function () {
+                            const text = document.getElementById('answersText').value;
+                            // Here you would save the answers - could be to localStorage, 
+                            // or to download as a file
+                            alert('Answers saved');
+                        };
+                        break;
+                    case 'dictation':
+                        // Implement speech recognition
+                        alert('Dictation tool activated');
+                        // You could implement this with the Web Speech API
+                        break;
+                }
+            }
+            // Get assessment data from session storage
+            // Get assessment data from session storage
+            const examData = JSON.parse(sessionStorage.getItem('examData') || '{}');
+            sessionStorage.removeItem('examData'); // Clear after use
+
+            if (examData && examData.url) {
+                // Set title
+                document.title = examData.title || 'Assessment Viewer';
+
+                // Update header information
+                document.getElementById('gradeSubject').textContent = `Grade ${examData.grade} - ${examData.subject}`;
+                document.getElementById('assessmentDate').textContent = examData.scheduledDate || '';
+                document.getElementById('assessmentType').textContent = examData.type || 'Assessment';
+
+                // Update header information
+                if (examData.title) {
+                    // Parse the title which is typically in format "Subject - Type"
+                    const titleParts = examData.title.split(' - ');
+                    const subject = titleParts[0] || 'Subject';
+                    const type = titleParts[1] || 'Assessment';
+
+                    // Set the subject and type
+                    document.getElementById('gradeSubject').textContent = subject;
+                    document.getElementById('assessmentType').textContent = type;
+
+                    // Set the date (current date in proper format)
+                    const today = new Date();
+                    const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+                    document.getElementById('assessmentDate').textContent = today.toLocaleDateString('en-ZA', options);
+                }
+                // First, navigate the proxy frame to the Google Drive URL
+                proxyFrame.src = examData.url;
+
+                // When the proxy frame loads, forward its content to the display frame
+                proxyFrame.onload = function () {
+                    // Instead of directly displaying the proxy frame (which would show Google Drive URL),
+                    // we use a data URL for the display frame which keeps the URL clean
+                    try {
+                        // Create a simple HTML document that includes the Google Drive PDF in an iframe
+                        const content = `
+                            <!DOCTYPE html>
+                            <html>
+                            <head>
+                                <meta charset="UTF-8">
+                                <style>
+                                    body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+                                    iframe { width: 100%; height: 100%; border: none; }
+                                </style>
+                                <title>${examData.title || 'Assessment'}</title>
+                            </head>
+                            <body>
+                                <iframe src="${examData.url}" frameborder="0" allowfullscreen></iframe>
+                            </body>
+                            </html>
+                        `;
+
+                        // Convert this HTML to a data URL (this keeps the URL clean in the address bar)
+                        const dataUrl = 'data:text/html;charset=utf-8,' + encodeURIComponent(content);
+
+                        // Set the display frame source to our data URL
+                        displayFrame.src = dataUrl;
+                    } catch (err) {
+                        console.error('Error setting display frame:', err);
+                        // Fallback: directly set the src (this would show Google Drive in URL)
+                        displayFrame.src = examData.url;
+                    }
+                };
+            } else {
+                // No assessment data
+                displayFrame.srcdoc = '<html><body style="text-align:center;padding-top:100px;font-family:sans-serif;"><h2>Assessment not found</h2><p>Please return to the portal.</p></body></html>';
+            }
+
+            // Back button
             backBtn.addEventListener('click', function () {
                 window.location.href = './';
             });
 
-            // Fullscreen button handler
+            // Fullscreen button
             fullscreenBtn.addEventListener('click', function () {
                 if (document.documentElement.requestFullscreen) {
                     document.documentElement.requestFullscreen();
@@ -298,7 +473,7 @@
                 }
             });
 
-            // Handle ESC key for exiting fullscreen
+            // Handle escape key for exiting fullscreen
             document.addEventListener('keydown', function (e) {
                 if (e.key === 'Escape' && document.fullscreenElement) {
                     if (document.exitFullscreen) {
@@ -312,6 +487,24 @@
             });
         });
     </script>
+    <!-- Accessibility Tools -->
+    <div class="accessibility-tools" id="accessibilityTools">
+        <button class="accessibility-toggle" id="accessibilityToggle">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 8v8"></path>
+                <path d="M8 12h8"></path>
+            </svg>
+        </button>
+
+        <div class="accessibility-panel">
+            <button class="tool-btn" id="translateBtn">Translator</button>
+            <button class="tool-btn" id="readAloudBtn">Read Aloud</button>
+            <button class="tool-btn" id="typeAnswersBtn">Type Answers</button>
+            <button class="tool-btn" id="dictationBtn">Dictation</button>
+        </div>
+    </div>
 </body>
 
 </html>
