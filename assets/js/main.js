@@ -305,13 +305,17 @@ class AssessmentPortal {
             if (password === assessment.password) {
                 this.closeModal();
 
-                // Check if this is a Google Form
+                // Check content type for special handling
                 const isGoogleForm = assessment.type === 'googleform' ||
                     assessment.url.includes('forms.gle') ||
                     assessment.url.includes('docs.google.com/forms');
 
-                if (isGoogleForm) {
-                    // For Google Forms, redirect directly to the form URL
+                const isDriveDoc = assessment.type === 'drive' ||
+                    (assessment.url.includes('docs.google.com') &&
+                        !assessment.url.includes('forms'));
+
+                if (isGoogleForm || isDriveDoc) {
+                    // For Google Forms and Drive docs, redirect directly to the URL
                     window.location.href = assessment.url;
                 } else {
                     // For PDFs and other assessments, use the viewer as before
@@ -338,7 +342,6 @@ class AssessmentPortal {
             alert('Error verifying password. Please try again.');
         }
     }
-
     async openPdfViewer(assessment) {
         // Instead of using an iframe, we'll open the PDF in a controlled way
         console.log('Opening PDF viewer for:', assessment.subject);

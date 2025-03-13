@@ -1445,15 +1445,38 @@ class AdminPortal {
   }
 
   formatDriveUrl(url) {
-    // Check if it's a Google Form URL
+    // Google Forms
     if (url.includes('forms.gle') || url.includes('docs.google.com/forms')) {
-      // Google Forms - return as is or ensure it's in viewform mode
+      // Ensure it's in viewform mode
       if (url.includes('/edit')) {
         return url.replace('/edit', '/viewform');
       }
       return url;
-    } else {
-      // Handle Drive URLs as before
+    }
+    // Google Docs
+    else if (url.includes('docs.google.com/document')) {
+      // Convert edit URLs to preview mode
+      if (url.includes('/edit')) {
+        return url.replace('/edit', '/preview');
+      }
+      return url;
+    }
+    // Google Sheets
+    else if (url.includes('docs.google.com/spreadsheets')) {
+      if (url.includes('/edit')) {
+        return url.replace('/edit', '/preview');
+      }
+      return url;
+    }
+    // Google Slides
+    else if (url.includes('docs.google.com/presentation')) {
+      if (url.includes('/edit')) {
+        return url.replace('/edit', '/preview');
+      }
+      return url;
+    }
+    // Google Drive PDF files
+    else {
       const fileId = url.match(/\/d\/(.*?)(\/|$)/)?.[1];
       return fileId ? `https://drive.google.com/file/d/${fileId}/preview` : url;
     }
