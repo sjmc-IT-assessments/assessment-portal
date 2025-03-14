@@ -84,7 +84,49 @@ class TranslationTool {
         display: flex;
         border-bottom: 1px solid #e5e7eb;
       }
-      
+      .translation-language-selectors {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  gap: 5px;
+}
+
+.translation-language-from,
+.translation-language-to {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.translation-language-from label,
+.translation-language-to label {
+  font-size: 12px;
+  margin-bottom: 4px;
+  color: #4b5563;
+}
+
+.translation-language-from select,
+.translation-language-to select {
+  padding: 6px;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.translation-swap-btn {
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 6px 10px;
+  margin-top: 22px; /* Align with dropdowns */
+  transition: background 0.2s;
+}
+
+.translation-swap-btn:hover {
+  background: #e5e7eb;
+}
       .translation-tab {
         padding: 8px 15px;
         background: #f9fafb;
@@ -345,58 +387,88 @@ class TranslationTool {
     // Create the main translation panel
     createTranslationPanel() {
         const panel = document.createElement('div');
-        panel.className = 'translation-panel active';
+        const languages = [
+            { code: 'zh', name: 'Chinese (Mandarin)' },
+            { code: 'en', name: 'English' },
+            { code: 'fr', name: 'French' },
+            { code: 'de', name: 'German' },
+            { code: 'it', name: 'Italian' }
+        ];
+        let languageOptions = '';
+        languages.forEach(lang => {
+            languageOptions += `<option value="${lang.code}">${lang.name}</option>`;
+        });
         panel.innerHTML = `
-      <div class="translation-header">
-        <h3>Translation Tool (English ⟷ Mandarin)</h3>
-        <div class="translation-controls">
-          <button class="translation-btn translation-minimize" title="Minimize">_</button>
-          <button class="translation-btn translation-close" title="Close">×</button>
-        </div>
+    <div class="translation-header">
+      <h3>Translation Tool</h3>
+      <div class="translation-controls">
+        <button class="translation-btn translation-minimize" title="Minimize">_</button>
+        <button class="translation-btn translation-close" title="Close">×</button>
       </div>
-      <div class="translation-tabs">
-        <button class="translation-tab active" data-tab="translate-text">Translate My Text</button>
-        <button class="translation-tab" data-tab="highlight-translate">Translate Selection</button>
-      </div>
-      <div class="translation-content">
-        <div class="translation-section active" id="translate-text">
-          <div class="translation-input-container">
-            <h4>Type in Mandarin:</h4>
-            <textarea class="translation-textarea" id="mandarin-input" placeholder="Type text in Mandarin here..."></textarea>
+    </div>
+    <div class="translation-tabs">
+      <button class="translation-tab active" data-tab="translate-text">Translate My Text</button>
+      <button class="translation-tab" data-tab="highlight-translate">Translate Selection</button>
+    </div>
+    <div class="translation-content">
+      <div class="translation-section active" id="translate-text">
+        <div class="translation-language-selectors">
+          <div class="translation-language-from">
+            <label for="source-language">From:</label>
+            <select id="source-language">${languageOptions}</select>
           </div>
-          <div class="translation-divider">
-            <button id="translate-to-english">Translate to English ↓</button>
-          </div>
-          <div class="translation-output-container">
-            <h4>English Translation:</h4>
-            <textarea class="translation-textarea" id="english-output" placeholder="Translation will appear here..." readonly></textarea>
-            <button id="copy-english" class="translation-popup-btn">Copy to Clipboard</button>
+          <button class="translation-swap-btn" id="swap-languages">⇄</button>
+          <div class="translation-language-to">
+            <label for="target-language">To:</label>
+            <select id="target-language">${languageOptions}</select>
           </div>
         </div>
-        <div class="translation-section" id="highlight-translate">
-          <p>Highlight any text in the assessment to see it translated to Mandarin.</p>
-          <div class="translation-input-container">
-            <h4>Selected Text:</h4>
-            <textarea class="translation-textarea" id="selected-text" placeholder="Highlight text in the assessment..." readonly></textarea>
-          </div>
-          <div class="translation-divider">
-            <button id="translate-selection">Translate ↓</button>
-          </div>
-          <div class="translation-output-container">
-            <h4>Mandarin Translation:</h4>
-            <textarea class="translation-textarea" id="mandarin-output" placeholder="Translation will appear here..." readonly></textarea>
-            <button id="copy-mandarin" class="translation-popup-btn">Copy to Clipboard</button>
-          </div>
+        <div class="translation-input-container">
+          <h4>Input Text:</h4>
+          <textarea class="translation-textarea" id="input-text" placeholder="Type text to translate..."></textarea>
+        </div>
+        <div class="translation-divider">
+          <button id="translate-text-btn">Translate ↓</button>
+        </div>
+        <div class="translation-output-container">
+          <h4>Translation:</h4>
+          <textarea class="translation-textarea" id="output-text" placeholder="Translation will appear here..." readonly></textarea>
+          <button id="copy-translation" class="translation-popup-btn">Copy to Clipboard</button>
         </div>
       </div>
-      <div class="translation-footer">
-        <span>Powered by Google Translate</span>
-        <span id="translation-status">Ready</span>
+      
+      <div class="translation-section" id="highlight-translate">
+        <div class="translation-language-selectors">
+          <div class="translation-language-to">
+            <label for="selection-target-language">Translate selection to:</label>
+            <select id="selection-target-language">${languageOptions}</select>
+          </div>
+        </div>
+        <p>Highlight any text in the assessment to see it translated.</p>
+        <div class="translation-input-container">
+          <h4>Selected Text:</h4>
+          <textarea class="translation-textarea" id="selected-text" placeholder="Highlight text in the assessment..." readonly></textarea>
+        </div>
+        <div class="translation-divider">
+          <button id="translate-selection">Translate ↓</button>
+        </div>
+        <div class="translation-output-container">
+          <h4>Translation:</h4>
+          <textarea class="translation-textarea" id="selection-output" placeholder="Translation will appear here..." readonly></textarea>
+          <button id="copy-selection" class="translation-popup-btn">Copy to Clipboard</button>
+        </div>
       </div>
-    `;
+    </div>
+    <div class="translation-footer">
+      <span>Translation Tool</span>
+      <span id="translation-status">Ready</span>
+    </div>
+  `;
 
         document.body.appendChild(panel);
-
+        document.getElementById('source-language').value = 'en';
+        document.getElementById('target-language').value = 'zh';
+        document.getElementById('selection-target-language').value = 'zh';
         // Make panel draggable
         this.makeDraggable(panel);
 
@@ -419,6 +491,62 @@ class TranslationTool {
                 sections.forEach(section => section.classList.remove('active'));
                 panel.querySelector(`#${tab.dataset.tab}`).classList.add('active');
             });
+        });
+        // Swap languages button
+        panel.querySelector('#swap-languages').addEventListener('click', () => {
+            const sourceSelect = panel.querySelector('#source-language');
+            const targetSelect = panel.querySelector('#target-language');
+            const tempValue = sourceSelect.value;
+            sourceSelect.value = targetSelect.value;
+            targetSelect.value = tempValue;
+
+            // If there's text, swap that too
+            const inputText = panel.querySelector('#input-text');
+            const outputText = panel.querySelector('#output-text');
+            if (inputText.value && outputText.value) {
+                inputText.value = outputText.value;
+                outputText.value = '';
+                panel.querySelector('#translation-status').textContent = 'Languages swapped';
+                setTimeout(() => {
+                    panel.querySelector('#translation-status').textContent = 'Ready';
+                }, 2000);
+            }
+        });
+
+        // Translate button for manual input
+        panel.querySelector('#translate-text-btn').addEventListener('click', () => {
+            const text = panel.querySelector('#input-text').value.trim();
+            if (text) {
+                const sourceLanguage = panel.querySelector('#source-language').value;
+                const targetLanguage = panel.querySelector('#target-language').value;
+
+                panel.querySelector('#translation-status').textContent = 'Translating...';
+                this.translateText(text, sourceLanguage, targetLanguage, result => {
+                    panel.querySelector('#output-text').value = result;
+                    panel.querySelector('#translation-status').textContent = 'Translation complete';
+                    setTimeout(() => {
+                        panel.querySelector('#translation-status').textContent = 'Ready';
+                    }, 2000);
+                });
+            }
+        });
+
+        panel.querySelector('#translate-selection').addEventListener('click', () => {
+            const text = panel.querySelector('#selected-text').value.trim();
+            if (text) {
+                // For selection, we always translate from document language (assume English)
+                // to the selected target language
+                const targetLanguage = panel.querySelector('#selection-target-language').value;
+
+                panel.querySelector('#translation-status').textContent = 'Translating...';
+                this.translateText(text, 'en', targetLanguage, result => {
+                    panel.querySelector('#selection-output').value = result;
+                    panel.querySelector('#translation-status').textContent = 'Translation complete';
+                    setTimeout(() => {
+                        panel.querySelector('#translation-status').textContent = 'Ready';
+                    }, 2000);
+                });
+            }
         });
 
         // Close button
@@ -456,38 +584,37 @@ class TranslationTool {
         });
 
         // Copy buttons
-        panel.querySelector('#copy-english').addEventListener('click', () => {
-            const text = panel.querySelector('#english-output').value;
+        panel.querySelector('#copy-translation').addEventListener('click', () => {
+            const text = panel.querySelector('#output-text').value;
             this.copyToClipboard(text);
         });
 
-        panel.querySelector('#copy-mandarin').addEventListener('click', () => {
-            const text = panel.querySelector('#mandarin-output').value;
+        panel.querySelector('#copy-selection').addEventListener('click', () => {
+            const text = panel.querySelector('#selection-output').value;
             this.copyToClipboard(text);
         });
 
-        // Mandarin input listener for auto-translation
-        const mandarinInput = panel.querySelector('#mandarin-input');
         let typingTimer;
-
-        mandarinInput.addEventListener('input', () => {
+        panel.querySelector('#input-text').addEventListener('input', () => {
             clearTimeout(typingTimer);
             panel.querySelector('#translation-status').textContent = 'Typing...';
 
-            // Wait for user to stop typing
             typingTimer = setTimeout(() => {
-                const text = mandarinInput.value.trim();
+                const text = panel.querySelector('#input-text').value.trim();
                 if (text) {
+                    const sourceLanguage = panel.querySelector('#source-language').value;
+                    const targetLanguage = panel.querySelector('#target-language').value;
+
                     panel.querySelector('#translation-status').textContent = 'Translating...';
-                    this.translateText(text, 'zh', 'en', result => {
-                        panel.querySelector('#english-output').value = result;
+                    this.translateText(text, sourceLanguage, targetLanguage, result => {
+                        panel.querySelector('#output-text').value = result;
                         panel.querySelector('#translation-status').textContent = 'Ready';
                     });
                 } else {
-                    panel.querySelector('#english-output').value = '';
+                    panel.querySelector('#output-text').value = '';
                     panel.querySelector('#translation-status').textContent = 'Ready';
                 }
-            }, 1000);
+            }, 1000); // 1 second delay
         });
     }
 
@@ -627,23 +754,29 @@ class TranslationTool {
             return;
         }
 
-        // Use Google Translate API (you'll need to implement actual API call)
-        // This is a simplified placeholder implementation
-        if (this.apiKey) {
-            // Real implementation would make an API call here
-            // For now, we'll use a mock implementation
-            this.mockTranslate(text, sourceLang, targetLang, result => {
-                // Cache the result
-                this.translationCache.set(cacheKey, result);
-                callback(result);
-            });
-        } else {
-            // Fallback to a basic implementation if no API key is available
-            this.mockTranslate(text, sourceLang, targetLang, result => {
-                this.translationCache.set(cacheKey, result);
-                callback(result);
-            });
+        // For a production implementation, you would use a proper translation API
+        // This is a simplified example that uses Google Translate's webpage as a fallback
+        if (!this.apiKey) {
+            // Open Google Translate in a new window/tab with the text pre-filled
+            const url = `https://translate.google.com/?sl=${sourceLang}&tl=${targetLang}&text=${encodeURIComponent(text)}`;
+
+            // Inform the user how to proceed
+            alert(`Since no translation API key is available, we'll open Google Translate in a new tab. Please copy the translation from there.`);
+            window.open(url, '_blank');
+
+            // Return a placeholder message
+            const placeholder = `[Translation requested: ${text}]\n\nPlease check the opened Google Translate tab for the translation.`;
+            callback(placeholder);
+            return;
         }
+
+        // If you have an API key, implement the actual API call here
+        // For now, we'll use a mock implementation
+        this.mockTranslate(text, sourceLang, targetLang, result => {
+            // Cache the result
+            this.translationCache.set(cacheKey, result);
+            callback(result);
+        });
     }
 
     // Mock translation function for development
