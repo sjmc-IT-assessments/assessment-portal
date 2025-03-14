@@ -252,13 +252,13 @@
             accessibilityToggle.addEventListener('click', function () {
                 accessibilityPanel.classList.toggle('active');
             });
-            document.getElementById('translateBtn').addEventListener('click', function () {
-                showToolPasswordModal('translate');
-            });
+           //document.getElementById('translateBtn').addEventListener('click', function () {
+          //    showToolPasswordModal('translate');
+         //   });
 
-            document.getElementById('readAloudBtn').addEventListener('click', function () {
-                showToolPasswordModal('readAloud');
-            });
+           // document.getElementById('readAloudBtn').addEventListener('click', function () {
+           //     showToolPasswordModal('readAloud');
+           // });
 
             document.getElementById('typeAnswersBtn').addEventListener('click', function () {
                 showToolPasswordModal('typeAnswers');
@@ -505,6 +505,9 @@
             <button class="tool-btn" id="dictationBtn">Dictation</button>
         </div>
     </div>
+    <script src="assets/js/readAloudTool.js"></script>
+    <script src="assets/js/translationTool.js"></script>
+    <script src="assets/js/accessibilityIntegration.js"></script>
 </body>
 
 </html>
