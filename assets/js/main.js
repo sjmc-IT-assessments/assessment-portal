@@ -41,7 +41,6 @@ class AssessmentPortal {
                 this.switchGrade(button.dataset.grade);
             });
         });
-
         // Set up the modal close button event listener
         const closeModalBtn = document.querySelector('.close-btn');
         if (closeModalBtn) {
@@ -227,17 +226,21 @@ class AssessmentPortal {
         card.dataset.assessmentId = id;
 
         card.innerHTML = `
-            <div class="assessment-header">
-                <h3>${assessment.subject}</h3>
-                <span class="status-badge ${statusClass}">${statusText}</span>
-            </div>
-            <p class="assessment-type">${assessment.type}</p>
-            <p class="assessment-time">${formattedDate}</p>
-            <button class="start-btn ${!isAvailable ? 'disabled' : ''}"
-                    ${!isAvailable ? 'disabled' : ''}>
-                ${buttonText}
-            </button>
-        `;
+     <div class="assessment-header">
+        <h3>${assessment.subject}</h3>
+        <div class="badge-container">
+            <span class="status-badge ${statusClass}">${statusText}</span>
+        </div>
+    </div>
+    <p class="assessment-type">
+        ${assessment.type === 'googleform' ? '<span class="form-icon">📝</span> ' : ''}${assessment.type}
+    </p>
+    <p class="assessment-time">${formattedDate}</p>
+    <button class="start-btn ${!isAvailable ? 'disabled' : ''}"
+            ${!isAvailable ? 'disabled' : ''}>
+        ${buttonText}
+    </button>
+`;
 
         // Add click event listener directly to the button
         const button = card.querySelector('.start-btn');
@@ -283,7 +286,6 @@ class AssessmentPortal {
         }
         this.currentAssessment = null;
     }
-
     async verifyPassword() {
         if (!this.currentAssessment) return;
 
@@ -304,21 +306,35 @@ class AssessmentPortal {
             if (password === assessment.password) {
                 this.closeModal();
 
-                // Store more comprehensive information
-                const examData = {
-                    url: assessment.url,
-                    title: `${assessment.subject} - ${assessment.type}`,
-                    grade: assessment.grade,
-                    subject: assessment.subject,
-                    type: assessment.type,
-                    scheduledDate: assessment.scheduledDisplayDate || this.formatDate(assessment.scheduledDate)
-                };
+                // Check content type for special handling
+                const isGoogleForm = assessment.type === 'googleform' ||
+                    assessment.url.includes('forms.gle') ||
+                    assessment.url.includes('docs.google.com/forms');
 
-                // Save to session storage
-                sessionStorage.setItem('examData', JSON.stringify(examData));
+                const isDriveDoc = assessment.type === 'drive' ||
+                    (assessment.url.includes('docs.google.com') &&
+                        !assessment.url.includes('forms'));
 
-                // Navigate to the viewer
-                window.location.href = 'viewer.html';
+                if (isGoogleForm || isDriveDoc) {
+                    // For Google Forms and Drive docs, redirect directly to the URL
+                    window.location.href = assessment.url;
+                } else {
+                    // For PDFs and other assessments, use the viewer as before
+                    const examData = {
+                        url: assessment.url,
+                        title: `${assessment.subject} - ${assessment.type}`,
+                        grade: assessment.grade,
+                        subject: assessment.subject,
+                        type: assessment.type,
+                        scheduledDate: assessment.scheduledDisplayDate || this.formatDate(assessment.scheduledDate)
+                    };
+
+                    // Save to session storage
+                    sessionStorage.setItem('examData', JSON.stringify(examData));
+
+                    // Navigate to the viewer
+                    window.location.href = 'viewer.html';
+                }
             } else {
                 alert('Incorrect password');
             }
@@ -327,7 +343,6 @@ class AssessmentPortal {
             alert('Error verifying password. Please try again.');
         }
     }
-
     async openPdfViewer(assessment) {
         // Instead of using an iframe, we'll open the PDF in a controlled way
         console.log('Opening PDF viewer for:', assessment.subject);

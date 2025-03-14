@@ -1445,8 +1445,41 @@ class AdminPortal {
   }
 
   formatDriveUrl(url) {
-    const fileId = url.match(/\/d\/(.*?)(\/|$)/)?.[1];
-    return fileId ? `https://drive.google.com/file/d/${fileId}/preview` : url;
+    // Google Forms
+    if (url.includes('forms.gle') || url.includes('docs.google.com/forms')) {
+      // Ensure it's in viewform mode
+      if (url.includes('/edit')) {
+        return url.replace('/edit', '/viewform');
+      }
+      return url;
+    }
+    // Google Docs
+    else if (url.includes('docs.google.com/document')) {
+      // Convert edit URLs to preview mode
+      if (url.includes('/edit')) {
+        return url.replace('/edit', '/preview');
+      }
+      return url;
+    }
+    // Google Sheets
+    else if (url.includes('docs.google.com/spreadsheets')) {
+      if (url.includes('/edit')) {
+        return url.replace('/edit', '/preview');
+      }
+      return url;
+    }
+    // Google Slides
+    else if (url.includes('docs.google.com/presentation')) {
+      if (url.includes('/edit')) {
+        return url.replace('/edit', '/preview');
+      }
+      return url;
+    }
+    // Google Drive PDF files
+    else {
+      const fileId = url.match(/\/d\/(.*?)(\/|$)/)?.[1];
+      return fileId ? `https://drive.google.com/file/d/${fileId}/preview` : url;
+    }
   }
 
   setupTimeSelect() {

@@ -47,13 +47,17 @@
             </div>
         </div>
     </main>
-    
+
     <!-- Password Modal -->
     <div class="modal-overlay" id="modalOverlay" style="display: none;">
         <div class="password-modal">
             <h3>Enter Assessment Password</h3>
             <form class="password-form">
                 <input type="password" id="assessmentPassword" placeholder="Enter password">
+                <button type="button" id="togglePwdBtn"
+                    style="margin: 0 5px; background: none; border: none; cursor: pointer;">
+                    👁️
+                </button>
                 <button type="submit">Submit</button>
             </form>
             <button class="close-btn">Close</button>
@@ -67,12 +71,16 @@
                 <h3 id="pdfModalTitle">Assessment</h3>
                 <div class="pdf-modal-controls">
                     <button id="fullscreenBtn" class="fullscreen-btn" title="Toggle Fullscreen">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3">
+                            </path>
                         </svg>
                     </button>
                     <button id="closePdfBtn" class="close-pdf-btn" title="Close">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="18" y1="6" x2="6" y2="18"></line>
                             <line x1="6" y1="6" x2="18" y2="18"></line>
                         </svg>
@@ -87,6 +95,23 @@
 
     <!-- Load the main.js script -->
     <script type="module" src="assets/js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Find the toggle button
+            const toggleBtn = document.getElementById('togglePwdBtn');
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', function () {
+                    const pwdField = document.getElementById('assessmentPassword');
+                    if (pwdField) {
+                        // Toggle between password and text
+                        pwdField.type = pwdField.type === 'password' ? 'text' : 'password';
+                        // Update button text based on state
+                        toggleBtn.textContent = pwdField.type === 'password' ? '👁️' : '👁️‍🗨️';
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 
 </html>
