@@ -193,10 +193,12 @@ class AssessmentPortal {
         const now = new Date();
         const timeDiff = (date - now) / (1000 * 60);
 
-        // Assessment is available 15 minutes before scheduled time
-        const isAvailable = timeDiff <= 15 && timeDiff >= -240;
+        // Assessment is available 45 minutes before scheduled time (changed from 15 minutes)
+        // Remains available for 4 hours after (240 minutes)
+        const isAvailable = timeDiff <= 45 && timeDiff >= -240;
         const isToday = date.toDateString() === now.toDateString();
         const isFuture = date > now;
+
 
         let statusClass = '';
         let statusText = '';
