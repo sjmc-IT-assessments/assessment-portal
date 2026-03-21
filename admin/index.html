@@ -203,6 +203,20 @@
 
                     </div>
                 </section>
+                <!-- Broadcast Message -->
+                <section class="admin-section">
+                    <h2>Broadcast Message</h2>
+                    <p style="margin-top:0;color:#6b7280;font-size:0.9rem">Send a message to all active assessment screens instantly.</p>
+                    <div class="broadcast-controls">
+                        <textarea id="broadcastInput" class="broadcast-input" rows="2" placeholder="e.g. 5 minutes remaining — make sure your name is on your paper"></textarea>
+                        <div class="broadcast-buttons">
+                            <button onclick="adminPortal.sendBroadcast()" class="broadcast-send-btn">📢 Send to All Screens</button>
+                            <button onclick="adminPortal.clearBroadcast()" class="broadcast-clear-btn">✕ Clear Message</button>
+                        </div>
+                        <div id="broadcastStatus" class="broadcast-status"></div>
+                    </div>
+                </section>
+
                 <!-- Current Assessments -->
                 <section class="admin-section">
                     <div class="section-header">

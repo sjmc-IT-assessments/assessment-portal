@@ -1,3 +1,65 @@
+/* Broadcast Controls */
+.broadcast-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.broadcast-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    font-family: inherit;
+    resize: vertical;
+    box-sizing: border-box;
+}
+
+.broadcast-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.broadcast-send-btn {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+}
+
+.broadcast-send-btn:hover {
+    background: var(--secondary-color);
+}
+
+.broadcast-clear-btn {
+    background: #e5e7eb;
+    color: #374151;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+}
+
+.broadcast-clear-btn:hover {
+    background: #d1d5db;
+}
+
+.broadcast-status {
+    font-size: 0.85rem;
+    color: #059669;
+    font-style: italic;
+    min-height: 1.2em;
+}
+
 :root {
     --primary-color: #0a2b72;
     --secondary-color: #1e40af;

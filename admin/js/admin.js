@@ -676,6 +676,60 @@ class AdminPortal {
         this.adminPanel.appendChild(examList);
       }
       this.loadExams();
+      this.loadBroadcastStatus();
+    }
+  }
+
+  async loadBroadcastStatus() {
+    try {
+      const doc = await this.db.collection("broadcasts").doc("current").get();
+      const statusEl = document.getElementById("broadcastStatus");
+      const inputEl = document.getElementById("broadcastInput");
+      if (doc.exists && doc.data().active && doc.data().message) {
+        if (statusEl) statusEl.textContent = `Active: "${doc.data().message}"`;
+        if (inputEl) inputEl.value = doc.data().message;
+      }
+    } catch (e) {
+      // Broadcasts collection may not exist yet
+    }
+  }
+
+  async sendBroadcast() {
+    const message = document.getElementById("broadcastInput")?.value?.trim();
+    if (!message) {
+      this.showToast("Please type a message to broadcast", "error");
+      return;
+    }
+    try {
+      await this.db.collection("broadcasts").doc("current").set({
+        message,
+        active: true,
+        sentAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+      const statusEl = document.getElementById("broadcastStatus");
+      if (statusEl) statusEl.textContent = `Active: "${message}"`;
+      this.showToast("Message sent to all screens", "success");
+    } catch (error) {
+      console.error("Broadcast error:", error);
+      this.showToast("Failed to send broadcast", "error");
+    }
+  }
+
+  async clearBroadcast() {
+    try {
+      await this.db.collection("broadcasts").doc("current").set({
+        message: "",
+        active: false,
+        clearedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+      const statusEl = document.getElementById("broadcastStatus");
+      const inputEl = document.getElementById("broadcastInput");
+      if (statusEl) statusEl.textContent = "";
+      if (inputEl) inputEl.value = "";
+      this.showToast("Broadcast cleared from all screens", "success");
+    } catch (error) {
+      console.error("Clear broadcast error:", error);
+      this.showToast("Failed to clear broadcast", "error");
     }
   }
 

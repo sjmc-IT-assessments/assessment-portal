@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SJMC Assessment Viewer</title>
     <link rel="stylesheet" href="assets/css/styles.css">
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <style>
         body,
         html {
@@ -18,6 +21,7 @@
         }
 
         .header {
+            flex-shrink: 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -35,40 +39,9 @@
             padding-right: 10px;
         }
 
-        .fullscreen-btn {
-            margin-left: 10px;
-            min-width: 90px;
-            white-space: nowrap;
-            margin-right: 10px;
-            padding: 8px 10px;
-
-        }
-
         @media (max-width: 480px) {
-            .header {
-                gap: 8px;
-                padding: 8px;
-                /* Smaller padding on small screens */
-            }
-
-            .header-title {
-                font-size: 1.1rem;
-            }
-
-            .fullscreen-btn {
-                min-width: 70px;
-                /* Smaller min-width on small screens */
-                padding: 6px 8px;
-                font-size: 0.9rem;
-            }
-
-            #assessmentTitle {
-                font-size: 0.95rem;
-            }
-        }
-
-        .header {
-            flex-shrink: 0;
+            .header { gap: 8px; padding: 8px; }
+            #assessmentTitle { font-size: 0.95rem; }
         }
 
         .content {
@@ -77,8 +50,7 @@
             overflow: hidden;
         }
 
-        .back-btn,
-        .fullscreen-btn {
+        .back-btn {
             background: rgba(255, 255, 255, 0.2);
             border: none;
             color: white;
@@ -161,26 +133,15 @@
             padding: 2px 0;
         }
 
-        .exam-timer.timer-reading {
-            background: white;
-            color: #D97706;
-        }
-
-        .exam-timer.timer-warning {
-            background: white;
-            color: #D97706;
-        }
+        .exam-timer.timer-reading { color: #D97706; }
+        .exam-timer.timer-warning { color: #D97706; }
 
         .exam-timer.timer-danger {
-            background: white;
             color: #DC2626;
             animation: timerPulse 1s ease-in-out infinite;
         }
 
-        .exam-timer.timer-done {
-            background: white;
-            color: #DC2626;
-        }
+        .exam-timer.timer-done { color: #DC2626; }
 
         .exam-timer.timer-done .timer-label {
             font-size: 0.85rem;
@@ -193,6 +154,82 @@
         @keyframes timerPulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
+        }
+
+        /* Broadcast Banner */
+        .broadcast-banner {
+            flex-shrink: 0;
+            background: #FEF3C7;
+            border-bottom: 2px solid #F59E0B;
+            color: #92400E;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            z-index: 10;
+        }
+
+        .broadcast-banner .broadcast-icon {
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        /* Phase Transition Overlay */
+        .phase-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.78);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 500;
+            animation: overlayFadeIn 0.3s ease;
+        }
+
+        .phase-overlay-card {
+            background: white;
+            border-radius: 16px;
+            padding: 48px 64px;
+            text-align: center;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+            max-width: 480px;
+            width: 90%;
+            animation: overlaySlideUp 0.3s ease;
+        }
+
+        .phase-overlay-icon {
+            font-size: 3.5rem;
+            margin-bottom: 16px;
+        }
+
+        .phase-overlay-card h2 {
+            color: #0a2b72;
+            font-size: 1.8rem;
+            margin: 0 0 10px;
+        }
+
+        .phase-overlay-card p {
+            color: #4B5563;
+            font-size: 1.1rem;
+            margin: 0 0 24px;
+        }
+
+        .phase-overlay-countdown {
+            color: #9CA3AF;
+            font-size: 0.85rem;
+            margin: 0;
+        }
+
+        @keyframes overlayFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes overlaySlideUp {
+            from { transform: translateY(24px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
 
     </style>
@@ -212,19 +249,31 @@
         </div>
         <div class="header-right">
             <div id="examTimer" class="exam-timer"></div>
-            <button class="fullscreen-btn" id="fullscreenBtn">Full</button>
         </div>
     </div>
 
-    <div class="content">
-        <!-- The proxy frame loads the Google Drive URL but isn't directly visible -->
-        <iframe id="proxyFrame" src="about:blank"></iframe>
+    <!-- Teacher broadcast banner — hidden until a message is sent -->
+    <div id="broadcastBanner" class="broadcast-banner" style="display:none">
+        <span class="broadcast-icon">📢</span>
+        <span id="broadcastMessage"></span>
+    </div>
 
-        <!-- This frame displays the content from the proxy frame -->
+    <div class="content">
+        <iframe id="proxyFrame" src="about:blank"></iframe>
         <iframe id="displayFrame" src="about:blank"></iframe>
     </div>
 
-    <script src="assets/js/viewer.js"></script>
+    <!-- Phase transition overlay — hidden until triggered -->
+    <div id="phaseOverlay" class="phase-overlay" style="display:none">
+        <div class="phase-overlay-card">
+            <div class="phase-overlay-icon" id="overlayIcon"></div>
+            <h2 id="overlayTitle"></h2>
+            <p id="overlaySubtitle"></p>
+            <p class="phase-overlay-countdown">Dismissing in <span id="overlayCountdown">5</span>s</p>
+        </div>
+    </div>
+
+    <script type="module" src="assets/js/viewer.js"></script>
 </body>
 
 </html>
