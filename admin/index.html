@@ -210,8 +210,16 @@
                     <div class="broadcast-controls">
                         <textarea id="broadcastInput" class="broadcast-input" rows="2" placeholder="e.g. 5 minutes remaining — make sure your name is on your paper"></textarea>
                         <div class="broadcast-buttons">
-                            <button onclick="adminPortal.sendBroadcast()" class="broadcast-send-btn">📢 Send to All Screens</button>
-                            <button onclick="adminPortal.clearBroadcast()" class="broadcast-clear-btn">✕ Clear Message</button>
+                            <select id="broadcastGrade" class="broadcast-grade-select">
+                                <option value="all">All Grades</option>
+                                <option value="grade_8">Grade 8</option>
+                                <option value="grade_9">Grade 9</option>
+                                <option value="grade_10">Grade 10</option>
+                                <option value="grade_11">Grade 11</option>
+                                <option value="grade_12">Grade 12</option>
+                            </select>
+                            <button onclick="adminPortal.sendBroadcast()" class="broadcast-send-btn">📢 Send</button>
+                            <button onclick="adminPortal.clearBroadcast()" class="broadcast-clear-btn">✕ Clear</button>
                         </div>
                         <div id="broadcastStatus" class="broadcast-status"></div>
                     </div>

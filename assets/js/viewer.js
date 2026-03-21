@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     initTimer(examData);
-    initBroadcast(db);
+    initBroadcast(db, examData.grade);
 
     backBtn.addEventListener('click', function () {
         window.location.href = './';
@@ -72,21 +72,39 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // ─── Broadcast ────────────────────────────────────────────────────────────────
 
-function initBroadcast(db) {
+function initBroadcast(db, grade) {
     const banner = document.getElementById('broadcastBanner');
     const messageEl = document.getElementById('broadcastMessage');
     if (!banner || !messageEl) return;
 
-    db.collection('broadcasts').doc('current').onSnapshot(doc => {
-        if (doc.exists && doc.data().active && doc.data().message) {
-            messageEl.textContent = doc.data().message;
+    // Track both message sources; grade-specific takes priority over all-grades
+    const messages = { all: null, grade: null };
+    const gradeDoc = grade ? `grade_${grade}` : null;
+
+    function updateBanner() {
+        const msg = messages.grade || messages.all;
+        if (msg) {
+            messageEl.textContent = msg;
             banner.style.display = 'flex';
         } else {
             banner.style.display = 'none';
         }
-    }, () => {
-        // Broadcasts collection may not exist yet — fail silently
-    });
+    }
+
+    const onSnap = (key) => (doc) => {
+        messages[key] = (doc.exists && doc.data().active && doc.data().message)
+            ? doc.data().message
+            : null;
+        updateBanner();
+    };
+
+    // Listen to all-grades broadcast
+    db.collection('broadcasts').doc('all').onSnapshot(onSnap('all'), () => {});
+
+    // Listen to this grade's broadcast (if grade is known)
+    if (gradeDoc) {
+        db.collection('broadcasts').doc(gradeDoc).onSnapshot(onSnap('grade'), () => {});
+    }
 }
 
 // ─── Timer ────────────────────────────────────────────────────────────────────

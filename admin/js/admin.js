@@ -680,14 +680,21 @@ class AdminPortal {
   }
 
   async loadBroadcastStatus() {
+    const statusEl = document.getElementById("broadcastStatus");
+    if (!statusEl) return;
     try {
-      const doc = await this.db.collection("broadcasts").doc("current").get();
-      const statusEl = document.getElementById("broadcastStatus");
-      const inputEl = document.getElementById("broadcastInput");
-      if (doc.exists && doc.data().active && doc.data().message) {
-        if (statusEl) statusEl.textContent = `Active: "${doc.data().message}"`;
-        if (inputEl) inputEl.value = doc.data().message;
+      const targets = ["all", "grade_8", "grade_9", "grade_10", "grade_11", "grade_12"];
+      const labels = { all: "All grades", grade_8: "Grade 8", grade_9: "Grade 9", grade_10: "Grade 10", grade_11: "Grade 11", grade_12: "Grade 12" };
+      const active = [];
+      for (const target of targets) {
+        const doc = await this.db.collection("broadcasts").doc(target).get();
+        if (doc.exists && doc.data().active && doc.data().message) {
+          active.push(`${labels[target]}: "${doc.data().message}"`);
+        }
       }
+      statusEl.innerHTML = active.length
+        ? active.map(m => `• ${m}`).join("<br>")
+        : "";
     } catch (e) {
       // Broadcasts collection may not exist yet
     }
@@ -695,19 +702,19 @@ class AdminPortal {
 
   async sendBroadcast() {
     const message = document.getElementById("broadcastInput")?.value?.trim();
+    const target = document.getElementById("broadcastGrade")?.value || "all";
     if (!message) {
       this.showToast("Please type a message to broadcast", "error");
       return;
     }
     try {
-      await this.db.collection("broadcasts").doc("current").set({
+      await this.db.collection("broadcasts").doc(target).set({
         message,
         active: true,
         sentAt: firebase.firestore.FieldValue.serverTimestamp(),
       });
-      const statusEl = document.getElementById("broadcastStatus");
-      if (statusEl) statusEl.textContent = `Active: "${message}"`;
-      this.showToast("Message sent to all screens", "success");
+      this.showToast(`Message sent to ${target === "all" ? "all grades" : target.replace("_", " ")}`, "success");
+      this.loadBroadcastStatus();
     } catch (error) {
       console.error("Broadcast error:", error);
       this.showToast("Failed to send broadcast", "error");
@@ -715,17 +722,15 @@ class AdminPortal {
   }
 
   async clearBroadcast() {
+    const target = document.getElementById("broadcastGrade")?.value || "all";
     try {
-      await this.db.collection("broadcasts").doc("current").set({
+      await this.db.collection("broadcasts").doc(target).set({
         message: "",
         active: false,
         clearedAt: firebase.firestore.FieldValue.serverTimestamp(),
       });
-      const statusEl = document.getElementById("broadcastStatus");
-      const inputEl = document.getElementById("broadcastInput");
-      if (statusEl) statusEl.textContent = "";
-      if (inputEl) inputEl.value = "";
-      this.showToast("Broadcast cleared from all screens", "success");
+      this.showToast(`Broadcast cleared for ${target === "all" ? "all grades" : target.replace("_", " ")}`, "success");
+      this.loadBroadcastStatus();
     } catch (error) {
       console.error("Clear broadcast error:", error);
       this.showToast("Failed to clear broadcast", "error");
