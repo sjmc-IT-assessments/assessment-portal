@@ -165,6 +165,10 @@ class AdminPortal {
       this.auth = firebase.auth();
       this.db = firebase.firestore();
 
+      // Cache frequently-accessed static DOM elements
+      this.loginSection = document.getElementById("loginSection");
+      this.adminPanel = document.getElementById("adminPanel");
+
       // Move these after Firebase initialization
       this.initializeAuth();
       this.setupEventListeners();
@@ -439,8 +443,8 @@ class AdminPortal {
         if (user.email.endsWith("@maristsj.co.za")) {
           const isAuthorized = await this.checkUserAuthorization(user.email);
           if (isAuthorized) {
-            document.getElementById("loginSection").style.display = "none";
-            document.getElementById("adminPanel").style.display = "block";
+            this.loginSection.style.display = "none";
+            this.adminPanel.style.display = "block";
             this.showAdminPanel(user);
           } else {
             this.showToast(
@@ -457,8 +461,8 @@ class AdminPortal {
           await this.auth.signOut();
         }
       } else {
-        document.getElementById("loginSection").style.display = "flex";
-        document.getElementById("adminPanel").style.display = "none";
+        this.loginSection.style.display = "flex";
+        this.adminPanel.style.display = "none";
         this.hideAdminPanel();
       }
     });
@@ -656,10 +660,9 @@ class AdminPortal {
   }
 
   showAdminPanel(user) {
-    document.getElementById("loginSection").style.display = "none";
-    const adminPanel = document.getElementById("adminPanel");
-    if (adminPanel) {
-      adminPanel.style.display = "block";
+    this.loginSection.style.display = "none";
+    if (this.adminPanel) {
+      this.adminPanel.style.display = "block";
 
       // Update user email display
       const userEmailElement = document.getElementById("userEmail");
@@ -672,17 +675,16 @@ class AdminPortal {
         examList = document.createElement("div");
         examList.id = "examList";
         examList.className = "exam-list";
-        adminPanel.appendChild(examList);
+        this.adminPanel.appendChild(examList);
       }
       this.loadExams();
     }
   }
 
   hideAdminPanel() {
-    document.getElementById("loginSection").style.display = "flex";
-    const adminPanel = document.getElementById("adminPanel");
-    if (adminPanel) {
-      adminPanel.style.display = "none";
+    this.loginSection.style.display = "flex";
+    if (this.adminPanel) {
+      this.adminPanel.style.display = "none";
     }
   }
 

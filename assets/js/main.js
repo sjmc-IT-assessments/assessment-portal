@@ -10,9 +10,28 @@ class AssessmentPortal {
 
         this.currentGrade = '8';
         this.currentAssessment = null;
+        this.loadingGrade = null; // Tracks the latest requested grade to prevent race conditions
 
         this.setupEventListeners();
         this.loadAssessments('8'); // Load Grade 8 by default
+    }
+
+    showToast(message, type = 'info', duration = 3000) {
+        let container = document.getElementById('toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            document.body.appendChild(container);
+        }
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.textContent = message;
+        container.appendChild(toast);
+        setTimeout(() => toast.classList.add('show'), 10);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, duration);
     }
 
     formatDate(date, includeTime = false) {
@@ -101,6 +120,8 @@ class AssessmentPortal {
     }
 
     async loadAssessments(grade) {
+        this.loadingGrade = grade;
+
         const container = document.querySelector('.assessments-grid');
         if (!container) {
             console.error('Container not found!');
@@ -118,6 +139,9 @@ class AssessmentPortal {
                 .orderBy('scheduledDate', 'asc');
 
             const snapshot = await query.get();
+
+            // Discard results if the user switched grade while this query was in flight
+            if (this.loadingGrade !== grade) return;
 
 
             if (snapshot.empty) {
@@ -269,14 +293,14 @@ class AssessmentPortal {
 
         const password = document.getElementById('assessmentPassword').value;
         if (!password) {
-            alert('Please enter a password');
+            this.showToast('Please enter a password', 'error');
             return;
         }
 
         try {
             const doc = await this.db.collection('exams').doc(this.currentAssessment).get();
             if (!doc.exists) {
-                alert('Assessment not found');
+                this.showToast('Assessment not found', 'error');
                 return;
             }
 
@@ -314,11 +338,11 @@ class AssessmentPortal {
                     window.location.href = 'viewer.html';
                 }
             } else {
-                alert('Incorrect password');
+                this.showToast('Incorrect password. Please try again.', 'error');
             }
         } catch (error) {
             console.error('Error verifying password:', error);
-            alert('Error verifying password. Please try again.');
+            this.showToast('Error verifying password. Please try again.', 'error');
         }
     }
     async openPdfViewer(assessment) {
@@ -332,7 +356,7 @@ class AssessmentPortal {
             'toolbar=0,location=0,menubar=0,width=1000,height=800,left=100,top=100');
 
         if (!pdfWindow) {
-            alert('Please allow popups to view the assessment');
+            this.showToast('Please allow popups to view the assessment', 'warning');
             return;
         }
 
