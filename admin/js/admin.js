@@ -166,7 +166,6 @@ class AdminPortal {
       this.loginSection = document.getElementById("loginSection");
       this.adminPanel = document.getElementById("adminPanel");
 
-      this.fixExistingExams();
       this.initializeAuth();
       this.setupEventListeners();
       this.initializeCalendar();
@@ -676,6 +675,7 @@ class AdminPortal {
       }
       this.loadExams();
       this.loadBroadcastStatus();
+      this.fixExistingExams();
     }
   }
 
