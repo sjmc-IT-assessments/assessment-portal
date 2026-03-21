@@ -11,9 +11,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const displayFrame = document.getElementById('displayFrame');
     const backBtn = document.getElementById('backBtn');
 
-    // Get assessment data from session storage
+    // Get assessment data from session storage (kept so refresh works)
     const examData = JSON.parse(sessionStorage.getItem('examData') || '{}');
-    sessionStorage.removeItem('examData');
 
     if (examData && examData.url) {
         document.title = examData.title || 'Assessment Viewer';
