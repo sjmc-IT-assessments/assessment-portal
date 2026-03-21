@@ -3,12 +3,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const displayFrame = document.getElementById('displayFrame');
     const backBtn = document.getElementById('backBtn');
     const fullscreenBtn = document.getElementById('fullscreenBtn');
-    const accessibilityToggle = document.getElementById('accessibilityToggle');
-    const accessibilityPanel = document.querySelector('.accessibility-panel');
-
-    accessibilityToggle.addEventListener('click', function () {
-        accessibilityPanel.classList.toggle('active');
-    });
 
     // Get assessment data from session storage
     const examData = JSON.parse(sessionStorage.getItem('examData') || '{}');

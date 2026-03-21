@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SJMC Assessment Viewer</title>
     <link rel="stylesheet" href="assets/css/styles.css">
-    <link rel="stylesheet" href="assets/css/accessibility-tools.css">
     <style>
         body,
         html {
@@ -119,60 +118,6 @@
             font-weight: normal;
         }
 
-        /* Accessibility Tools */
-        .accessibility-tools {
-            position: fixed;
-            right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            z-index: 100;
-        }
-
-        .accessibility-toggle {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #0a2b72;
-            color: white;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-        }
-
-        .accessibility-panel {
-            position: absolute;
-            right: 50px;
-            top: 0;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
-            padding: 10px;
-            display: none;
-            flex-direction: column;
-            gap: 8px;
-            width: 150px;
-        }
-
-        .accessibility-panel.active {
-            display: flex;
-        }
-
-        .tool-btn {
-            padding: 8px 12px;
-            background: #f3f4f6;
-            border: 1px solid #e5e7eb;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .tool-btn:hover {
-            background: #e5e7eb;
-        }
-
     </style>
 </head>
 
@@ -202,27 +147,6 @@
     </div>
 
     <script src="assets/js/viewer.js"></script>
-    <!-- Accessibility Tools -->
-    <div class="accessibility-tools" id="accessibilityTools">
-        <button class="accessibility-toggle" id="accessibilityToggle">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"></circle>
-                <path d="M12 8v8"></path>
-                <path d="M8 12h8"></path>
-            </svg>
-        </button>
-
-        <div class="accessibility-panel">
-            <button class="tool-btn" id="translateBtn">Translator</button>
-            <button class="tool-btn" id="readAloudBtn">Read Aloud</button>
-            <button class="tool-btn" id="typeAnswersBtn">Type Answers</button>
-            <button class="tool-btn" id="dictationBtn">Dictation</button>
-        </div>
-    </div>
-    <script src="assets/js/readAloudTool.js"></script>
-    <script src="assets/js/translationTool.js"></script>
-    <script src="assets/js/accessibilityIntegration.js"></script>
 </body>
 
 </html>
