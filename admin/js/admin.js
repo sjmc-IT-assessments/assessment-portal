@@ -155,7 +155,6 @@ class AdminPortal {
     this.passwordGenerator = new PasswordGenerator();
     this.isSubmitting = false;
     this.calendarService = new CalendarService(calendarConfig);
-    this.fixExistingExams();
     try {
       if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
@@ -167,11 +166,11 @@ class AdminPortal {
       this.loginSection = document.getElementById("loginSection");
       this.adminPanel = document.getElementById("adminPanel");
 
-      // Move these after Firebase initialization
+      this.fixExistingExams();
       this.initializeAuth();
       this.setupEventListeners();
       this.initializeCalendar();
-      this.setupAutoArchiving(); // Move this here, after Firebase is initialized
+      this.setupAutoArchiving();
     } catch (error) {
       console.error("Initialization error:", error);
       this.showToast(
