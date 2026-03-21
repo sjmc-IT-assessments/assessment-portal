@@ -287,25 +287,6 @@ class TranslationTool {
             btn.title = panel.classList.contains('active') ? 'Minimize' : 'Maximize';
         });
 
-        // Translation buttons
-        panel.querySelector('#translate-to-english').addEventListener('click', () => {
-            const text = panel.querySelector('#mandarin-input').value.trim();
-            if (text) {
-                this.translateText(text, 'zh', 'en', result => {
-                    panel.querySelector('#english-output').value = result;
-                });
-            }
-        });
-
-        panel.querySelector('#translate-selection').addEventListener('click', () => {
-            const text = panel.querySelector('#selected-text').value.trim();
-            if (text) {
-                this.translateText(text, 'en', 'zh', result => {
-                    panel.querySelector('#mandarin-output').value = result;
-                });
-            }
-        });
-
         // Copy buttons
         panel.querySelector('#copy-translation').addEventListener('click', () => {
             const text = panel.querySelector('#output-text').value;

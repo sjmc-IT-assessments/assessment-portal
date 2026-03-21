@@ -28,127 +28,125 @@ function formatDate(date, includeTime = false) {
 
 class PasswordGenerator {
   constructor() {
+    // First words — vivid, fun, easy to say aloud
     this.firstWords = [
-      // Adventure Time & Quirky
-      "Algebraic", "Mathematical", "Radical", "Bubblegum",
-      "Lumpy", "Prismo", "Banana", "Grass", "Tree",
-      "Princess", "Vampire", "Candy", "Ice", "Flame",
-      "Hero", "Sword", "Dungeon", "Wizard", "Magic", "Science",
+      // Exotic foods & drinks
+      "Mango", "Cinnamon", "Wasabi", "Sriracha", "Tiramisu", "Baklava",
+      "Churros", "Gelato", "Croissant", "Macaron", "Kimchi", "Guacamole",
+      "Pesto", "Tahini", "Habanero", "Tamarind", "Cardamom", "Saffron",
+      "Mochi", "Boba", "Espresso", "Matcha", "Pretzel", "Waffle",
+      "Cannoli", "Paprika", "Samosa", "Falafel", "Tempura", "Stroopwafel",
 
-      // Foods & Treats (moved to first words for quirkiness)
-      "Pineapple", "Mango", "Coconut", "Vanilla", "Chocolate", "Cinnamon",
-      "Habanero", "Milkshake", "Cookie", "Pepper", "Wasabi", "Cupcake",
-      "Donut", "Pretzel", "Smoothie", "Biscuit", "Pizza", "Taco",
-      "Waffle", "Pickle", "Burger", "Noodle", "Meatball", "Sundae",
-      "Pancake", "Spaghetti", "Burrito", "Popcorn", "Sugar", "Sweet",
-      "Bacon", "Sandwich", "Lasagna", "Macaron", "Eclair", "Churros",
-      "Gelato", "Ramen", "Sushi", "Tiramisu", "Baklava", "Croissant",
+      // Exotic fruits & plants
+      "Dragonfruit", "Passionfruit", "Lychee", "Kumquat", "Pomelo",
+      "Jackfruit", "Rambutan", "Mangosteen", "Starfruit", "Durian",
+      "Persimmon", "Guava", "Pitaya", "Cherimoya", "Soursop",
 
-      // Bizarre Nature & Animals
-      "Sparkle", "Dragon", "Crystal", "Rainbow", "Thunder", "Lightning",
-      "Mystic", "Whisper", "Ninja", "Pirate", "Firefly", "Unicorn", "Phoenix",
-      "Narwhal", "Platypus", "Octopus", "Jellyfish", "Chameleon", "Toucan",
+      // Interesting animals
+      "Narwhal", "Platypus", "Axolotl", "Quokka", "Capybara", "Pangolin",
+      "Echidna", "Wombat", "Tardigrade", "Puffin", "Toucan", "Chameleon",
+      "Jellyfish", "Octopus", "Firefly", "Tapir", "Fossa", "Binturong",
+      "Okapi", "Numbat", "Wolverine", "Meerkat", "Blobfish", "Axolotl",
 
-      // Weird Science & Space
-      "Quantum", "Atomic", "Nuclear", "Digital", "Cyber", "Virtual",
-      "Binary", "Neural", "Vector", "Matrix", "Hologram", "Laser",
-      "Plasma", "Photon", "Electron", "Neutron", "Telescope", "Rocket",
-      "Asteroid", "Comet", "Meteor", "Galaxy", "Nebula", "Supernova",
+      // Science & space
+      "Quantum", "Plasma", "Photon", "Neutron", "Pulsar", "Quasar",
+      "Vortex", "Prism", "Catalyst", "Neutrino", "Fractal", "Entropy",
+      "Synapse", "Isotope", "Molecule", "Electron", "Hologram", "Cipher",
 
-      // Mythology & Fantasy
-      "Pegasus", "Hydra", "Kraken", "Cyclops", "Titan", "Oracle", "Chimera", "Basilisk", "Griffon", "Minotaur", "Sphinx",
+      // Mythology & fantasy creatures
+      "Pegasus", "Chimera", "Basilisk", "Minotaur", "Sphinx", "Cyclops",
+      "Banshee", "Valkyrie", "Selkie", "Kelpie", "Kitsune", "Tengu",
+      "Thunderbird", "Wendigo", "Leviathan", "Tanuki", "Peryton",
 
-      // Random Awesome
-      "Epic", "Mega", "Super", "Ultra", "Turbo", "Hyper", "Neon",
-      "Electric", "Magnetic", "Cosmic", "Stellar", "Galactic", "Infinity",
-      "Legendary", "Mythical", "Ancient", "Secret", "Hidden", "Lost",
-      "Golden", "Silver", "Diamond", "Crystal", "Emerald", "Ruby",
+      // Vivid descriptors
+      "Crimson", "Cobalt", "Teal", "Scarlet", "Indigo", "Magenta",
+      "Amber", "Ivory", "Vermillion", "Chartreuse", "Celadon", "Umber",
+      "Turbo", "Hyper", "Neon", "Cosmic", "Galactic", "Radiant",
+      "Velvet", "Primal", "Rogue", "Glacial", "Volcanic", "Ancient",
+      "Cursed", "Hollow", "Blazing", "Frozen", "Shimmering", "Spectral",
 
-      "Sandwich", "Bacon", "Pancake", "Spaghetti", "Everything", "Burrito", "BubbleGum", "Candy", "IceCream",
-      "Cookie", "Pizza", "Taco", "Pickle", "Burger", "Noodle", "Meatball", "Sundae", "Lasagna", "Popcorn", "Pretzel",
-      "Sugar", "Sweet",
-
-      // Exotic Fruits
-      "Dragonfruit", "Passionfruit", "Lychee", "Guava", "Papaya", "Kumquat", "Pomelo", "Durian", "Jackfruit",
-      "Rambutan", "Mangosteen", "Persimmon", "Tamarind", "Starfruit", "Plantain",
-
-      // Herbs & Spices
-      "Lavender", "Rosemary", "Saffron", "Cardamom", "Turmeric", "Oregano", "Thyme", "Basil",
-      "Sage", "Tarragon", "Ginger", "Clove", "Anise", "Fennel", "Juniper",
+      // Herbs & spices
+      "Lavender", "Rosemary", "Turmeric", "Oregano", "Thyme", "Juniper",
+      "Fennel", "Clove", "Anise", "Tarragon", "Sumac", "Caraway",
     ];
 
+    // Second words — strong nouns, phenomena, places, creatures
     this.secondWords = [
+      // Weather & natural forces
+      "Blizzard", "Tsunami", "Avalanche", "Hurricane", "Cyclone",
+      "Monsoon", "Tempest", "Solstice", "Equinox", "Tremor",
+      "Geyser", "Vortex", "Eruption", "Deluge", "Squall",
 
-      // Adventure & Movement
-      "Adventure", "Quest", "Journey", "Voyage", "Explorer", "Wanderer",
-      "Hurricane", "Tornado", "Cyclone", "Tsunami", "Avalanche", "Blizzard",
-      "Thunder", "Lightning", "Storm", "Tempest", "Whirlwind", "Eclipse",
-      "Flight", "Rocket", "Comet", "Meteor", "Galaxy", "Universe",
+      // Celestial & space
+      "Supernova", "Asteroid", "Pulsar", "Comet", "Nebula",
+      "Horizon", "Zenith", "Cosmos", "Solstice", "Aphelion",
+      "Perihelion", "Eclipse", "Aurora", "Quasar", "Singularity",
 
-      // Places & Landscapes  
-      "Highway", "Boulevard",
+      // Abstract & epic
+      "Odyssey", "Paradox", "Labyrinth", "Mirage", "Reverie",
+      "Havoc", "Rapture", "Cascade", "Nexus", "Apex",
+      "Legacy", "Epoch", "Cipher", "Riddle", "Specter",
+      "Solace", "Fury", "Abyss", "Pinnacle", "Threshold",
+      "Verdict", "Omen", "Chronicle", "Requiem", "Fracture",
 
-      // Time & Abstract Concepts
-      "Infinity", "Eternity", "Destiny", "Glory",
-      "Mystery", "Secret", "Magic", "Wonder", "Miracle", "Dream",
-      "Dawn", "Twilight", "Midnight", "Century",
+      // Materials & gems
+      "Obsidian", "Titanium", "Sapphire", "Topaz", "Tungsten",
+      "Bismuth", "Beryllium", "Malachite", "Opal", "Onyx",
+      "Amethyst", "Zircon", "Pyrite", "Cinnabar",
 
-      // Materials & Elements
-      "Diamond", "Crystal", "Platinum", "Titanium", "Bronze", "Steel",
-      "Gold", "Silver", "Emerald", "Ruby", "Sapphire", "Quartz",
-      "Marble", "Glass", "Neon", "Carbon", "Silicon", "Helium",
+      // Fantasy creatures & beings
+      "Griffin", "Behemoth", "Colossus", "Titan", "Wraith",
+      "Specter", "Golem", "Wyrm", "Wyvern", "Basilisk",
+      "Hydra", "Kraken", "Leviathan", "Ifrit", "Djinn",
 
-      // Fantasy & Creatures
-      "Dragon", "Phoenix", "Unicorn", "Pegasus", "Griffon", "Basilisk",
-      "Leviathan", "Behemoth", "Chimera", "Hydra", "Kraken", "Titan",
-      "Spirit", "Ghost", "Phantom", "Shadow", "Whisper", "Echo",
+      // Places & structures
+      "Fortress", "Citadel", "Sanctum", "Plateau", "Tundra",
+      "Ravine", "Catacombs", "Spire", "Caldera", "Lagoon",
+      "Archipelago", "Peninsula", "Atoll", "Fjord", "Steppe",
 
-      // Weather & Nature
-      "Breeze", "Gale", "Monsoon", "Drizzle", "Frost", "Snow",
-      "Rain", "Hail", "Fire", "Flame", "Ember", "Spark",
-      "Blaze", "Inferno", "Wave", "Tide", "Current", "Wind",
+      // Action & motion
+      "Surge", "Torrent", "Flare", "Pulse", "Frenzy",
+      "Onslaught", "Ascent", "Plunge", "Ricochet", "Cascade",
 
-      // Food-Related Endings (for extra quirkiness)
-      "Sauce", "Soup", "Stew", "Pie", "Cake", "Muffin"
+      // Quirky food endings
+      "Dumpling", "Sundae", "Noodle", "Biscuit", "Waffle",
+      "Fritter", "Cobbler", "Scone", "Brioche", "Empanada",
     ];
   }
 
   getRandomWord(wordList) {
-    return wordList[Math.floor(Math.random() * wordList.length)];
+    // Use crypto.getRandomValues for better randomness
+    const array = new Uint32Array(1);
+    crypto.getRandomValues(array);
+    return wordList[array[0] % wordList.length];
   }
 
   generatePassword() {
-    const styles = [
-      () =>
-        `${this.getRandomWord(this.firstWords)}${this.getRandomWord(
-          this.secondWords
-        )}`,
-      () =>
-        `${this.getRandomWord(this.secondWords)}${this.getRandomWord(
-          this.secondWords
-        )}`,
-      () =>
-        `${this.getRandomWord(this.firstWords)}${this.getRandomWord(
-          this.firstWords
-        )}`,
-      () =>
-        `${this.getRandomWord(this.secondWords)}${this.getRandomWord(
-          this.firstWords
-        )}`,
-      () =>
-        `${this.getRandomWord(this.firstWords)}${this.getRandomWord(
-          this.secondWords
-        )}`,
-    ];
+    const w1 = this.getRandomWord(this.firstWords);
+    // Pick second word, re-rolling once if it happens to match the first
+    let w2 = this.getRandomWord(this.secondWords);
+    if (w2 === w1) w2 = this.getRandomWord(this.secondWords);
 
-    const styleIndex = Math.floor(Math.random() * styles.length);
-    return styles[styleIndex]();
+    // Append a 2-digit number for added uniqueness (10–99)
+    const array = new Uint32Array(1);
+    crypto.getRandomValues(array);
+    const num = (array[0] % 90) + 10;
+
+    // Randomly swap word order for more variety (~40% of the time)
+    crypto.getRandomValues(array);
+    return (array[0] % 10) < 4
+      ? `${w2}${w1}${num}`
+      : `${w1}${w2}${num}`;
   }
 
   generateOptions(count = 5) {
-    return Array(count)
-      .fill(null)
-      .map(() => this.generatePassword());
+    const options = new Set();
+    let attempts = 0;
+    while (options.size < count && attempts < count * 10) {
+      options.add(this.generatePassword());
+      attempts++;
+    }
+    return [...options];
   }
 }
 
@@ -1125,6 +1123,19 @@ class AdminPortal {
     if (missingFields.length > 0) {
       throw new Error(`Missing required fields: ${missingFields.join(", ")}`);
     }
+
+    const rawUrl = document.getElementById("driveUrl")?.value || "";
+    const validDomains = [
+      "drive.google.com",
+      "docs.google.com",
+      "forms.gle",
+      "sheets.google.com",
+    ];
+    const isValidUrl = validDomains.some(domain => rawUrl.includes(domain));
+    if (!isValidUrl) {
+      throw new Error("URL must be a Google Drive, Docs, Sheets, or Forms link.");
+    }
+
     return formData;
   }
 
@@ -1540,6 +1551,9 @@ class AdminPortal {
   }
 
   async fixExistingExams() {
+    // Skip if this migration has already completed on this device
+    if (localStorage.getItem("examsMigrated")) return;
+
     try {
       const snapshot = await this.db.collection("exams").get();
       const batch = this.db.batch();
@@ -1548,9 +1562,7 @@ class AdminPortal {
       snapshot.forEach((doc) => {
         const data = doc.data();
         if (!data.hasOwnProperty("archived")) {
-          batch.update(doc.ref, {
-            archived: false,
-          });
+          batch.update(doc.ref, { archived: false });
           count++;
         }
       });
@@ -1559,6 +1571,9 @@ class AdminPortal {
         await batch.commit();
         this.loadExams(true);
       }
+
+      // Mark migration as done so it never runs again on this device
+      localStorage.setItem("examsMigrated", "1");
     } catch (error) {
       console.error("Error fixing exams:", error);
     }

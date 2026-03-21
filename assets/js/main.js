@@ -297,6 +297,13 @@ class AssessmentPortal {
             return;
         }
 
+        const submitBtn = document.querySelector('.password-form button[type="submit"]');
+        const originalText = submitBtn ? submitBtn.textContent : null;
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Checking…';
+        }
+
         try {
             const doc = await this.db.collection('exams').doc(this.currentAssessment).get();
             if (!doc.exists) {
@@ -318,10 +325,8 @@ class AssessmentPortal {
                         !assessment.url.includes('forms'));
 
                 if (isGoogleForm || isDriveDoc) {
-                    // For Google Forms and Drive docs, redirect directly to the URL
                     window.location.href = assessment.url;
                 } else {
-                    // For PDFs and other assessments, use the viewer as before
                     const examData = {
                         url: assessment.url,
                         title: `${assessment.subject} - ${assessment.type}`,
@@ -330,11 +335,7 @@ class AssessmentPortal {
                         type: assessment.type,
                         scheduledDate: assessment.scheduledDisplayDate || this.formatDate(assessment.scheduledDate)
                     };
-
-                    // Save to session storage
                     sessionStorage.setItem('examData', JSON.stringify(examData));
-
-                    // Navigate to the viewer
                     window.location.href = 'viewer.html';
                 }
             } else {
@@ -343,126 +344,15 @@ class AssessmentPortal {
         } catch (error) {
             console.error('Error verifying password:', error);
             this.showToast('Error verifying password. Please try again.', 'error');
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
         }
-    }
-    async openPdfViewer(assessment) {
-        // Instead of using an iframe, we'll open the PDF in a controlled way
-
-        // Get the URL from the assessment
-        const pdfUrl = assessment.url;
-
-        // Create a new window with specific settings for kiosk mode
-        const pdfWindow = window.open('about:blank', '_blank',
-            'toolbar=0,location=0,menubar=0,width=1000,height=800,left=100,top=100');
-
-        if (!pdfWindow) {
-            this.showToast('Please allow popups to view the assessment', 'warning');
-            return;
-        }
-
-        // Write content to the new window with styling and controls
-        pdfWindow.document.write(`
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>${assessment.subject} - ${assessment.type}</title>
-                <style>
-                    body, html {
-                        margin: 0;
-                        padding: 0;
-                        height: 100%;
-                        overflow: hidden;
-                        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-                    }
-                    .header {
-                        background-color: #0a2b72;
-                        color: white;
-                        padding: 10px 20px;
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: center;
-                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                    }
-                    .header h1 {
-                        margin: 0;
-                        font-size: 18px;
-                    }
-                    .controls {
-                        display: flex;
-                        gap: 10px;
-                    }
-                    .btn {
-                        background: rgba(255,255,255,0.2);
-                        border: none;
-                        color: white;
-                        padding: 5px 10px;
-                        border-radius: 4px;
-                        cursor: pointer;
-                    }
-                    .btn:hover {
-                        background: rgba(255,255,255,0.3);
-                    }
-                    .content {
-                        height: calc(100% - 50px);
-                    }
-                    iframe {
-                        width: 100%;
-                        height: 100%;
-                        border: none;
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="header">
-                    <h1>${assessment.subject} - ${assessment.type}</h1>
-                    <div class="controls">
-                        <button class="btn" id="fullscreenBtn">Fullscreen</button>
-                        <button class="btn" id="closeBtn">Close</button>
-                    </div>
-                </div>
-                <div class="content">
-                    <iframe src="${pdfUrl}" frameborder="0" allowfullscreen></iframe>
-                </div>
-                
-                <script>
-                    // Fullscreen button
-                    document.getElementById('fullscreenBtn').addEventListener('click', () => {
-                        if (document.documentElement.requestFullscreen) {
-                            document.documentElement.requestFullscreen();
-                        } else if (document.documentElement.webkitRequestFullscreen) {
-                            document.documentElement.webkitRequestFullscreen();
-                        } else if (document.documentElement.msRequestFullscreen) {
-                            document.documentElement.msRequestFullscreen();
-                        }
-                    });
-                    
-                    // Close button
-                    document.getElementById('closeBtn').addEventListener('click', () => {
-                        window.close();
-                    });
-                    
-                    // Also handle Escape key for exiting fullscreen
-                    document.addEventListener('keydown', (e) => {
-                        if (e.key === 'Escape' && !document.fullscreenElement) {
-                            window.close();
-                        }
-                    });
-                </script>
-            </body>
-            </html>
-        `);
-
-        // Finalize the document
-        pdfWindow.document.close();
     }
 }
 
-// Initialize the portal when the document is fully loaded
 document.addEventListener('DOMContentLoaded', () => {
     window.portal = new AssessmentPortal();
 });
-
-// Maintain backward compatibility for any existing references
-window.portal = window.portal || new AssessmentPortal();
