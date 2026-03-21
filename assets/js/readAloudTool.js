@@ -36,7 +36,6 @@ class ReadAloudTool {
     // Load available voices from the browser
     loadVoices() {
         this.availableVoices = this.synth.getVoices();
-        console.log(`Loaded ${this.availableVoices.length} voices for text-to-speech`);
     }
 
     // Add required CSS styles

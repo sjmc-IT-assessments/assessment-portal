@@ -13,7 +13,6 @@ class AssessmentPortal {
 
         this.setupEventListeners();
         this.loadAssessments('8'); // Load Grade 8 by default
-        console.log('Assessment Portal initialized');
     }
 
     formatDate(date, includeTime = false) {
@@ -102,7 +101,6 @@ class AssessmentPortal {
     }
 
     async loadAssessments(grade) {
-        console.log('Loading assessments for grade:', grade);
         const container = document.querySelector('.assessments-grid');
         if (!container) {
             console.error('Container not found!');
@@ -113,28 +111,13 @@ class AssessmentPortal {
         try {
             // Get current time
             const now = new Date();
-            console.log('Current time:', now.toISOString());
 
-            console.log('Querying Firestore for grade:', grade);
             const query = this.db.collection('exams')
                 .where('grade', '==', Number(grade))
                 .where('archived', 'in', [false, null])
                 .orderBy('scheduledDate', 'asc');
 
-            console.log('Executing query...');
             const snapshot = await query.get();
-            console.log('Query complete. Found documents:', snapshot.size);
-
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                console.log('Found exam:', {
-                    id: doc.id,
-                    grade: data.grade,
-                    subject: data.subject,
-                    scheduledDate: data.scheduledDate,
-                    archived: data.archived
-                });
-            });
 
 
             if (snapshot.empty) {
@@ -161,14 +144,10 @@ class AssessmentPortal {
                         ...assessment,
                         date: assessmentDate
                     });
-                    console.log('Including assessment:', assessment.subject, 'Time diff:', timeDiff);
-                } else {
-                    console.log('Excluding assessment:', assessment.subject, 'Time diff:', timeDiff);
                 }
             });
 
             assessments.sort((a, b) => a.date - b.date);
-            console.log('Final filtered assessments:', assessments.length);
 
             if (assessments.length === 0) {
                 container.innerHTML = '<div class="no-assessments">No current assessments available for this grade.</div>';
@@ -256,18 +235,15 @@ class AssessmentPortal {
     }
 
     openAssessment(assessmentId) {
-        console.log('Opening assessment:', assessmentId);
         this.currentAssessment = assessmentId;
 
         const modalOverlay = document.getElementById('modalOverlay');
-        console.log('Modal overlay element:', modalOverlay);
 
         if (modalOverlay) {
             modalOverlay.style.display = 'flex';
             modalOverlay.classList.add('active');
 
             const passwordInput = document.getElementById('assessmentPassword');
-            console.log('Password input element:', passwordInput);
 
             if (passwordInput) {
                 passwordInput.value = '';
@@ -347,7 +323,6 @@ class AssessmentPortal {
     }
     async openPdfViewer(assessment) {
         // Instead of using an iframe, we'll open the PDF in a controlled way
-        console.log('Opening PDF viewer for:', assessment.subject);
 
         // Get the URL from the assessment
         const pdfUrl = assessment.url;
@@ -462,7 +437,6 @@ class AssessmentPortal {
 
 // Initialize the portal when the document is fully loaded
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM loaded, initializing Assessment Portal');
     window.portal = new AssessmentPortal();
 });
 

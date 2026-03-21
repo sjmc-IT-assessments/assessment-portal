@@ -154,7 +154,6 @@ class PasswordGenerator {
 
 class AdminPortal {
   constructor() {
-    console.log("Starting AdminPortal initialization");
     this.passwordGenerator = new PasswordGenerator();
     this.isSubmitting = false;
     this.calendarService = new CalendarService(calendarConfig);
@@ -165,7 +164,6 @@ class AdminPortal {
       }
       this.auth = firebase.auth();
       this.db = firebase.firestore();
-      console.log("Firebase initialized successfully");
 
       // Move these after Firebase initialization
       this.initializeAuth();
@@ -428,7 +426,6 @@ class AdminPortal {
   async initializeCalendar() {
     try {
       await this.calendarService.ensureInitialized();
-      console.log("Calendar service initialized successfully");
     } catch (error) {
       console.warn("Calendar initialization failed:", error);
     }
@@ -438,7 +435,6 @@ class AdminPortal {
     await this.auth.signOut();
 
     this.auth.onAuthStateChanged(async (user) => {
-      console.log("Auth state changed, user:", user);
       if (user) {
         if (user.email.endsWith("@maristsj.co.za")) {
           const isAuthorized = await this.checkUserAuthorization(user.email);
@@ -522,7 +518,6 @@ class AdminPortal {
     const applyFilterBtn = document.getElementById("applyFilter");
     if (applyFilterBtn) {
       applyFilterBtn.addEventListener("click", () => {
-        console.log("Applying filters..."); // Debug log
         this.loadExams(true);
       });
     }
@@ -557,7 +552,6 @@ class AdminPortal {
       await this.auth.signOut();
 
       const result = await this.auth.signInWithPopup(provider);
-      console.log("Sign in successful:", result.user.email);
 
       // Force a UI update
       if (result.user) {
@@ -579,7 +573,7 @@ class AdminPortal {
       if (error.code === "auth/popup-blocked") {
         this.showToast("Please allow popups for this site to login.", "error");
       } else if (error.code === "auth/cancelled-popup-request") {
-        console.log("Previous popup closed");
+        // Popup was closed by user, no action needed
       } else {
         this.showToast("Login failed: " + error.message, "error");
       }
@@ -607,7 +601,6 @@ class AdminPortal {
 
   async saveExam(examData) {
     if (this.isSubmitting) {
-      console.log("Already submitting, preventing duplicate submission");
       return;
     }
 
@@ -622,15 +615,12 @@ class AdminPortal {
         createdBy: this.auth.currentUser.email,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       });
-      console.log("Exam saved to Firestore:", docRef.id);
-
       const addReminder = document.getElementById(
         "addCalendarReminder"
       ).checked;
       if (addReminder) {
         try {
           await this.calendarService.createReminder(examData);
-          console.log("Calendar reminder created");
         } catch (calendarError) {
           console.error("Calendar error (continuing anyway):", calendarError);
           this.showToast(
@@ -1102,14 +1092,6 @@ class AdminPortal {
     // Create a date object in local time zone (just for reference)
     const localDate = new Date(year, month - 1, day, hours, minutes, 0);
 
-    console.log("Time debug:", {
-      inputDate: dateInput,
-      inputTime: timeInput,
-      timestamp: timestamp,
-      displayDateTime: displayDateTime,
-      localDate: localDate.toString(),
-    });
-
     const formData = {
       grade: Number(document.getElementById("grade")?.value),
       subject: document.getElementById("subject")?.value,
@@ -1128,8 +1110,6 @@ class AdminPortal {
       archived: false,
       date: new Date().toISOString(),
     };
-
-    console.log("Form data:", formData);
 
     const missingFields = Object.entries(formData)
       .filter(([key, value]) => {
@@ -1423,7 +1403,6 @@ class AdminPortal {
               scheduledDate: localDate.toISOString(),
             });
 
-            console.log("Update successful");
             this.showToast("Assessment updated successfully", "success");
             dialog.remove();
             this.loadExams();
@@ -1552,7 +1531,6 @@ class AdminPortal {
 
       if (count > 0) {
         await batch.commit();
-        console.log(`Auto-archived ${count} old exams`);
       }
     } catch (error) {
       console.error("Error in auto-archiving:", error);
@@ -1577,10 +1555,7 @@ class AdminPortal {
 
       if (count > 0) {
         await batch.commit();
-        console.log(`Updated ${count} exams with missing archived status`);
         this.loadExams(true);
-      } else {
-        console.log("No exams needed updating");
       }
     } catch (error) {
       console.error("Error fixing exams:", error);
@@ -1590,7 +1565,6 @@ class AdminPortal {
 
 // Initialize admin portal when document is loaded
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("Document loaded, initializing AdminPortal");
   window.adminPortal = new AdminPortal();
 });
 
