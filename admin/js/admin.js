@@ -776,6 +776,7 @@ class AdminPortal {
                         ${exam.archived ? '<span class="archived-badge">Archived</span>' : ''}<br>
                         Password: ${exam.password}<br>
                         Scheduled: ${scheduledDateTime}<br>
+                        ${(exam.readingTime || exam.writingTime) ? `Timer: ${exam.readingTime || 0}min reading + ${exam.writingTime || 0}min writing<br>` : ''}
                         Added: ${formatDate(exam.createdAt?.toDate())}<br>
                         ${exam.archived ? `Archived: ${formatDate(exam.archivedAt?.toDate())}` : ''}
                     </div>
@@ -1057,10 +1058,6 @@ class AdminPortal {
     const dateInput = document.getElementById("scheduledDate").value;
     const timeInput = document.getElementById("scheduledTime").value;
 
-    // Store the raw input values
-    const rawDate = dateInput;
-    const rawTime = timeInput;
-
     // Create Date objects that preserve the input times exactly
     const [year, month, day] = dateInput
       .split("-")
@@ -1111,9 +1108,17 @@ class AdminPortal {
       date: new Date().toISOString(),
     };
 
+    // Optional timer fields — only add if set
+    const readingTime = parseInt(document.getElementById("readingTime")?.value) || 0;
+    const writingTime = parseInt(document.getElementById("writingTime")?.value) || 0;
+    if (readingTime > 0) formData.readingTime = readingTime;
+    if (writingTime > 0) formData.writingTime = writingTime;
+
+    const optionalFields = new Set(["password"]);
     const missingFields = Object.entries(formData)
       .filter(([key, value]) => {
         if (typeof value === "boolean") return false;
+        if (optionalFields.has(key)) return false;
         if (key.startsWith("scheduled") && key !== "scheduledDate")
           return false;
         return !value;

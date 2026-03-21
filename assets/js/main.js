@@ -8,12 +8,12 @@ class AssessmentPortal {
         }
         this.db = firebase.firestore();
 
-        this.currentGrade = '8';
+        this.currentGrade = sessionStorage.getItem('activeGrade') || '8';
         this.currentAssessment = null;
         this.loadingGrade = null; // Tracks the latest requested grade to prevent race conditions
 
         this.setupEventListeners();
-        this.loadAssessments('8'); // Load Grade 8 by default
+        this.switchGrade(this.currentGrade);
     }
 
     showToast(message, type = 'info', duration = 3000) {
@@ -85,27 +85,27 @@ class AssessmentPortal {
             });
         }
 
-        // PDF Modal controls
-        const closePdfBtn = document.getElementById('closePdfBtn');
-        if (closePdfBtn) {
-            closePdfBtn.addEventListener('click', () => this.closePdfViewer());
+        // Password visibility toggle
+        const togglePwdBtn = document.getElementById('togglePwdBtn');
+        if (togglePwdBtn) {
+            togglePwdBtn.addEventListener('click', () => {
+                const pwdField = document.getElementById('assessmentPassword');
+                if (pwdField) {
+                    pwdField.type = pwdField.type === 'password' ? 'text' : 'password';
+                    togglePwdBtn.textContent = pwdField.type === 'password' ? '👁️' : '👁️‍🗨️';
+                }
+            });
         }
 
-        const fullscreenBtn = document.getElementById('fullscreenBtn');
-        if (fullscreenBtn) {
-            fullscreenBtn.addEventListener('click', () => this.toggleFullscreen());
-        }
-
-        // Close modals on Escape key
+        // Close modal on Escape key
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                this.closeModal();
-                this.closePdfViewer();
-            }
+            if (e.key === 'Escape') this.closeModal();
         });
     }
 
     switchGrade(grade) {
+        sessionStorage.setItem('activeGrade', grade);
+
         // Update active tab
         document.querySelectorAll('.tab-button').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.grade === grade);
@@ -207,14 +207,18 @@ class AssessmentPortal {
         let statusText = '';
         let buttonText = '';
 
+        // When the paper first becomes available (45 min before scheduled time)
+        const availableFrom = new Date(date.getTime() - 45 * 60000);
+        const availableFromStr = availableFrom.toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit', hour12: false });
+
         if (isAvailable) {
-            statusClass = 'status-today'; // Using today's style for available
+            statusClass = 'status-today';
             statusText = 'Available Now';
             buttonText = 'Start Assessment';
         } else if (isToday) {
             statusClass = 'status-today';
             statusText = 'Today';
-            buttonText = 'Not Yet Available';
+            buttonText = `Opens at ${availableFromStr}`;
         } else if (isFuture) {
             statusClass = 'status-upcoming';
             statusText = 'Upcoming';
@@ -251,32 +255,34 @@ class AssessmentPortal {
         const button = card.querySelector('.start-btn');
         if (button && isAvailable) {
             button.addEventListener('click', () => {
-                this.openAssessment(id);
+                if (assessment.password) {
+                    this.openAssessment(id, assessment.subject, assessment.grade);
+                } else {
+                    this.launchAssessment(assessment);
+                }
             });
         }
 
         return card;
     }
 
-    openAssessment(assessmentId) {
+    openAssessment(assessmentId, subject, grade) {
         this.currentAssessment = assessmentId;
 
         const modalOverlay = document.getElementById('modalOverlay');
-
         if (modalOverlay) {
+            const nameEl = document.getElementById('modalAssessmentName');
+            if (nameEl) nameEl.textContent = subject ? `Grade ${grade} — ${subject}` : '';
+
             modalOverlay.style.display = 'flex';
             modalOverlay.classList.add('active');
 
             const passwordInput = document.getElementById('assessmentPassword');
-
             if (passwordInput) {
                 passwordInput.value = '';
+                passwordInput.classList.remove('input-error');
                 passwordInput.focus();
-            } else {
-                console.error('Password input not found in modal');
             }
-        } else {
-            console.error('Modal overlay not found');
         }
     }
 
@@ -291,7 +297,8 @@ class AssessmentPortal {
     async verifyPassword() {
         if (!this.currentAssessment) return;
 
-        const password = document.getElementById('assessmentPassword').value;
+        const passwordInput = document.getElementById('assessmentPassword');
+        const password = passwordInput.value;
         if (!password) {
             this.showToast('Please enter a password', 'error');
             return;
@@ -314,32 +321,16 @@ class AssessmentPortal {
             const assessment = doc.data();
             if (password === assessment.password) {
                 this.closeModal();
-
-                // Check content type for special handling
-                const isGoogleForm = assessment.type === 'googleform' ||
-                    assessment.url.includes('forms.gle') ||
-                    assessment.url.includes('docs.google.com/forms');
-
-                const isDriveDoc = assessment.type === 'drive' ||
-                    (assessment.url.includes('docs.google.com') &&
-                        !assessment.url.includes('forms'));
-
-                if (isGoogleForm || isDriveDoc) {
-                    window.location.href = assessment.url;
-                } else {
-                    const examData = {
-                        url: assessment.url,
-                        title: `${assessment.subject} - ${assessment.type}`,
-                        grade: assessment.grade,
-                        subject: assessment.subject,
-                        type: assessment.type,
-                        scheduledDate: assessment.scheduledDisplayDate || this.formatDate(assessment.scheduledDate)
-                    };
-                    sessionStorage.setItem('examData', JSON.stringify(examData));
-                    window.location.href = 'viewer.html';
-                }
+                this.launchAssessment(assessment);
             } else {
                 this.showToast('Incorrect password. Please try again.', 'error');
+                passwordInput.value = '';
+                passwordInput.classList.remove('input-error');
+                // Force reflow so animation re-triggers if wrong password entered twice
+                void passwordInput.offsetWidth;
+                passwordInput.classList.add('input-error');
+                passwordInput.focus();
+                setTimeout(() => passwordInput.classList.remove('input-error'), 600);
             }
         } catch (error) {
             console.error('Error verifying password:', error);
@@ -349,6 +340,34 @@ class AssessmentPortal {
                 submitBtn.disabled = false;
                 submitBtn.textContent = originalText;
             }
+        }
+    }
+
+    launchAssessment(assessment) {
+        const isGoogleForm = assessment.type === 'googleform' ||
+            assessment.url.includes('forms.gle') ||
+            assessment.url.includes('docs.google.com/forms');
+
+        const isDriveDoc = assessment.type === 'drive' ||
+            (assessment.url.includes('docs.google.com') &&
+                !assessment.url.includes('forms'));
+
+        if (isGoogleForm || isDriveDoc) {
+            window.location.href = assessment.url;
+        } else {
+            const examData = {
+                url: assessment.url,
+                title: `${assessment.subject} - ${assessment.type}`,
+                grade: assessment.grade,
+                subject: assessment.subject,
+                type: assessment.type,
+                scheduledDate: assessment.scheduledDisplayDate || this.formatDate(assessment.scheduledDate),
+                scheduledISO: assessment.scheduledDate,
+                readingTime: assessment.readingTime || 0,
+                writingTime: assessment.writingTime || 0
+            };
+            sessionStorage.setItem('examData', JSON.stringify(examData));
+            window.location.href = 'viewer.html';
         }
     }
 }

@@ -13,6 +13,8 @@
             padding: 0;
             height: 100%;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
         .header {
@@ -26,7 +28,10 @@
         }
 
         .header-right {
-            margin-left: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
             padding-right: 10px;
         }
 
@@ -62,9 +67,14 @@
             }
         }
 
+        .header {
+            flex-shrink: 0;
+        }
+
         .content {
-            height: calc(100% - 60px);
+            flex: 1;
             position: relative;
+            overflow: hidden;
         }
 
         .back-btn,
@@ -118,6 +128,60 @@
             font-weight: normal;
         }
 
+        /* Exam Timer */
+        .exam-timer {
+            text-align: right;
+            color: white;
+            line-height: 1.2;
+        }
+
+        .exam-timer .timer-label {
+            display: block;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            opacity: 0.75;
+        }
+
+        .exam-timer .timer-time {
+            display: block;
+            font-size: 1.25rem;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0.03em;
+        }
+
+        .exam-timer.timer-clock .timer-time {
+            font-size: 1rem;
+        }
+
+        .exam-timer.timer-reading .timer-label,
+        .exam-timer.timer-reading .timer-time {
+            color: #FCD34D;
+        }
+
+        .exam-timer.timer-warning .timer-time {
+            color: #FCD34D;
+        }
+
+        .exam-timer.timer-danger .timer-time {
+            color: #F87171;
+            animation: timerPulse 1s ease-in-out infinite;
+        }
+
+        .exam-timer.timer-done .timer-label {
+            font-size: 0.9rem;
+            color: #F87171;
+            text-transform: none;
+            letter-spacing: 0;
+            opacity: 1;
+        }
+
+        @keyframes timerPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
     </style>
 </head>
 
@@ -134,6 +198,7 @@
             </h2>
         </div>
         <div class="header-right">
+            <div id="examTimer" class="exam-timer"></div>
             <button class="fullscreen-btn" id="fullscreenBtn">Full</button>
         </div>
     </div>
