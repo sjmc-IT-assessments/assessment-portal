@@ -130,22 +130,27 @@
 
         /* Exam Timer */
         .exam-timer {
-            text-align: right;
-            color: white;
-            line-height: 1.2;
+            background: white;
+            color: var(--primary-color, #0a2b72);
+            border-radius: 6px;
+            padding: 3px 10px;
+            text-align: center;
+            line-height: 1.25;
+            min-width: 90px;
         }
 
         .exam-timer .timer-label {
             display: block;
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             text-transform: uppercase;
             letter-spacing: 0.08em;
-            opacity: 0.75;
+            font-weight: 600;
+            opacity: 0.7;
         }
 
         .exam-timer .timer-time {
             display: block;
-            font-size: 1.25rem;
+            font-size: 1.1rem;
             font-weight: 700;
             font-variant-numeric: tabular-nums;
             letter-spacing: 0.03em;
@@ -153,28 +158,36 @@
 
         .exam-timer.timer-clock .timer-time {
             font-size: 1rem;
+            padding: 2px 0;
         }
 
-        .exam-timer.timer-reading .timer-label,
-        .exam-timer.timer-reading .timer-time {
-            color: #FCD34D;
+        .exam-timer.timer-reading {
+            background: white;
+            color: #D97706;
         }
 
-        .exam-timer.timer-warning .timer-time {
-            color: #FCD34D;
+        .exam-timer.timer-warning {
+            background: white;
+            color: #D97706;
         }
 
-        .exam-timer.timer-danger .timer-time {
-            color: #F87171;
+        .exam-timer.timer-danger {
+            background: white;
+            color: #DC2626;
             animation: timerPulse 1s ease-in-out infinite;
         }
 
+        .exam-timer.timer-done {
+            background: white;
+            color: #DC2626;
+        }
+
         .exam-timer.timer-done .timer-label {
-            font-size: 0.9rem;
-            color: #F87171;
+            font-size: 0.85rem;
             text-transform: none;
             letter-spacing: 0;
             opacity: 1;
+            font-weight: 700;
         }
 
         @keyframes timerPulse {
