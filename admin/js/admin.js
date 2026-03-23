@@ -750,44 +750,71 @@ class AdminPortal {
       return;
     }
 
+    document.querySelector(".user-management-dialog")?.remove();
+
     const dialog = document.createElement("div");
     dialog.className = "user-management-dialog";
     dialog.innerHTML = `
-            <div class="user-management-content">
-                <h3>Manage Teachers</h3>
-                <div class="add-user-form">
-                    <input type="email" id="newUserEmail" placeholder="Teacher's email">
-                    <button onclick="adminPortal.addTeacher()">Add Teacher</button>
-                </div>
-                <div class="users-list" id="usersList">
-                    Loading users...
-                </div>
-                <button class="close-btn" onclick="this.closest('.user-management-dialog').remove()">
-                    Close
-                </button>
-            </div>
-        `;
+      <div class="user-management-content">
+        <div class="um-header">
+          <h3>Manage Teachers</h3>
+          <button class="um-close-btn" onclick="this.closest('.user-management-dialog').remove()">✕</button>
+        </div>
+        <div class="add-teacher-form">
+          <div class="add-teacher-input-wrap">
+            <input type="email" id="newUserEmail" placeholder="teacher@maristsj.co.za" autocomplete="off">
+            <span class="email-error-msg" id="emailError"></span>
+          </div>
+          <button class="add-teacher-btn" onclick="adminPortal.addTeacher()">Add Teacher</button>
+        </div>
+        <div id="usersList" class="users-list">Loading...</div>
+      </div>
+    `;
 
     document.body.appendChild(dialog);
+
+    const emailInput = dialog.querySelector("#newUserEmail");
+    emailInput.addEventListener("keydown", (e) => { if (e.key === "Enter") this.addTeacher(); });
+    emailInput.addEventListener("input", (e) => {
+      const errorEl = document.getElementById("emailError");
+      if (e.target.value && !e.target.value.endsWith("@maristsj.co.za")) {
+        errorEl.textContent = "Must be a @maristsj.co.za address";
+      } else {
+        errorEl.textContent = "";
+      }
+    });
+
     this.loadTeachers();
   }
 
   async addTeacher() {
-    const email = document.getElementById("newUserEmail").value;
+    const input = document.getElementById("newUserEmail");
+    const errorEl = document.getElementById("emailError");
+    const email = input.value.trim().toLowerCase();
+
+    if (!email) return;
+
     if (!email.endsWith("@maristsj.co.za")) {
-      this.showToast(
-        "Only @maristsj.co.za email addresses are allowed",
-        "error"
-      );
+      errorEl.textContent = "Must be a @maristsj.co.za address";
       return;
     }
 
     try {
+      const existing = await this.db.collection("users").doc(email).get();
+      if (existing.exists) {
+        errorEl.textContent = "This teacher is already authorized";
+        return;
+      }
+
       await this.db.collection("users").doc(email).set({
-        email: email,
+        email,
         addedBy: this.auth.currentUser.email,
         addedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        subjects: [],
+        grades: [],
       });
+      input.value = "";
+      errorEl.textContent = "";
       this.showToast("Teacher added successfully", "success");
       this.loadTeachers();
     } catch (error) {
@@ -816,53 +843,179 @@ class AdminPortal {
     const usersList = document.getElementById("usersList");
     if (!usersList) return;
 
+    usersList.innerHTML = '<div class="teachers-loading">Loading teachers...</div>';
+
     try {
       const snapshot = await this.db.collection("users").get();
-      usersList.innerHTML = "<h4>Authorized Teachers</h4>";
+
+      if (snapshot.empty) {
+        usersList.innerHTML = '<div class="teachers-empty">No teachers added yet. Add one above.</div>';
+        return;
+      }
+
+      usersList.innerHTML = "";
 
       snapshot.forEach((doc) => {
-        const exam = doc.data();
-        const item = document.createElement("div");
-        item.className = "exam-item" + (exam.archived ? " archived-item" : "");
+        const teacher = doc.data();
+        const safeId = teacher.email.replace(/[@.]/g, "_");
+        const addedDate = teacher.addedAt ? formatDate(teacher.addedAt.toDate()) : "Unknown";
+        const nameDisplay = teacher.email.split("@")[0]
+          .replace(/\./g, " ")
+          .replace(/\b\w/g, (c) => c.toUpperCase());
 
-        // Use the stored display date-time if available, otherwise fall back to formatted date
-        const scheduledDateTime =
-          exam.scheduledDisplayDateTime || formatDate(exam.scheduledDate, true);
-        item.innerHTML = `
-                    <div>
-                        <strong>Grade ${exam.grade} - ${exam.subject}</strong>
-                        ${exam.archived ? '<span class="archived-badge">Archived</span>' : ''}<br>
-                        Password: ${exam.password}<br>
-                        Scheduled: ${scheduledDateTime}<br>
-                        ${(exam.readingTime || exam.writingTime) ? `Timer: ${exam.readingTime || 0}min reading + ${exam.writingTime || 0}min writing<br>` : ''}
-                        Added: ${formatDate(exam.createdAt?.toDate())}<br>
-                        ${exam.archived ? `Archived: ${formatDate(exam.archivedAt?.toDate())}` : ''}
-                    </div>
-                    <div class="exam-actions">
-                        <button onclick="adminPortal.copyPassword('${exam.password}')" class="copy-button">
-                            Copy Password
-                        </button>
-                        <button onclick="adminPortal.editExam('${doc.id}')" class="edit-button">
-                            Edit Time
-                        </button>
-                        ${exam.archived ?
-            `<button onclick="adminPortal.restoreExam('${doc.id}')" class="restore-button">
-                                Restore
-                            </button>` :
-            `<button onclick="adminPortal.archiveSingleExam('${doc.id}')" class="archive-button">
-                                Archive
-                            </button>`
-          }
-                        <button onclick="adminPortal.deleteExam('${doc.id}')" class="delete-button">
-                            Delete
-                        </button>
-                    </div>
-                `;
-        examsList.appendChild(item);
+        const subjectTags = (teacher.subjects || [])
+          .map((s) => `<span class="teacher-tag tag-subject">${s}</span>`)
+          .join("");
+        const gradeTags = (teacher.grades || [])
+          .map((g) => `<span class="teacher-tag tag-grade">Gr ${g}</span>`)
+          .join("");
+        const tagsHtml = subjectTags || gradeTags
+          ? `<div class="teacher-tags">${subjectTags}${gradeTags}</div>`
+          : `<div class="teacher-tags teacher-tags-empty">No subjects or grades assigned</div>`;
+
+        const card = document.createElement("div");
+        card.className = "teacher-card";
+        card.innerHTML = `
+          <div class="teacher-card-main">
+            <div class="teacher-info">
+              <div class="teacher-name">${nameDisplay}</div>
+              <div class="teacher-email">${teacher.email}</div>
+              <div class="teacher-meta">Added by ${teacher.addedBy || "admin"} · ${addedDate}</div>
+              ${tagsHtml}
+            </div>
+            <div class="teacher-actions">
+              <button class="tch-btn tch-btn-history" onclick="adminPortal.toggleTeacherHistory('${teacher.email}')">View History</button>
+              <button class="tch-btn tch-btn-edit" onclick="adminPortal.editTeacherTags('${teacher.email}')">Edit Tags</button>
+              <button class="tch-btn tch-btn-remove" onclick="adminPortal.removeTeacher('${teacher.email}')">Remove</button>
+            </div>
+          </div>
+          <div class="teacher-history-panel" id="hist_${safeId}" style="display:none"></div>
+          <div class="teacher-tags-editor" id="tags_${safeId}" style="display:none"></div>
+        `;
+        usersList.appendChild(card);
       });
     } catch (error) {
       console.error("Error loading teachers:", error);
-      usersList.innerHTML = "Error loading teachers";
+      usersList.innerHTML = '<div class="teachers-error">Error loading teachers. Please try again.</div>';
+    }
+  }
+
+  async toggleTeacherHistory(email) {
+    const safeId = email.replace(/[@.]/g, "_");
+    const panel = document.getElementById(`hist_${safeId}`);
+    if (!panel) return;
+
+    if (panel.style.display !== "none") {
+      panel.style.display = "none";
+      return;
+    }
+
+    panel.style.display = "block";
+    panel.innerHTML = '<div class="history-loading">Loading history...</div>';
+
+    try {
+      const snapshot = await this.db.collection("exams")
+        .where("createdBy", "==", email)
+        .get();
+
+      if (snapshot.empty) {
+        panel.innerHTML = '<div class="history-empty">No assessments created by this teacher yet.</div>';
+        return;
+      }
+
+      const exams = [];
+      snapshot.forEach((doc) => exams.push(doc.data()));
+      exams.sort((a, b) => {
+        const aTime = a.scheduledDate?.toDate?.() || new Date(a.scheduledDate || 0);
+        const bTime = b.scheduledDate?.toDate?.() || new Date(b.scheduledDate || 0);
+        return bTime - aTime;
+      });
+
+      const activeCount = exams.filter((e) => !e.archived).length;
+      const archivedCount = exams.filter((e) => e.archived).length;
+
+      let html = `
+        <div class="history-summary">${exams.length} assessment${exams.length !== 1 ? "s" : ""} · ${activeCount} active · ${archivedCount} archived</div>
+        <div class="history-list">
+      `;
+
+      exams.forEach((exam) => {
+        const date = exam.scheduledDisplayDateTime ||
+          formatDate(exam.scheduledDate?.toDate ? exam.scheduledDate.toDate() : new Date(exam.scheduledDate || 0), true);
+        const statusClass = exam.archived ? "hist-badge-archived" : "hist-badge-active";
+        const statusLabel = exam.archived ? "Archived" : "Active";
+        html += `
+          <div class="history-item">
+            <div class="history-item-main">
+              <strong>Grade ${exam.grade} – ${exam.subject}</strong>
+              <span class="hist-badge ${statusClass}">${statusLabel}</span>
+            </div>
+            <div class="history-item-date">${date}</div>
+          </div>
+        `;
+      });
+
+      html += "</div>";
+      panel.innerHTML = html;
+    } catch (error) {
+      console.error("Error loading teacher history:", error);
+      panel.innerHTML = '<div class="teachers-error">Error loading history.</div>';
+    }
+  }
+
+  async editTeacherTags(email) {
+    const safeId = email.replace(/[@.]/g, "_");
+    const editor = document.getElementById(`tags_${safeId}`);
+    if (!editor) return;
+
+    if (editor.style.display !== "none") {
+      editor.style.display = "none";
+      return;
+    }
+
+    const doc = await this.db.collection("users").doc(email).get();
+    const data = doc.data() || {};
+    const currentSubjects = (data.subjects || []).join(", ");
+    const currentGrades = data.grades || [];
+
+    const gradeOptions = [8, 9, 10, 11, 12]
+      .map((g) => `<label class="grade-check-label"><input type="checkbox" value="${g}" ${currentGrades.includes(g) ? "checked" : ""}> Grade ${g}</label>`)
+      .join("");
+
+    editor.style.display = "block";
+    editor.innerHTML = `
+      <div class="tags-editor-inner">
+        <div class="tags-editor-field">
+          <label>Subjects <span class="tags-editor-hint">(comma-separated)</span></label>
+          <input type="text" id="subj_${safeId}" value="${currentSubjects}" placeholder="e.g. Mathematics, Physics">
+        </div>
+        <div class="tags-editor-field">
+          <label>Grades</label>
+          <div class="grade-check-group" id="grades_${safeId}">${gradeOptions}</div>
+        </div>
+        <div class="tags-editor-actions">
+          <button class="tch-btn tch-btn-save" onclick="adminPortal.saveTeacherTags('${email}')">Save</button>
+          <button class="tch-btn tch-btn-cancel" onclick="document.getElementById('tags_${safeId}').style.display='none'">Cancel</button>
+        </div>
+      </div>
+    `;
+  }
+
+  async saveTeacherTags(email) {
+    const safeId = email.replace(/[@.]/g, "_");
+    const subjectsEl = document.getElementById(`subj_${safeId}`);
+    const gradesEl = document.getElementById(`grades_${safeId}`);
+
+    const subjects = subjectsEl.value.split(",").map((s) => s.trim()).filter(Boolean);
+    const grades = [...gradesEl.querySelectorAll("input[type=checkbox]:checked")].map((cb) => parseInt(cb.value));
+
+    try {
+      await this.db.collection("users").doc(email).update({ subjects, grades });
+      this.showToast("Tags updated", "success");
+      this.loadTeachers();
+    } catch (error) {
+      console.error("Error saving tags:", error);
+      this.showToast("Error saving tags: " + error.message, "error");
     }
   }
 
