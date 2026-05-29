@@ -1,3 +1,75 @@
+/* Broadcast Controls */
+.broadcast-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.broadcast-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    font-family: inherit;
+    resize: vertical;
+    box-sizing: border-box;
+}
+
+.broadcast-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.broadcast-grade-select {
+    padding: 8px 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-family: inherit;
+    background: white;
+    cursor: pointer;
+}
+
+.broadcast-send-btn {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+}
+
+.broadcast-send-btn:hover {
+    background: var(--secondary-color);
+}
+
+.broadcast-clear-btn {
+    background: #e5e7eb;
+    color: #374151;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+}
+
+.broadcast-clear-btn:hover {
+    background: #d1d5db;
+}
+
+.broadcast-status {
+    font-size: 0.85rem;
+    color: #059669;
+    font-style: italic;
+    min-height: 1.2em;
+}
+
 :root {
     --primary-color: #0a2b72;
     --secondary-color: #1e40af;
@@ -652,56 +724,319 @@ body {
     color: #374151;
 }
 
+/* ── Manage Teachers Dialog ─────────────────────────────── */
 .user-management-dialog {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    inset: 0;
     background: rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
+    padding: 2rem 1rem;
     z-index: 1000;
+    overflow-y: auto;
 }
 
 .user-management-content {
     background: white;
     padding: 2rem;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-    max-width: 500px;
-    width: 90%;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgb(0 0 0 / 0.15);
+    max-width: 680px;
+    width: 100%;
 }
 
-.add-user-form {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 1rem;
-}
-
-.add-user-form input {
-    flex: 1;
-    padding: 0.5rem;
-    border: 1px solid #e5e7eb;
-    border-radius: 4px;
-}
-
-.user-item {
+.um-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.5rem;
-    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 1.5rem;
 }
 
-.remove-btn {
-    background: #ef4444;
-    color: white;
+.um-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #111827;
+}
+
+.um-close-btn {
+    background: none;
     border: none;
+    font-size: 1.2rem;
+    color: #6b7280;
+    cursor: pointer;
     padding: 0.25rem 0.5rem;
     border-radius: 4px;
+    line-height: 1;
+}
+
+.um-close-btn:hover { background: #f3f4f6; color: #111827; }
+
+/* Add teacher form */
+.add-teacher-form {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+}
+
+.add-teacher-input-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.add-teacher-input-wrap input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    box-sizing: border-box;
+}
+
+.add-teacher-input-wrap input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgb(59 130 246 / 0.15);
+}
+
+.email-error-msg {
+    font-size: 0.78rem;
+    color: #ef4444;
+    min-height: 1em;
+}
+
+.add-teacher-btn {
+    padding: 0.5rem 1.1rem;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 6px;
     cursor: pointer;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+.add-teacher-btn:hover { opacity: 0.9; }
+
+/* Teacher list states */
+.teachers-loading, .teachers-empty, .teachers-error {
+    padding: 2rem;
+    text-align: center;
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+.teachers-error { color: #ef4444; }
+
+/* Teacher card */
+.teacher-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+    overflow: hidden;
+}
+
+.teacher-card-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 1rem;
+    gap: 1rem;
+}
+
+.teacher-info { flex: 1; }
+
+.teacher-name {
+    font-weight: 600;
+    font-size: 1rem;
+    color: #111827;
+}
+
+.teacher-email {
+    font-size: 0.82rem;
+    color: #6b7280;
+    margin: 0.1rem 0 0.3rem;
+}
+
+.teacher-meta {
+    font-size: 0.78rem;
+    color: #9ca3af;
+    margin-bottom: 0.5rem;
+}
+
+.teacher-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.teacher-tags-empty {
+    font-size: 0.78rem;
+    color: #9ca3af;
+    font-style: italic;
+}
+
+.teacher-tag {
+    font-size: 0.72rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-weight: 500;
+}
+
+.tag-subject {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+}
+
+.tag-grade {
+    background: #f0fdf4;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+/* Teacher action buttons */
+.teacher-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    flex-shrink: 0;
+}
+
+.tch-btn {
+    padding: 0.35rem 0.8rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.tch-btn-history  { background: #eff6ff; color: #1d4ed8; }
+.tch-btn-history:hover  { background: #dbeafe; }
+.tch-btn-edit     { background: #f3f4f6; color: #374151; }
+.tch-btn-edit:hover     { background: #e5e7eb; }
+.tch-btn-remove   { background: #fef2f2; color: #b91c1c; }
+.tch-btn-remove:hover   { background: #fee2e2; }
+.tch-btn-save     { background: #166534; color: white; }
+.tch-btn-save:hover     { opacity: 0.9; }
+.tch-btn-cancel   { background: #f3f4f6; color: #374151; }
+.tch-btn-cancel:hover   { background: #e5e7eb; }
+
+/* History panel */
+.teacher-history-panel {
+    border-top: 1px solid #f3f4f6;
+    background: #f9fafb;
+    padding: 0.75rem 1rem;
+}
+
+.history-loading, .history-empty {
+    font-size: 0.85rem;
+    color: #6b7280;
+    padding: 0.5rem 0;
+}
+
+.history-summary {
+    font-size: 0.78rem;
+    color: #6b7280;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.history-list { display: flex; flex-direction: column; gap: 0.4rem; }
+
+.history-item {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+}
+
+.history-item-main {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.history-item-date {
+    font-size: 0.78rem;
+    color: #6b7280;
+    margin-top: 0.15rem;
+}
+
+.hist-badge {
+    font-size: 0.68rem;
+    padding: 0.15rem 0.45rem;
+    border-radius: 999px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.hist-badge-active   { background: #dcfce7; color: #166534; }
+.hist-badge-archived { background: #f3f4f6; color: #6b7280; }
+
+/* Tags editor */
+.teacher-tags-editor {
+    border-top: 1px solid #f3f4f6;
+    background: #fafafa;
+    padding: 0.75rem 1rem;
+}
+
+.tags-editor-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.tags-editor-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.tags-editor-field label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+.tags-editor-hint {
+    font-weight: 400;
+    color: #9ca3af;
+}
+
+.tags-editor-field input[type="text"] {
+    padding: 0.45rem 0.7rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.875rem;
+}
+
+.grade-check-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.grade-check-label {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.85rem;
+    color: #374151;
+    cursor: pointer;
+}
+
+.tags-editor-actions {
+    display: flex;
+    gap: 0.5rem;
 }
 
 .password-report {

@@ -28,150 +28,148 @@ function formatDate(date, includeTime = false) {
 
 class PasswordGenerator {
   constructor() {
+    // First words — vivid, fun, easy to say aloud
     this.firstWords = [
-      // Adventure Time & Quirky
-      "Algebraic", "Mathematical", "Radical", "Bubblegum",
-      "Lumpy", "Prismo", "Banana", "Grass", "Tree",
-      "Princess", "Vampire", "Candy", "Ice", "Flame",
-      "Hero", "Sword", "Dungeon", "Wizard", "Magic", "Science",
+      // Exotic foods & drinks
+      "Mango", "Cinnamon", "Wasabi", "Sriracha", "Tiramisu", "Baklava",
+      "Churros", "Gelato", "Croissant", "Macaron", "Kimchi", "Guacamole",
+      "Pesto", "Tahini", "Habanero", "Tamarind", "Cardamom", "Saffron",
+      "Mochi", "Boba", "Espresso", "Matcha", "Pretzel", "Waffle",
+      "Cannoli", "Paprika", "Samosa", "Falafel", "Tempura", "Stroopwafel",
 
-      // Foods & Treats (moved to first words for quirkiness)
-      "Pineapple", "Mango", "Coconut", "Vanilla", "Chocolate", "Cinnamon",
-      "Habanero", "Milkshake", "Cookie", "Pepper", "Wasabi", "Cupcake",
-      "Donut", "Pretzel", "Smoothie", "Biscuit", "Pizza", "Taco",
-      "Waffle", "Pickle", "Burger", "Noodle", "Meatball", "Sundae",
-      "Pancake", "Spaghetti", "Burrito", "Popcorn", "Sugar", "Sweet",
-      "Bacon", "Sandwich", "Lasagna", "Macaron", "Eclair", "Churros",
-      "Gelato", "Ramen", "Sushi", "Tiramisu", "Baklava", "Croissant",
+      // Exotic fruits & plants
+      "Dragonfruit", "Passionfruit", "Lychee", "Kumquat", "Pomelo",
+      "Jackfruit", "Rambutan", "Mangosteen", "Starfruit", "Durian",
+      "Persimmon", "Guava", "Pitaya", "Cherimoya", "Soursop",
 
-      // Bizarre Nature & Animals
-      "Sparkle", "Dragon", "Crystal", "Rainbow", "Thunder", "Lightning",
-      "Mystic", "Whisper", "Ninja", "Pirate", "Firefly", "Unicorn", "Phoenix",
-      "Narwhal", "Platypus", "Octopus", "Jellyfish", "Chameleon", "Toucan",
+      // Interesting animals
+      "Narwhal", "Platypus", "Axolotl", "Quokka", "Capybara", "Pangolin",
+      "Echidna", "Wombat", "Tardigrade", "Puffin", "Toucan", "Chameleon",
+      "Jellyfish", "Octopus", "Firefly", "Tapir", "Fossa", "Binturong",
+      "Okapi", "Numbat", "Wolverine", "Meerkat", "Blobfish", "Axolotl",
 
-      // Weird Science & Space
-      "Quantum", "Atomic", "Nuclear", "Digital", "Cyber", "Virtual",
-      "Binary", "Neural", "Vector", "Matrix", "Hologram", "Laser",
-      "Plasma", "Photon", "Electron", "Neutron", "Telescope", "Rocket",
-      "Asteroid", "Comet", "Meteor", "Galaxy", "Nebula", "Supernova",
+      // Science & space
+      "Quantum", "Plasma", "Photon", "Neutron", "Pulsar", "Quasar",
+      "Vortex", "Prism", "Catalyst", "Neutrino", "Fractal", "Entropy",
+      "Synapse", "Isotope", "Molecule", "Electron", "Hologram", "Cipher",
 
-      // Mythology & Fantasy
-      "Pegasus", "Hydra", "Kraken", "Cyclops", "Titan", "Oracle", "Chimera", "Basilisk", "Griffon", "Minotaur", "Sphinx",
+      // Mythology & fantasy creatures
+      "Pegasus", "Chimera", "Basilisk", "Minotaur", "Sphinx", "Cyclops",
+      "Banshee", "Valkyrie", "Selkie", "Kelpie", "Kitsune", "Tengu",
+      "Thunderbird", "Wendigo", "Leviathan", "Tanuki", "Peryton",
 
-      // Random Awesome
-      "Epic", "Mega", "Super", "Ultra", "Turbo", "Hyper", "Neon",
-      "Electric", "Magnetic", "Cosmic", "Stellar", "Galactic", "Infinity",
-      "Legendary", "Mythical", "Ancient", "Secret", "Hidden", "Lost",
-      "Golden", "Silver", "Diamond", "Crystal", "Emerald", "Ruby",
+      // Vivid descriptors
+      "Crimson", "Cobalt", "Teal", "Scarlet", "Indigo", "Magenta",
+      "Amber", "Ivory", "Vermillion", "Chartreuse", "Celadon", "Umber",
+      "Turbo", "Hyper", "Neon", "Cosmic", "Galactic", "Radiant",
+      "Velvet", "Primal", "Rogue", "Glacial", "Volcanic", "Ancient",
+      "Cursed", "Hollow", "Blazing", "Frozen", "Shimmering", "Spectral",
 
-      "Sandwich", "Bacon", "Pancake", "Spaghetti", "Everything", "Burrito", "BubbleGum", "Candy", "IceCream",
-      "Cookie", "Pizza", "Taco", "Pickle", "Burger", "Noodle", "Meatball", "Sundae", "Lasagna", "Popcorn", "Pretzel",
-      "Sugar", "Sweet",
-
-      // Exotic Fruits
-      "Dragonfruit", "Passionfruit", "Lychee", "Guava", "Papaya", "Kumquat", "Pomelo", "Durian", "Jackfruit",
-      "Rambutan", "Mangosteen", "Persimmon", "Tamarind", "Starfruit", "Plantain",
-
-      // Herbs & Spices
-      "Lavender", "Rosemary", "Saffron", "Cardamom", "Turmeric", "Oregano", "Thyme", "Basil",
-      "Sage", "Tarragon", "Ginger", "Clove", "Anise", "Fennel", "Juniper",
+      // Herbs & spices
+      "Lavender", "Rosemary", "Turmeric", "Oregano", "Thyme", "Juniper",
+      "Fennel", "Clove", "Anise", "Tarragon", "Sumac", "Caraway",
     ];
 
+    // Second words — strong nouns, phenomena, places, creatures
     this.secondWords = [
+      // Weather & natural forces
+      "Blizzard", "Tsunami", "Avalanche", "Hurricane", "Cyclone",
+      "Monsoon", "Tempest", "Solstice", "Equinox", "Tremor",
+      "Geyser", "Vortex", "Eruption", "Deluge", "Squall",
 
-      // Adventure & Movement
-      "Adventure", "Quest", "Journey", "Voyage", "Explorer", "Wanderer",
-      "Hurricane", "Tornado", "Cyclone", "Tsunami", "Avalanche", "Blizzard",
-      "Thunder", "Lightning", "Storm", "Tempest", "Whirlwind", "Eclipse",
-      "Flight", "Rocket", "Comet", "Meteor", "Galaxy", "Universe",
+      // Celestial & space
+      "Supernova", "Asteroid", "Pulsar", "Comet", "Nebula",
+      "Horizon", "Zenith", "Cosmos", "Solstice", "Aphelion",
+      "Perihelion", "Eclipse", "Aurora", "Quasar", "Singularity",
 
-      // Places & Landscapes  
-      "Highway", "Boulevard",
+      // Abstract & epic
+      "Odyssey", "Paradox", "Labyrinth", "Mirage", "Reverie",
+      "Havoc", "Rapture", "Cascade", "Nexus", "Apex",
+      "Legacy", "Epoch", "Cipher", "Riddle", "Specter",
+      "Solace", "Fury", "Abyss", "Pinnacle", "Threshold",
+      "Verdict", "Omen", "Chronicle", "Requiem", "Fracture",
 
-      // Time & Abstract Concepts
-      "Infinity", "Eternity", "Destiny", "Glory",
-      "Mystery", "Secret", "Magic", "Wonder", "Miracle", "Dream",
-      "Dawn", "Twilight", "Midnight", "Century",
+      // Materials & gems
+      "Obsidian", "Titanium", "Sapphire", "Topaz", "Tungsten",
+      "Bismuth", "Beryllium", "Malachite", "Opal", "Onyx",
+      "Amethyst", "Zircon", "Pyrite", "Cinnabar",
 
-      // Materials & Elements
-      "Diamond", "Crystal", "Platinum", "Titanium", "Bronze", "Steel",
-      "Gold", "Silver", "Emerald", "Ruby", "Sapphire", "Quartz",
-      "Marble", "Glass", "Neon", "Carbon", "Silicon", "Helium",
+      // Fantasy creatures & beings
+      "Griffin", "Behemoth", "Colossus", "Titan", "Wraith",
+      "Specter", "Golem", "Wyrm", "Wyvern", "Basilisk",
+      "Hydra", "Kraken", "Leviathan", "Ifrit", "Djinn",
 
-      // Fantasy & Creatures
-      "Dragon", "Phoenix", "Unicorn", "Pegasus", "Griffon", "Basilisk",
-      "Leviathan", "Behemoth", "Chimera", "Hydra", "Kraken", "Titan",
-      "Spirit", "Ghost", "Phantom", "Shadow", "Whisper", "Echo",
+      // Places & structures
+      "Fortress", "Citadel", "Sanctum", "Plateau", "Tundra",
+      "Ravine", "Catacombs", "Spire", "Caldera", "Lagoon",
+      "Archipelago", "Peninsula", "Atoll", "Fjord", "Steppe",
 
-      // Weather & Nature
-      "Breeze", "Gale", "Monsoon", "Drizzle", "Frost", "Snow",
-      "Rain", "Hail", "Fire", "Flame", "Ember", "Spark",
-      "Blaze", "Inferno", "Wave", "Tide", "Current", "Wind",
+      // Action & motion
+      "Surge", "Torrent", "Flare", "Pulse", "Frenzy",
+      "Onslaught", "Ascent", "Plunge", "Ricochet", "Cascade",
 
-      // Food-Related Endings (for extra quirkiness)
-      "Sauce", "Soup", "Stew", "Pie", "Cake", "Muffin"
+      // Quirky food endings
+      "Dumpling", "Sundae", "Noodle", "Biscuit", "Waffle",
+      "Fritter", "Cobbler", "Scone", "Brioche", "Empanada",
     ];
   }
 
   getRandomWord(wordList) {
-    return wordList[Math.floor(Math.random() * wordList.length)];
+    // Use crypto.getRandomValues for better randomness
+    const array = new Uint32Array(1);
+    crypto.getRandomValues(array);
+    return wordList[array[0] % wordList.length];
   }
 
   generatePassword() {
-    const styles = [
-      () =>
-        `${this.getRandomWord(this.firstWords)}${this.getRandomWord(
-          this.secondWords
-        )}`,
-      () =>
-        `${this.getRandomWord(this.secondWords)}${this.getRandomWord(
-          this.secondWords
-        )}`,
-      () =>
-        `${this.getRandomWord(this.firstWords)}${this.getRandomWord(
-          this.firstWords
-        )}`,
-      () =>
-        `${this.getRandomWord(this.secondWords)}${this.getRandomWord(
-          this.firstWords
-        )}`,
-      () =>
-        `${this.getRandomWord(this.firstWords)}${this.getRandomWord(
-          this.secondWords
-        )}`,
-    ];
+    const w1 = this.getRandomWord(this.firstWords);
+    // Pick second word, re-rolling once if it happens to match the first
+    let w2 = this.getRandomWord(this.secondWords);
+    if (w2 === w1) w2 = this.getRandomWord(this.secondWords);
 
-    const styleIndex = Math.floor(Math.random() * styles.length);
-    return styles[styleIndex]();
+    // Append a 2-digit number for added uniqueness (10–99)
+    const array = new Uint32Array(1);
+    crypto.getRandomValues(array);
+    const num = (array[0] % 90) + 10;
+
+    // Randomly swap word order for more variety (~40% of the time)
+    crypto.getRandomValues(array);
+    return (array[0] % 10) < 4
+      ? `${w2}${w1}${num}`
+      : `${w1}${w2}${num}`;
   }
 
   generateOptions(count = 5) {
-    return Array(count)
-      .fill(null)
-      .map(() => this.generatePassword());
+    const options = new Set();
+    let attempts = 0;
+    while (options.size < count && attempts < count * 10) {
+      options.add(this.generatePassword());
+      attempts++;
+    }
+    return [...options];
   }
 }
 
 class AdminPortal {
   constructor() {
-    console.log("Starting AdminPortal initialization");
     this.passwordGenerator = new PasswordGenerator();
     this.isSubmitting = false;
     this.calendarService = new CalendarService(calendarConfig);
-    this.fixExistingExams();
     try {
       if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
       }
       this.auth = firebase.auth();
       this.db = firebase.firestore();
-      console.log("Firebase initialized successfully");
 
-      // Move these after Firebase initialization
+      // Cache frequently-accessed static DOM elements
+      this.loginSection = document.getElementById("loginSection");
+      this.adminPanel = document.getElementById("adminPanel");
+
       this.initializeAuth();
       this.setupEventListeners();
       this.initializeCalendar();
-      this.setupAutoArchiving(); // Move this here, after Firebase is initialized
+      this.setupAutoArchiving();
     } catch (error) {
       console.error("Initialization error:", error);
       this.showToast(
@@ -428,7 +426,6 @@ class AdminPortal {
   async initializeCalendar() {
     try {
       await this.calendarService.ensureInitialized();
-      console.log("Calendar service initialized successfully");
     } catch (error) {
       console.warn("Calendar initialization failed:", error);
     }
@@ -438,13 +435,12 @@ class AdminPortal {
     await this.auth.signOut();
 
     this.auth.onAuthStateChanged(async (user) => {
-      console.log("Auth state changed, user:", user);
       if (user) {
         if (user.email.endsWith("@maristsj.co.za")) {
           const isAuthorized = await this.checkUserAuthorization(user.email);
           if (isAuthorized) {
-            document.getElementById("loginSection").style.display = "none";
-            document.getElementById("adminPanel").style.display = "block";
+            this.loginSection.style.display = "none";
+            this.adminPanel.style.display = "block";
             this.showAdminPanel(user);
           } else {
             this.showToast(
@@ -461,8 +457,8 @@ class AdminPortal {
           await this.auth.signOut();
         }
       } else {
-        document.getElementById("loginSection").style.display = "flex";
-        document.getElementById("adminPanel").style.display = "none";
+        this.loginSection.style.display = "flex";
+        this.adminPanel.style.display = "none";
         this.hideAdminPanel();
       }
     });
@@ -522,7 +518,6 @@ class AdminPortal {
     const applyFilterBtn = document.getElementById("applyFilter");
     if (applyFilterBtn) {
       applyFilterBtn.addEventListener("click", () => {
-        console.log("Applying filters..."); // Debug log
         this.loadExams(true);
       });
     }
@@ -557,7 +552,6 @@ class AdminPortal {
       await this.auth.signOut();
 
       const result = await this.auth.signInWithPopup(provider);
-      console.log("Sign in successful:", result.user.email);
 
       // Force a UI update
       if (result.user) {
@@ -579,7 +573,7 @@ class AdminPortal {
       if (error.code === "auth/popup-blocked") {
         this.showToast("Please allow popups for this site to login.", "error");
       } else if (error.code === "auth/cancelled-popup-request") {
-        console.log("Previous popup closed");
+        // Popup was closed by user, no action needed
       } else {
         this.showToast("Login failed: " + error.message, "error");
       }
@@ -607,7 +601,6 @@ class AdminPortal {
 
   async saveExam(examData) {
     if (this.isSubmitting) {
-      console.log("Already submitting, preventing duplicate submission");
       return;
     }
 
@@ -622,15 +615,12 @@ class AdminPortal {
         createdBy: this.auth.currentUser.email,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       });
-      console.log("Exam saved to Firestore:", docRef.id);
-
       const addReminder = document.getElementById(
         "addCalendarReminder"
       ).checked;
       if (addReminder) {
         try {
           await this.calendarService.createReminder(examData);
-          console.log("Calendar reminder created");
         } catch (calendarError) {
           console.error("Calendar error (continuing anyway):", calendarError);
           this.showToast(
@@ -666,10 +656,9 @@ class AdminPortal {
   }
 
   showAdminPanel(user) {
-    document.getElementById("loginSection").style.display = "none";
-    const adminPanel = document.getElementById("adminPanel");
-    if (adminPanel) {
-      adminPanel.style.display = "block";
+    this.loginSection.style.display = "none";
+    if (this.adminPanel) {
+      this.adminPanel.style.display = "block";
 
       // Update user email display
       const userEmailElement = document.getElementById("userEmail");
@@ -682,17 +671,76 @@ class AdminPortal {
         examList = document.createElement("div");
         examList.id = "examList";
         examList.className = "exam-list";
-        adminPanel.appendChild(examList);
+        this.adminPanel.appendChild(examList);
       }
       this.loadExams();
+      this.loadBroadcastStatus();
+      this.fixExistingExams();
+    }
+  }
+
+  async loadBroadcastStatus() {
+    const statusEl = document.getElementById("broadcastStatus");
+    if (!statusEl) return;
+    try {
+      const targets = ["all", "grade_8", "grade_9", "grade_10", "grade_11", "grade_12"];
+      const labels = { all: "All grades", grade_8: "Grade 8", grade_9: "Grade 9", grade_10: "Grade 10", grade_11: "Grade 11", grade_12: "Grade 12" };
+      const active = [];
+      for (const target of targets) {
+        const doc = await this.db.collection("broadcasts").doc(target).get();
+        if (doc.exists && doc.data().active && doc.data().message) {
+          active.push(`${labels[target]}: "${doc.data().message}"`);
+        }
+      }
+      statusEl.innerHTML = active.length
+        ? active.map(m => `• ${m}`).join("<br>")
+        : "";
+    } catch (e) {
+      // Broadcasts collection may not exist yet
+    }
+  }
+
+  async sendBroadcast() {
+    const message = document.getElementById("broadcastInput")?.value?.trim();
+    const target = document.getElementById("broadcastGrade")?.value || "all";
+    if (!message) {
+      this.showToast("Please type a message to broadcast", "error");
+      return;
+    }
+    try {
+      await this.db.collection("broadcasts").doc(target).set({
+        message,
+        active: true,
+        sentAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+      this.showToast(`Message sent to ${target === "all" ? "all grades" : target.replace("_", " ")}`, "success");
+      this.loadBroadcastStatus();
+    } catch (error) {
+      console.error("Broadcast error:", error);
+      this.showToast("Failed to send broadcast", "error");
+    }
+  }
+
+  async clearBroadcast() {
+    const target = document.getElementById("broadcastGrade")?.value || "all";
+    try {
+      await this.db.collection("broadcasts").doc(target).set({
+        message: "",
+        active: false,
+        clearedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+      this.showToast(`Broadcast cleared for ${target === "all" ? "all grades" : target.replace("_", " ")}`, "success");
+      this.loadBroadcastStatus();
+    } catch (error) {
+      console.error("Clear broadcast error:", error);
+      this.showToast("Failed to clear broadcast", "error");
     }
   }
 
   hideAdminPanel() {
-    document.getElementById("loginSection").style.display = "flex";
-    const adminPanel = document.getElementById("adminPanel");
-    if (adminPanel) {
-      adminPanel.style.display = "none";
+    this.loginSection.style.display = "flex";
+    if (this.adminPanel) {
+      this.adminPanel.style.display = "none";
     }
   }
 
@@ -702,44 +750,71 @@ class AdminPortal {
       return;
     }
 
+    document.querySelector(".user-management-dialog")?.remove();
+
     const dialog = document.createElement("div");
     dialog.className = "user-management-dialog";
     dialog.innerHTML = `
-            <div class="user-management-content">
-                <h3>Manage Teachers</h3>
-                <div class="add-user-form">
-                    <input type="email" id="newUserEmail" placeholder="Teacher's email">
-                    <button onclick="adminPortal.addTeacher()">Add Teacher</button>
-                </div>
-                <div class="users-list" id="usersList">
-                    Loading users...
-                </div>
-                <button class="close-btn" onclick="this.closest('.user-management-dialog').remove()">
-                    Close
-                </button>
-            </div>
-        `;
+      <div class="user-management-content">
+        <div class="um-header">
+          <h3>Manage Teachers</h3>
+          <button class="um-close-btn" onclick="this.closest('.user-management-dialog').remove()">✕</button>
+        </div>
+        <div class="add-teacher-form">
+          <div class="add-teacher-input-wrap">
+            <input type="email" id="newUserEmail" placeholder="teacher@maristsj.co.za" autocomplete="off">
+            <span class="email-error-msg" id="emailError"></span>
+          </div>
+          <button class="add-teacher-btn" onclick="adminPortal.addTeacher()">Add Teacher</button>
+        </div>
+        <div id="usersList" class="users-list">Loading...</div>
+      </div>
+    `;
 
     document.body.appendChild(dialog);
+
+    const emailInput = dialog.querySelector("#newUserEmail");
+    emailInput.addEventListener("keydown", (e) => { if (e.key === "Enter") this.addTeacher(); });
+    emailInput.addEventListener("input", (e) => {
+      const errorEl = document.getElementById("emailError");
+      if (e.target.value && !e.target.value.endsWith("@maristsj.co.za")) {
+        errorEl.textContent = "Must be a @maristsj.co.za address";
+      } else {
+        errorEl.textContent = "";
+      }
+    });
+
     this.loadTeachers();
   }
 
   async addTeacher() {
-    const email = document.getElementById("newUserEmail").value;
+    const input = document.getElementById("newUserEmail");
+    const errorEl = document.getElementById("emailError");
+    const email = input.value.trim().toLowerCase();
+
+    if (!email) return;
+
     if (!email.endsWith("@maristsj.co.za")) {
-      this.showToast(
-        "Only @maristsj.co.za email addresses are allowed",
-        "error"
-      );
+      errorEl.textContent = "Must be a @maristsj.co.za address";
       return;
     }
 
     try {
+      const existing = await this.db.collection("users").doc(email).get();
+      if (existing.exists) {
+        errorEl.textContent = "This teacher is already authorized";
+        return;
+      }
+
       await this.db.collection("users").doc(email).set({
-        email: email,
+        email,
         addedBy: this.auth.currentUser.email,
         addedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        subjects: [],
+        grades: [],
       });
+      input.value = "";
+      errorEl.textContent = "";
       this.showToast("Teacher added successfully", "success");
       this.loadTeachers();
     } catch (error) {
@@ -768,52 +843,179 @@ class AdminPortal {
     const usersList = document.getElementById("usersList");
     if (!usersList) return;
 
+    usersList.innerHTML = '<div class="teachers-loading">Loading teachers...</div>';
+
     try {
       const snapshot = await this.db.collection("users").get();
-      usersList.innerHTML = "<h4>Authorized Teachers</h4>";
+
+      if (snapshot.empty) {
+        usersList.innerHTML = '<div class="teachers-empty">No teachers added yet. Add one above.</div>';
+        return;
+      }
+
+      usersList.innerHTML = "";
 
       snapshot.forEach((doc) => {
-        const exam = doc.data();
-        const item = document.createElement("div");
-        item.className = "exam-item" + (exam.archived ? " archived-item" : "");
+        const teacher = doc.data();
+        const safeId = teacher.email.replace(/[@.]/g, "_");
+        const addedDate = teacher.addedAt ? formatDate(teacher.addedAt.toDate()) : "Unknown";
+        const nameDisplay = teacher.email.split("@")[0]
+          .replace(/\./g, " ")
+          .replace(/\b\w/g, (c) => c.toUpperCase());
 
-        // Use the stored display date-time if available, otherwise fall back to formatted date
-        const scheduledDateTime =
-          exam.scheduledDisplayDateTime || formatDate(exam.scheduledDate, true);
-        item.innerHTML = `
-                    <div>
-                        <strong>Grade ${exam.grade} - ${exam.subject}</strong>
-                        ${exam.archived ? '<span class="archived-badge">Archived</span>' : ''}<br>
-                        Password: ${exam.password}<br>
-                        Scheduled: ${scheduledDateTime}<br>
-                        Added: ${formatDate(exam.createdAt?.toDate())}<br>
-                        ${exam.archived ? `Archived: ${formatDate(exam.archivedAt?.toDate())}` : ''}
-                    </div>
-                    <div class="exam-actions">
-                        <button onclick="adminPortal.copyPassword('${exam.password}')" class="copy-button">
-                            Copy Password
-                        </button>
-                        <button onclick="adminPortal.editExam('${doc.id}')" class="edit-button">
-                            Edit Time
-                        </button>
-                        ${exam.archived ?
-            `<button onclick="adminPortal.restoreExam('${doc.id}')" class="restore-button">
-                                Restore
-                            </button>` :
-            `<button onclick="adminPortal.archiveSingleExam('${doc.id}')" class="archive-button">
-                                Archive
-                            </button>`
-          }
-                        <button onclick="adminPortal.deleteExam('${doc.id}')" class="delete-button">
-                            Delete
-                        </button>
-                    </div>
-                `;
-        examsList.appendChild(item);
+        const subjectTags = (teacher.subjects || [])
+          .map((s) => `<span class="teacher-tag tag-subject">${s}</span>`)
+          .join("");
+        const gradeTags = (teacher.grades || [])
+          .map((g) => `<span class="teacher-tag tag-grade">Gr ${g}</span>`)
+          .join("");
+        const tagsHtml = subjectTags || gradeTags
+          ? `<div class="teacher-tags">${subjectTags}${gradeTags}</div>`
+          : `<div class="teacher-tags teacher-tags-empty">No subjects or grades assigned</div>`;
+
+        const card = document.createElement("div");
+        card.className = "teacher-card";
+        card.innerHTML = `
+          <div class="teacher-card-main">
+            <div class="teacher-info">
+              <div class="teacher-name">${nameDisplay}</div>
+              <div class="teacher-email">${teacher.email}</div>
+              <div class="teacher-meta">Added by ${teacher.addedBy || "admin"} · ${addedDate}</div>
+              ${tagsHtml}
+            </div>
+            <div class="teacher-actions">
+              <button class="tch-btn tch-btn-history" onclick="adminPortal.toggleTeacherHistory('${teacher.email}')">View History</button>
+              <button class="tch-btn tch-btn-edit" onclick="adminPortal.editTeacherTags('${teacher.email}')">Edit Tags</button>
+              <button class="tch-btn tch-btn-remove" onclick="adminPortal.removeTeacher('${teacher.email}')">Remove</button>
+            </div>
+          </div>
+          <div class="teacher-history-panel" id="hist_${safeId}" style="display:none"></div>
+          <div class="teacher-tags-editor" id="tags_${safeId}" style="display:none"></div>
+        `;
+        usersList.appendChild(card);
       });
     } catch (error) {
       console.error("Error loading teachers:", error);
-      usersList.innerHTML = "Error loading teachers";
+      usersList.innerHTML = '<div class="teachers-error">Error loading teachers. Please try again.</div>';
+    }
+  }
+
+  async toggleTeacherHistory(email) {
+    const safeId = email.replace(/[@.]/g, "_");
+    const panel = document.getElementById(`hist_${safeId}`);
+    if (!panel) return;
+
+    if (panel.style.display !== "none") {
+      panel.style.display = "none";
+      return;
+    }
+
+    panel.style.display = "block";
+    panel.innerHTML = '<div class="history-loading">Loading history...</div>';
+
+    try {
+      const snapshot = await this.db.collection("exams")
+        .where("createdBy", "==", email)
+        .get();
+
+      if (snapshot.empty) {
+        panel.innerHTML = '<div class="history-empty">No assessments created by this teacher yet.</div>';
+        return;
+      }
+
+      const exams = [];
+      snapshot.forEach((doc) => exams.push(doc.data()));
+      exams.sort((a, b) => {
+        const aTime = a.scheduledDate?.toDate?.() || new Date(a.scheduledDate || 0);
+        const bTime = b.scheduledDate?.toDate?.() || new Date(b.scheduledDate || 0);
+        return bTime - aTime;
+      });
+
+      const activeCount = exams.filter((e) => !e.archived).length;
+      const archivedCount = exams.filter((e) => e.archived).length;
+
+      let html = `
+        <div class="history-summary">${exams.length} assessment${exams.length !== 1 ? "s" : ""} · ${activeCount} active · ${archivedCount} archived</div>
+        <div class="history-list">
+      `;
+
+      exams.forEach((exam) => {
+        const date = exam.scheduledDisplayDateTime ||
+          formatDate(exam.scheduledDate?.toDate ? exam.scheduledDate.toDate() : new Date(exam.scheduledDate || 0), true);
+        const statusClass = exam.archived ? "hist-badge-archived" : "hist-badge-active";
+        const statusLabel = exam.archived ? "Archived" : "Active";
+        html += `
+          <div class="history-item">
+            <div class="history-item-main">
+              <strong>Grade ${exam.grade} – ${exam.subject}</strong>
+              <span class="hist-badge ${statusClass}">${statusLabel}</span>
+            </div>
+            <div class="history-item-date">${date}</div>
+          </div>
+        `;
+      });
+
+      html += "</div>";
+      panel.innerHTML = html;
+    } catch (error) {
+      console.error("Error loading teacher history:", error);
+      panel.innerHTML = '<div class="teachers-error">Error loading history.</div>';
+    }
+  }
+
+  async editTeacherTags(email) {
+    const safeId = email.replace(/[@.]/g, "_");
+    const editor = document.getElementById(`tags_${safeId}`);
+    if (!editor) return;
+
+    if (editor.style.display !== "none") {
+      editor.style.display = "none";
+      return;
+    }
+
+    const doc = await this.db.collection("users").doc(email).get();
+    const data = doc.data() || {};
+    const currentSubjects = (data.subjects || []).join(", ");
+    const currentGrades = data.grades || [];
+
+    const gradeOptions = [8, 9, 10, 11, 12]
+      .map((g) => `<label class="grade-check-label"><input type="checkbox" value="${g}" ${currentGrades.includes(g) ? "checked" : ""}> Grade ${g}</label>`)
+      .join("");
+
+    editor.style.display = "block";
+    editor.innerHTML = `
+      <div class="tags-editor-inner">
+        <div class="tags-editor-field">
+          <label>Subjects <span class="tags-editor-hint">(comma-separated)</span></label>
+          <input type="text" id="subj_${safeId}" value="${currentSubjects}" placeholder="e.g. Mathematics, Physics">
+        </div>
+        <div class="tags-editor-field">
+          <label>Grades</label>
+          <div class="grade-check-group" id="grades_${safeId}">${gradeOptions}</div>
+        </div>
+        <div class="tags-editor-actions">
+          <button class="tch-btn tch-btn-save" onclick="adminPortal.saveTeacherTags('${email}')">Save</button>
+          <button class="tch-btn tch-btn-cancel" onclick="document.getElementById('tags_${safeId}').style.display='none'">Cancel</button>
+        </div>
+      </div>
+    `;
+  }
+
+  async saveTeacherTags(email) {
+    const safeId = email.replace(/[@.]/g, "_");
+    const subjectsEl = document.getElementById(`subj_${safeId}`);
+    const gradesEl = document.getElementById(`grades_${safeId}`);
+
+    const subjects = subjectsEl.value.split(",").map((s) => s.trim()).filter(Boolean);
+    const grades = [...gradesEl.querySelectorAll("input[type=checkbox]:checked")].map((cb) => parseInt(cb.value));
+
+    try {
+      await this.db.collection("users").doc(email).update({ subjects, grades });
+      this.showToast("Tags updated", "success");
+      this.loadTeachers();
+    } catch (error) {
+      console.error("Error saving tags:", error);
+      this.showToast("Error saving tags: " + error.message, "error");
     }
   }
 
@@ -1067,10 +1269,6 @@ class AdminPortal {
     const dateInput = document.getElementById("scheduledDate").value;
     const timeInput = document.getElementById("scheduledTime").value;
 
-    // Store the raw input values
-    const rawDate = dateInput;
-    const rawTime = timeInput;
-
     // Create Date objects that preserve the input times exactly
     const [year, month, day] = dateInput
       .split("-")
@@ -1102,14 +1300,6 @@ class AdminPortal {
     // Create a date object in local time zone (just for reference)
     const localDate = new Date(year, month - 1, day, hours, minutes, 0);
 
-    console.log("Time debug:", {
-      inputDate: dateInput,
-      inputTime: timeInput,
-      timestamp: timestamp,
-      displayDateTime: displayDateTime,
-      localDate: localDate.toString(),
-    });
-
     const formData = {
       grade: Number(document.getElementById("grade")?.value),
       subject: document.getElementById("subject")?.value,
@@ -1129,11 +1319,17 @@ class AdminPortal {
       date: new Date().toISOString(),
     };
 
-    console.log("Form data:", formData);
+    // Optional timer fields — only add if set
+    const readingTime = parseInt(document.getElementById("readingTime")?.value) || 0;
+    const writingTime = parseInt(document.getElementById("writingTime")?.value) || 0;
+    if (readingTime > 0) formData.readingTime = readingTime;
+    if (writingTime > 0) formData.writingTime = writingTime;
 
+    const optionalFields = new Set(["password"]);
     const missingFields = Object.entries(formData)
       .filter(([key, value]) => {
         if (typeof value === "boolean") return false;
+        if (optionalFields.has(key)) return false;
         if (key.startsWith("scheduled") && key !== "scheduledDate")
           return false;
         return !value;
@@ -1143,6 +1339,19 @@ class AdminPortal {
     if (missingFields.length > 0) {
       throw new Error(`Missing required fields: ${missingFields.join(", ")}`);
     }
+
+    const rawUrl = document.getElementById("driveUrl")?.value || "";
+    const validDomains = [
+      "drive.google.com",
+      "docs.google.com",
+      "forms.gle",
+      "sheets.google.com",
+    ];
+    const isValidUrl = validDomains.some(domain => rawUrl.includes(domain));
+    if (!isValidUrl) {
+      throw new Error("URL must be a Google Drive, Docs, Sheets, or Forms link.");
+    }
+
     return formData;
   }
 
@@ -1423,7 +1632,6 @@ class AdminPortal {
               scheduledDate: localDate.toISOString(),
             });
 
-            console.log("Update successful");
             this.showToast("Assessment updated successfully", "success");
             dialog.remove();
             this.loadExams();
@@ -1552,7 +1760,6 @@ class AdminPortal {
 
       if (count > 0) {
         await batch.commit();
-        console.log(`Auto-archived ${count} old exams`);
       }
     } catch (error) {
       console.error("Error in auto-archiving:", error);
@@ -1560,6 +1767,9 @@ class AdminPortal {
   }
 
   async fixExistingExams() {
+    // Skip if this migration has already completed on this device
+    if (localStorage.getItem("examsMigrated")) return;
+
     try {
       const snapshot = await this.db.collection("exams").get();
       const batch = this.db.batch();
@@ -1568,20 +1778,18 @@ class AdminPortal {
       snapshot.forEach((doc) => {
         const data = doc.data();
         if (!data.hasOwnProperty("archived")) {
-          batch.update(doc.ref, {
-            archived: false,
-          });
+          batch.update(doc.ref, { archived: false });
           count++;
         }
       });
 
       if (count > 0) {
         await batch.commit();
-        console.log(`Updated ${count} exams with missing archived status`);
         this.loadExams(true);
-      } else {
-        console.log("No exams needed updating");
       }
+
+      // Mark migration as done so it never runs again on this device
+      localStorage.setItem("examsMigrated", "1");
     } catch (error) {
       console.error("Error fixing exams:", error);
     }
@@ -1590,7 +1798,6 @@ class AdminPortal {
 
 // Initialize admin portal when document is loaded
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("Document loaded, initializing AdminPortal");
   window.adminPortal = new AdminPortal();
 });
 

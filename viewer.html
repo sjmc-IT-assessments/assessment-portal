@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SJMC Assessment Viewer</title>
     <link rel="stylesheet" href="assets/css/styles.css">
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <style>
         body,
         html {
@@ -13,9 +16,12 @@
             padding: 0;
             height: 100%;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
         .header {
+            flex-shrink: 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -26,49 +32,25 @@
         }
 
         .header-right {
-            margin-left: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
             padding-right: 10px;
         }
 
-        .fullscreen-btn {
-            margin-left: 10px;
-            min-width: 90px;
-            white-space: nowrap;
-            margin-right: 10px;
-            padding: 8px 10px;
-
-        }
-
         @media (max-width: 480px) {
-            .header {
-                gap: 8px;
-                padding: 8px;
-                /* Smaller padding on small screens */
-            }
-
-            .header-title {
-                font-size: 1.1rem;
-            }
-
-            .fullscreen-btn {
-                min-width: 70px;
-                /* Smaller min-width on small screens */
-                padding: 6px 8px;
-                font-size: 0.9rem;
-            }
-
-            #assessmentTitle {
-                font-size: 0.95rem;
-            }
+            .header { gap: 8px; padding: 8px; }
+            #assessmentTitle { font-size: 0.95rem; }
         }
 
         .content {
-            height: calc(100% - 60px);
+            flex: 1;
             position: relative;
+            overflow: hidden;
         }
 
-        .back-btn,
-        .fullscreen-btn {
+        .back-btn {
             background: rgba(255, 255, 255, 0.2);
             border: none;
             color: white;
@@ -118,101 +100,138 @@
             font-weight: normal;
         }
 
-        /* Accessibility Tools */
-        .accessibility-tools {
-            position: fixed;
-            right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            z-index: 100;
+        /* Exam Timer */
+        .exam-timer {
+            background: white;
+            color: var(--primary-color, #0a2b72);
+            border-radius: 6px;
+            padding: 3px 10px;
+            text-align: center;
+            line-height: 1.25;
+            min-width: 90px;
         }
 
-        .accessibility-toggle {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #0a2b72;
-            color: white;
-            border: none;
-            cursor: pointer;
+        .exam-timer .timer-label {
+            display: block;
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-weight: 600;
+            opacity: 0.7;
+        }
+
+        .exam-timer .timer-time {
+            display: block;
+            font-size: 1.1rem;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0.03em;
+        }
+
+        .exam-timer.timer-clock .timer-time {
+            font-size: 1rem;
+            padding: 2px 0;
+        }
+
+        .exam-timer.timer-reading { color: #D97706; }
+        .exam-timer.timer-warning { color: #D97706; }
+
+        .exam-timer.timer-danger {
+            color: #DC2626;
+            animation: timerPulse 1s ease-in-out infinite;
+        }
+
+        .exam-timer.timer-done { color: #DC2626; }
+
+        .exam-timer.timer-done .timer-label {
+            font-size: 0.85rem;
+            text-transform: none;
+            letter-spacing: 0;
+            opacity: 1;
+            font-weight: 700;
+        }
+
+        @keyframes timerPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Broadcast Banner */
+        .broadcast-banner {
+            flex-shrink: 0;
+            background: #FEF3C7;
+            border-bottom: 2px solid #F59E0B;
+            color: #92400E;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            z-index: 10;
+        }
+
+        .broadcast-banner .broadcast-icon {
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        /* Phase Transition Overlay */
+        .phase-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.78);
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            z-index: 500;
+            animation: overlayFadeIn 0.3s ease;
         }
 
-        .accessibility-panel {
-            position: absolute;
-            right: 50px;
-            top: 0;
+        .phase-overlay-card {
             background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
-            padding: 10px;
-            display: none;
-            flex-direction: column;
-            gap: 8px;
-            width: 150px;
+            border-radius: 16px;
+            padding: 48px 64px;
+            text-align: center;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+            max-width: 480px;
+            width: 90%;
+            animation: overlaySlideUp 0.3s ease;
         }
 
-        .accessibility-panel.active {
-            display: flex;
+        .phase-overlay-icon {
+            font-size: 3.5rem;
+            margin-bottom: 16px;
         }
 
-        .tool-btn {
-            padding: 8px 12px;
-            background: #f3f4f6;
-            border: 1px solid #e5e7eb;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s;
+        .phase-overlay-card h2 {
+            color: #0a2b72;
+            font-size: 1.8rem;
+            margin: 0 0 10px;
         }
 
-        .tool-btn:hover {
-            background: #e5e7eb;
+        .phase-overlay-card p {
+            color: #4B5563;
+            font-size: 1.1rem;
+            margin: 0 0 24px;
         }
 
-        /* Password modal for tools */
-        .tool-password-modal {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
-            z-index: 1000;
-            width: 300px;
-            display: none;
+        .phase-overlay-countdown {
+            color: #9CA3AF;
+            font-size: 0.85rem;
+            margin: 0;
         }
 
-        .tool-password-modal.active {
-            display: block;
+        @keyframes overlayFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
-        .button-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
+        @keyframes overlaySlideUp {
+            from { transform: translateY(24px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
 
-        .button-group button {
-            padding: 8px 12px;
-            border-radius: 4px;
-            border: none;
-            cursor: pointer;
-        }
-
-        #submitToolPassword {
-            background: #0a2b72;
-            color: white;
-        }
-
-        #cancelToolPassword {
-            background: #e5e7eb;
-            color: #374151;
-        }
     </style>
 </head>
 
@@ -229,292 +248,32 @@
             </h2>
         </div>
         <div class="header-right">
-            <button class="fullscreen-btn" id="fullscreenBtn">Full</button>
+            <div id="examTimer" class="exam-timer"></div>
         </div>
+    </div>
+
+    <!-- Teacher broadcast banner — hidden until a message is sent -->
+    <div id="broadcastBanner" class="broadcast-banner" style="display:none">
+        <span class="broadcast-icon">📢</span>
+        <span id="broadcastMessage"></span>
     </div>
 
     <div class="content">
-        <!-- The proxy frame loads the Google Drive URL but isn't directly visible -->
         <iframe id="proxyFrame" src="about:blank"></iframe>
-
-        <!-- This frame displays the content from the proxy frame -->
         <iframe id="displayFrame" src="about:blank"></iframe>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const proxyFrame = document.getElementById('proxyFrame');
-            const displayFrame = document.getElementById('displayFrame');
-            const backBtn = document.getElementById('backBtn');
-            const fullscreenBtn = document.getElementById('fullscreenBtn');
-            const accessibilityToggle = document.getElementById('accessibilityToggle');
-            const accessibilityPanel = document.querySelector('.accessibility-panel');
-            accessibilityToggle.addEventListener('click', function () {
-                accessibilityPanel.classList.toggle('active');
-            });
-           //document.getElementById('translateBtn').addEventListener('click', function () {
-          //    showToolPasswordModal('translate');
-         //   });
-
-           // document.getElementById('readAloudBtn').addEventListener('click', function () {
-           //     showToolPasswordModal('readAloud');
-           // });
-
-            document.getElementById('typeAnswersBtn').addEventListener('click', function () {
-                showToolPasswordModal('typeAnswers');
-            });
-
-            document.getElementById('dictationBtn').addEventListener('click', function () {
-                showToolPasswordModal('dictation');
-            });
-
-            // Function to show password modal for tools
-            function showToolPasswordModal(toolType) {
-                // Create modal if it doesn't exist
-                let modal = document.querySelector('.tool-password-modal');
-                if (!modal) {
-                    modal = document.createElement('div');
-                    modal.className = 'tool-password-modal';
-                    modal.innerHTML = `
-            <h3>Enter Access Code</h3>
-            <input type="password" id="toolPassword" placeholder="Enter code">
-            <div class="button-group">
-                <button id="submitToolPassword">Submit</button>
-                <button id="cancelToolPassword">Cancel</button>
-            </div>
-        `;
-                    document.body.appendChild(modal);
-                }
-
-                modal.classList.add('active');
-
-                // Store the tool type as a data attribute
-                modal.dataset.toolType = toolType;
-
-                // Focus on the password input
-                setTimeout(() => {
-                    document.getElementById('toolPassword').focus();
-                }, 100);
-
-                // Set up event listeners
-                document.getElementById('submitToolPassword').onclick = verifyToolPassword;
-                document.getElementById('cancelToolPassword').onclick = closeToolPasswordModal;
-
-                // Allow Enter key to submit
-                document.getElementById('toolPassword').onkeypress = function (e) {
-                    if (e.key === 'Enter') {
-                        verifyToolPassword();
-                    }
-                };
-            }
-
-            // Function to close the tool password modal
-            function closeToolPasswordModal() {
-                const modal = document.querySelector('.tool-password-modal');
-                if (modal) {
-                    modal.classList.remove('active');
-                }
-            }
-
-            // Function to verify the tool password
-            function verifyToolPassword() {
-                const password = document.getElementById('toolPassword').value;
-                const modal = document.querySelector('.tool-password-modal');
-                const toolType = modal.dataset.toolType;
-
-                // Here you would check against your special accommodation passwords
-                // This is just an example - you'll need to implement your actual verification logic
-                const specialPasswords = {
-                    translate: 'translate123',
-                    readAloud: 'reader123',
-                    typeAnswers: 'typing123',
-                    dictation: 'dictate123'
-                };
-
-                if (password === specialPasswords[toolType]) {
-                    // Password is correct, activate the tool
-                    activateTool(toolType);
-                    closeToolPasswordModal();
-                } else {
-                    alert('Invalid access code');
-                }
-            }
-
-            // Function to activate the appropriate tool
-            function activateTool(toolType) {
-                switch (toolType) {
-                    case 'translate':
-                        // Open Google Translate in a side panel
-                        const translateWindow = window.open('https://translate.google.com', 'translateWindow',
-                            'width=400,height=600,right=0,top=0');
-                        break;
-                    case 'readAloud':
-                        // Implement text-to-speech functionality
-                        alert('Read Aloud tool activated');
-                        // You could implement this with the Web Speech API
-                        break;
-                    case 'typeAnswers':
-                        // Open a text editor for typing answers
-                        const editorContainer = document.createElement('div');
-                        editorContainer.className = 'answers-editor';
-                        editorContainer.innerHTML = `
-                <div class="editor-header">
-                    <h3>Type Answers</h3>
-                    <button id="closeEditor">Close</button>
-                </div>
-                <textarea id="answersText" placeholder="Type your answers here..."></textarea>
-                <button id="saveAnswers">Save</button>
-            `;
-                        document.body.appendChild(editorContainer);
-
-                        document.getElementById('closeEditor').onclick = function () {
-                            editorContainer.remove();
-                        };
-
-                        document.getElementById('saveAnswers').onclick = function () {
-                            const text = document.getElementById('answersText').value;
-                            // Here you would save the answers - could be to localStorage, 
-                            // or to download as a file
-                            alert('Answers saved');
-                        };
-                        break;
-                    case 'dictation':
-                        // Implement speech recognition
-                        alert('Dictation tool activated');
-                        // You could implement this with the Web Speech API
-                        break;
-                }
-            }
-            // Get assessment data from session storage
-            // Get assessment data from session storage
-            const examData = JSON.parse(sessionStorage.getItem('examData') || '{}');
-            sessionStorage.removeItem('examData'); // Clear after use
-
-            if (examData && examData.url) {
-                // Set title
-                document.title = examData.title || 'Assessment Viewer';
-
-                // Update header information
-                document.getElementById('gradeSubject').textContent = `Grade ${examData.grade} - ${examData.subject}`;
-                document.getElementById('assessmentDate').textContent = examData.scheduledDate || '';
-                document.getElementById('assessmentType').textContent = examData.type || 'Assessment';
-
-                // Update header information
-                if (examData.title) {
-                    // Parse the title which is typically in format "Subject - Type"
-                    const titleParts = examData.title.split(' - ');
-                    const subject = titleParts[0] || 'Subject';
-                    const type = titleParts[1] || 'Assessment';
-
-                    // Set the subject and type
-                    document.getElementById('gradeSubject').textContent = subject;
-                    document.getElementById('assessmentType').textContent = type;
-
-                    // Set the date (current date in proper format)
-                    const today = new Date();
-                    const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-                    document.getElementById('assessmentDate').textContent = today.toLocaleDateString('en-ZA', options);
-                }
-                // First, navigate the proxy frame to the Google Drive URL
-                proxyFrame.src = examData.url;
-
-                // When the proxy frame loads, forward its content to the display frame
-                proxyFrame.onload = function () {
-                    try {
-                        // Check if this is a Google Form
-                        const isGoogleForm = examData.url.includes('forms.gle') ||
-                            examData.url.includes('docs.google.com/forms');
-
-                        if (isGoogleForm) {
-                            // For Google Forms, directly set the URL to the form
-                            displayFrame.src = examData.url;
-                        } else {
-                            // For PDFs, use the existing approach with data URL
-                            const content = `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <meta charset="UTF-8">
-                    <style>
-                        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }
-                        iframe { width: 100%; height: 100%; border: none; }
-                    </style>
-                    <title>${examData.title || 'Assessment'}</title>
-                </head>
-                <body>
-                    <iframe src="${examData.url}" frameborder="0" allowfullscreen></iframe>
-                </body>
-                </html>
-            `;
-
-                            // Convert this HTML to a data URL (this keeps the URL clean in the address bar)
-                            const dataUrl = 'data:text/html;charset=utf-8,' + encodeURIComponent(content);
-
-                            // Set the display frame source to our data URL
-                            displayFrame.src = dataUrl;
-                        }
-                    } catch (err) {
-                        console.error('Error setting display frame:', err);
-                        // Fallback: directly set the src
-                        displayFrame.src = examData.url;
-                    }
-                };
-            } else {
-                // No assessment data
-                displayFrame.srcdoc = '<html><body style="text-align:center;padding-top:100px;font-family:sans-serif;"><h2>Assessment not found</h2><p>Please return to the portal.</p></body></html>';
-            }
-
-            // Back button
-            backBtn.addEventListener('click', function () {
-                window.location.href = './';
-            });
-
-            // Fullscreen button
-            fullscreenBtn.addEventListener('click', function () {
-                if (document.documentElement.requestFullscreen) {
-                    document.documentElement.requestFullscreen();
-                } else if (document.documentElement.webkitRequestFullscreen) {
-                    document.documentElement.webkitRequestFullscreen();
-                } else if (document.documentElement.msRequestFullscreen) {
-                    document.documentElement.msRequestFullscreen();
-                }
-            });
-
-            // Handle escape key for exiting fullscreen
-            document.addEventListener('keydown', function (e) {
-                if (e.key === 'Escape' && document.fullscreenElement) {
-                    if (document.exitFullscreen) {
-                        document.exitFullscreen();
-                    } else if (document.webkitExitFullscreen) {
-                        document.webkitExitFullscreen();
-                    } else if (document.msExitFullscreen) {
-                        document.msExitFullscreen();
-                    }
-                }
-            });
-        });
-    </script>
-    <!-- Accessibility Tools -->
-    <div class="accessibility-tools" id="accessibilityTools">
-        <button class="accessibility-toggle" id="accessibilityToggle">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"></circle>
-                <path d="M12 8v8"></path>
-                <path d="M8 12h8"></path>
-            </svg>
-        </button>
-
-        <div class="accessibility-panel">
-            <button class="tool-btn" id="translateBtn">Translator</button>
-            <button class="tool-btn" id="readAloudBtn">Read Aloud</button>
-            <button class="tool-btn" id="typeAnswersBtn">Type Answers</button>
-            <button class="tool-btn" id="dictationBtn">Dictation</button>
+    <!-- Phase transition overlay — hidden until triggered -->
+    <div id="phaseOverlay" class="phase-overlay" style="display:none">
+        <div class="phase-overlay-card">
+            <div class="phase-overlay-icon" id="overlayIcon"></div>
+            <h2 id="overlayTitle"></h2>
+            <p id="overlaySubtitle"></p>
+            <p class="phase-overlay-countdown">Dismissing in <span id="overlayCountdown">5</span>s</p>
         </div>
     </div>
-    <script src="assets/js/readAloudTool.js"></script>
-    <script src="assets/js/translationTool.js"></script>
-    <script src="assets/js/accessibilityIntegration.js"></script>
+
+    <script type="module" src="assets/js/viewer.js"></script>
 </body>
 
 </html>

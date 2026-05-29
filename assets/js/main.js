@@ -8,12 +8,30 @@ class AssessmentPortal {
         }
         this.db = firebase.firestore();
 
-        this.currentGrade = '8';
+        this.currentGrade = sessionStorage.getItem('activeGrade') || '8';
         this.currentAssessment = null;
+        this.loadingGrade = null; // Tracks the latest requested grade to prevent race conditions
 
         this.setupEventListeners();
-        this.loadAssessments('8'); // Load Grade 8 by default
-        console.log('Assessment Portal initialized');
+        this.switchGrade(this.currentGrade);
+    }
+
+    showToast(message, type = 'info', duration = 3000) {
+        let container = document.getElementById('toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            document.body.appendChild(container);
+        }
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.textContent = message;
+        container.appendChild(toast);
+        setTimeout(() => toast.classList.add('show'), 10);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, duration);
     }
 
     formatDate(date, includeTime = false) {
@@ -67,27 +85,27 @@ class AssessmentPortal {
             });
         }
 
-        // PDF Modal controls
-        const closePdfBtn = document.getElementById('closePdfBtn');
-        if (closePdfBtn) {
-            closePdfBtn.addEventListener('click', () => this.closePdfViewer());
+        // Password visibility toggle
+        const togglePwdBtn = document.getElementById('togglePwdBtn');
+        if (togglePwdBtn) {
+            togglePwdBtn.addEventListener('click', () => {
+                const pwdField = document.getElementById('assessmentPassword');
+                if (pwdField) {
+                    pwdField.type = pwdField.type === 'password' ? 'text' : 'password';
+                    togglePwdBtn.textContent = pwdField.type === 'password' ? '👁️' : '👁️‍🗨️';
+                }
+            });
         }
 
-        const fullscreenBtn = document.getElementById('fullscreenBtn');
-        if (fullscreenBtn) {
-            fullscreenBtn.addEventListener('click', () => this.toggleFullscreen());
-        }
-
-        // Close modals on Escape key
+        // Close modal on Escape key
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                this.closeModal();
-                this.closePdfViewer();
-            }
+            if (e.key === 'Escape') this.closeModal();
         });
     }
 
     switchGrade(grade) {
+        sessionStorage.setItem('activeGrade', grade);
+
         // Update active tab
         document.querySelectorAll('.tab-button').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.grade === grade);
@@ -102,7 +120,8 @@ class AssessmentPortal {
     }
 
     async loadAssessments(grade) {
-        console.log('Loading assessments for grade:', grade);
+        this.loadingGrade = grade;
+
         const container = document.querySelector('.assessments-grid');
         if (!container) {
             console.error('Container not found!');
@@ -113,28 +132,16 @@ class AssessmentPortal {
         try {
             // Get current time
             const now = new Date();
-            console.log('Current time:', now.toISOString());
 
-            console.log('Querying Firestore for grade:', grade);
             const query = this.db.collection('exams')
                 .where('grade', '==', Number(grade))
                 .where('archived', 'in', [false, null])
                 .orderBy('scheduledDate', 'asc');
 
-            console.log('Executing query...');
             const snapshot = await query.get();
-            console.log('Query complete. Found documents:', snapshot.size);
 
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                console.log('Found exam:', {
-                    id: doc.id,
-                    grade: data.grade,
-                    subject: data.subject,
-                    scheduledDate: data.scheduledDate,
-                    archived: data.archived
-                });
-            });
+            // Discard results if the user switched grade while this query was in flight
+            if (this.loadingGrade !== grade) return;
 
 
             if (snapshot.empty) {
@@ -161,14 +168,10 @@ class AssessmentPortal {
                         ...assessment,
                         date: assessmentDate
                     });
-                    console.log('Including assessment:', assessment.subject, 'Time diff:', timeDiff);
-                } else {
-                    console.log('Excluding assessment:', assessment.subject, 'Time diff:', timeDiff);
                 }
             });
 
             assessments.sort((a, b) => a.date - b.date);
-            console.log('Final filtered assessments:', assessments.length);
 
             if (assessments.length === 0) {
                 container.innerHTML = '<div class="no-assessments">No current assessments available for this grade.</div>';
@@ -204,14 +207,18 @@ class AssessmentPortal {
         let statusText = '';
         let buttonText = '';
 
+        // When the paper first becomes available (45 min before scheduled time)
+        const availableFrom = new Date(date.getTime() - 45 * 60000);
+        const availableFromStr = availableFrom.toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit', hour12: false });
+
         if (isAvailable) {
-            statusClass = 'status-today'; // Using today's style for available
+            statusClass = 'status-today';
             statusText = 'Available Now';
             buttonText = 'Start Assessment';
         } else if (isToday) {
             statusClass = 'status-today';
             statusText = 'Today';
-            buttonText = 'Not Yet Available';
+            buttonText = `Opens at ${availableFromStr}`;
         } else if (isFuture) {
             statusClass = 'status-upcoming';
             statusText = 'Upcoming';
@@ -248,35 +255,34 @@ class AssessmentPortal {
         const button = card.querySelector('.start-btn');
         if (button && isAvailable) {
             button.addEventListener('click', () => {
-                this.openAssessment(id);
+                if (assessment.password) {
+                    this.openAssessment(id, assessment.subject, assessment.grade);
+                } else {
+                    this.launchAssessment(assessment);
+                }
             });
         }
 
         return card;
     }
 
-    openAssessment(assessmentId) {
-        console.log('Opening assessment:', assessmentId);
+    openAssessment(assessmentId, subject, grade) {
         this.currentAssessment = assessmentId;
 
         const modalOverlay = document.getElementById('modalOverlay');
-        console.log('Modal overlay element:', modalOverlay);
-
         if (modalOverlay) {
+            const nameEl = document.getElementById('modalAssessmentName');
+            if (nameEl) nameEl.textContent = subject ? `Grade ${grade} — ${subject}` : '';
+
             modalOverlay.style.display = 'flex';
             modalOverlay.classList.add('active');
 
             const passwordInput = document.getElementById('assessmentPassword');
-            console.log('Password input element:', passwordInput);
-
             if (passwordInput) {
                 passwordInput.value = '';
+                passwordInput.classList.remove('input-error');
                 passwordInput.focus();
-            } else {
-                console.error('Password input not found in modal');
             }
-        } else {
-            console.error('Modal overlay not found');
         }
     }
 
@@ -291,180 +297,81 @@ class AssessmentPortal {
     async verifyPassword() {
         if (!this.currentAssessment) return;
 
-        const password = document.getElementById('assessmentPassword').value;
+        const passwordInput = document.getElementById('assessmentPassword');
+        const password = passwordInput.value;
         if (!password) {
-            alert('Please enter a password');
+            this.showToast('Please enter a password', 'error');
             return;
+        }
+
+        const submitBtn = document.querySelector('.password-form button[type="submit"]');
+        const originalText = submitBtn ? submitBtn.textContent : null;
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Checking…';
         }
 
         try {
             const doc = await this.db.collection('exams').doc(this.currentAssessment).get();
             if (!doc.exists) {
-                alert('Assessment not found');
+                this.showToast('Assessment not found', 'error');
                 return;
             }
 
             const assessment = doc.data();
             if (password === assessment.password) {
                 this.closeModal();
-
-                // Check content type for special handling
-                const isGoogleForm = assessment.type === 'googleform' ||
-                    assessment.url.includes('forms.gle') ||
-                    assessment.url.includes('docs.google.com/forms');
-
-                const isDriveDoc = assessment.type === 'drive' ||
-                    (assessment.url.includes('docs.google.com') &&
-                        !assessment.url.includes('forms'));
-
-                if (isGoogleForm || isDriveDoc) {
-                    // For Google Forms and Drive docs, redirect directly to the URL
-                    window.location.href = assessment.url;
-                } else {
-                    // For PDFs and other assessments, use the viewer as before
-                    const examData = {
-                        url: assessment.url,
-                        title: `${assessment.subject} - ${assessment.type}`,
-                        grade: assessment.grade,
-                        subject: assessment.subject,
-                        type: assessment.type,
-                        scheduledDate: assessment.scheduledDisplayDate || this.formatDate(assessment.scheduledDate)
-                    };
-
-                    // Save to session storage
-                    sessionStorage.setItem('examData', JSON.stringify(examData));
-
-                    // Navigate to the viewer
-                    window.location.href = 'viewer.html';
-                }
+                this.launchAssessment(assessment);
             } else {
-                alert('Incorrect password');
+                this.showToast('Incorrect password. Please try again.', 'error');
+                passwordInput.value = '';
+                passwordInput.classList.remove('input-error');
+                // Force reflow so animation re-triggers if wrong password entered twice
+                void passwordInput.offsetWidth;
+                passwordInput.classList.add('input-error');
+                passwordInput.focus();
+                setTimeout(() => passwordInput.classList.remove('input-error'), 600);
             }
         } catch (error) {
             console.error('Error verifying password:', error);
-            alert('Error verifying password. Please try again.');
+            this.showToast('Error verifying password. Please try again.', 'error');
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
         }
     }
-    async openPdfViewer(assessment) {
-        // Instead of using an iframe, we'll open the PDF in a controlled way
-        console.log('Opening PDF viewer for:', assessment.subject);
 
-        // Get the URL from the assessment
-        const pdfUrl = assessment.url;
+    launchAssessment(assessment) {
+        const isGoogleForm = assessment.type === 'googleform' ||
+            assessment.url.includes('forms.gle') ||
+            assessment.url.includes('docs.google.com/forms');
 
-        // Create a new window with specific settings for kiosk mode
-        const pdfWindow = window.open('about:blank', '_blank',
-            'toolbar=0,location=0,menubar=0,width=1000,height=800,left=100,top=100');
+        const isDriveDoc = assessment.type === 'drive' ||
+            (assessment.url.includes('docs.google.com') &&
+                !assessment.url.includes('forms'));
 
-        if (!pdfWindow) {
-            alert('Please allow popups to view the assessment');
-            return;
+        if (isGoogleForm || isDriveDoc) {
+            window.location.href = assessment.url;
+        } else {
+            const examData = {
+                url: assessment.url,
+                title: `${assessment.subject} - ${assessment.type}`,
+                grade: assessment.grade,
+                subject: assessment.subject,
+                type: assessment.type,
+                scheduledDate: assessment.scheduledDisplayDate || this.formatDate(assessment.scheduledDate),
+                scheduledISO: assessment.scheduledDate,
+                readingTime: assessment.readingTime || 0,
+                writingTime: assessment.writingTime || 0
+            };
+            sessionStorage.setItem('examData', JSON.stringify(examData));
+            window.location.href = 'viewer.html';
         }
-
-        // Write content to the new window with styling and controls
-        pdfWindow.document.write(`
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>${assessment.subject} - ${assessment.type}</title>
-                <style>
-                    body, html {
-                        margin: 0;
-                        padding: 0;
-                        height: 100%;
-                        overflow: hidden;
-                        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-                    }
-                    .header {
-                        background-color: #0a2b72;
-                        color: white;
-                        padding: 10px 20px;
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: center;
-                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                    }
-                    .header h1 {
-                        margin: 0;
-                        font-size: 18px;
-                    }
-                    .controls {
-                        display: flex;
-                        gap: 10px;
-                    }
-                    .btn {
-                        background: rgba(255,255,255,0.2);
-                        border: none;
-                        color: white;
-                        padding: 5px 10px;
-                        border-radius: 4px;
-                        cursor: pointer;
-                    }
-                    .btn:hover {
-                        background: rgba(255,255,255,0.3);
-                    }
-                    .content {
-                        height: calc(100% - 50px);
-                    }
-                    iframe {
-                        width: 100%;
-                        height: 100%;
-                        border: none;
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="header">
-                    <h1>${assessment.subject} - ${assessment.type}</h1>
-                    <div class="controls">
-                        <button class="btn" id="fullscreenBtn">Fullscreen</button>
-                        <button class="btn" id="closeBtn">Close</button>
-                    </div>
-                </div>
-                <div class="content">
-                    <iframe src="${pdfUrl}" frameborder="0" allowfullscreen></iframe>
-                </div>
-                
-                <script>
-                    // Fullscreen button
-                    document.getElementById('fullscreenBtn').addEventListener('click', () => {
-                        if (document.documentElement.requestFullscreen) {
-                            document.documentElement.requestFullscreen();
-                        } else if (document.documentElement.webkitRequestFullscreen) {
-                            document.documentElement.webkitRequestFullscreen();
-                        } else if (document.documentElement.msRequestFullscreen) {
-                            document.documentElement.msRequestFullscreen();
-                        }
-                    });
-                    
-                    // Close button
-                    document.getElementById('closeBtn').addEventListener('click', () => {
-                        window.close();
-                    });
-                    
-                    // Also handle Escape key for exiting fullscreen
-                    document.addEventListener('keydown', (e) => {
-                        if (e.key === 'Escape' && !document.fullscreenElement) {
-                            window.close();
-                        }
-                    });
-                </script>
-            </body>
-            </html>
-        `);
-
-        // Finalize the document
-        pdfWindow.document.close();
     }
 }
 
-// Initialize the portal when the document is fully loaded
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM loaded, initializing Assessment Portal');
     window.portal = new AssessmentPortal();
 });
-
-// Maintain backward compatibility for any existing references
-window.portal = window.portal || new AssessmentPortal();

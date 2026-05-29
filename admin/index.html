@@ -50,8 +50,7 @@
                 <img src="../assets/images/school-logo.png" alt="SJMC Logo" class="school-logo">
             </div>
             <h2>SJMC Assessment Portal Admin</h2>
-            <button id="googleLogin" class="google-login-btn"
-                onclick="console.log('Button clicked'); firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider().setCustomParameters({prompt: 'select_account', hd: 'maristsj.co.za'}))">
+            <button id="googleLogin" class="google-login-btn">
                 <img src="../assets/images/google-icon.png" width="18" height="18" alt="Google">
                 Sign in with Google
             </button>
@@ -163,13 +162,22 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="password">Password</label>
+                            <label for="password">Password <span style="font-weight:normal;color:#6b7280">(optional — leave blank for open access)</span></label>
                             <div class="password-group">
-                                <input type="text" id="password" required>
+                                <input type="text" id="password">
                                 <button type="button" onclick="adminPortal.generatePassword()"
                                     class="generate-btn">Generate</button>
                             </div>
-
+                        </div>
+                        <div class="form-group">
+                            <label>Exam Timer <span style="font-weight:normal;color:#6b7280">(optional)</span></label>
+                            <div class="datetime-inputs">
+                                <input type="number" id="readingTime" min="0" max="60" placeholder="10" style="width:70px">
+                                <span style="font-size:0.9rem;color:#4b5563">min reading</span>
+                                <input type="number" id="writingTime" min="0" max="360" placeholder="60" style="width:70px;margin-left:12px">
+                                <span style="font-size:0.9rem;color:#4b5563">min writing</span>
+                            </div>
+                            <small class="form-hint">Leave blank for no timer. Counts down from the scheduled start time.</small>
                         </div>
                         <div class="form-group">
                             <label class="checkbox-label">
@@ -194,6 +202,28 @@
 
                     </div>
                 </section>
+                <!-- Broadcast Message -->
+                <section class="admin-section">
+                    <h2>Broadcast Message</h2>
+                    <p style="margin-top:0;color:#6b7280;font-size:0.9rem">Send a message to all active assessment screens instantly.</p>
+                    <div class="broadcast-controls">
+                        <textarea id="broadcastInput" class="broadcast-input" rows="2" placeholder="e.g. 5 minutes remaining — make sure your name is on your paper"></textarea>
+                        <div class="broadcast-buttons">
+                            <select id="broadcastGrade" class="broadcast-grade-select">
+                                <option value="all">All Grades</option>
+                                <option value="grade_8">Grade 8</option>
+                                <option value="grade_9">Grade 9</option>
+                                <option value="grade_10">Grade 10</option>
+                                <option value="grade_11">Grade 11</option>
+                                <option value="grade_12">Grade 12</option>
+                            </select>
+                            <button onclick="adminPortal.sendBroadcast()" class="broadcast-send-btn">📢 Send</button>
+                            <button onclick="adminPortal.clearBroadcast()" class="broadcast-clear-btn">✕ Clear</button>
+                        </div>
+                        <div id="broadcastStatus" class="broadcast-status"></div>
+                    </div>
+                </section>
+
                 <!-- Current Assessments -->
                 <section class="admin-section">
                     <div class="section-header">

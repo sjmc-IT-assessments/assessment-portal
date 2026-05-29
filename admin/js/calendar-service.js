@@ -67,7 +67,6 @@ export class CalendarService {
             });
 
             this.initialized = true;
-            console.log('Calendar service initialized successfully');
         } catch (error) {
             console.error('Calendar initialization failed:', error);
             this.initialized = false;
@@ -154,19 +153,12 @@ export class CalendarService {
                 visibility: 'private'
             };
 
-            console.log('Creating calendar event with:', {
-                examDateTime,
-                reminderDateTime,
-                event
-            });
-
             const response = await gapi.client.calendar.events.insert({
                 calendarId: 'primary',
                 resource: event,
                 sendUpdates: 'all'
             });
 
-            console.log('Calendar event created successfully:', response.result);
             return response.result;
         } catch (error) {
             console.error('Failed to create calendar reminder:', error);
