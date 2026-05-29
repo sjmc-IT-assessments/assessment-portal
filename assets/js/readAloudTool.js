@@ -1,23 +1,10 @@
-// readAloudTool.js - Screen Reader Tool for Assessment Portal
+// readAloudTool.js - Simplified Read Aloud Tool for Assessment Portal (Kiosk Mode)
 
 class ReadAloudTool {
     constructor(options = {}) {
         // Configuration options
         this.accessCode = options.accessCode || 'reader123';
-        this.defaultVoice = options.defaultVoice || 'en-US';
-        this.defaultRate = options.defaultRate || 1.0;
-        this.defaultPitch = options.defaultPitch || 1.0;
-        this.defaultVolume = options.defaultVolume || 1.0;
-
-        this.isActive = false;
         this.authenticated = false;
-        this.speaking = false;
-        this.paused = false;
-        this.currentText = '';
-        this.availableVoices = [];
-
-        // Initialize Speech Synthesis API
-        this.synth = window.speechSynthesis;
 
         // Initialize components
         this.init();
@@ -25,183 +12,12 @@ class ReadAloudTool {
 
     init() {
         this.createStyles();
-        this.loadVoices();
-
-        // Handle voices loaded if they load asynchronously
-        if (this.synth.onvoiceschanged !== undefined) {
-            this.synth.onvoiceschanged = this.loadVoices.bind(this);
-        }
     }
 
-    // Load available voices from the browser
-    loadVoices() {
-        this.availableVoices = this.synth.getVoices();
-        console.log(`Loaded ${this.availableVoices.length} voices for text-to-speech`);
-    }
-
-    // Add required CSS styles
+    // Add required CSS styles for authentication modal
     createStyles() {
         const styleEl = document.createElement('style');
         styleEl.textContent = `
-      .reader-panel {
-        position: fixed;
-        left: 20px;
-        bottom: 20px;
-        width: 320px;
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        z-index: 9995;
-        overflow: hidden;
-        display: none;
-      }
-      
-      .reader-panel.active {
-        display: block;
-      }
-      
-      .reader-header {
-        padding: 12px 15px;
-        background: #0a2b72;
-        color: white;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        cursor: move;
-      }
-      
-      .reader-header h3 {
-        margin: 0;
-        font-size: 16px;
-      }
-      
-      .reader-controls {
-        display: flex;
-        gap: 8px;
-      }
-      
-      .reader-btn {
-        background: rgba(255,255,255,0.2);
-        border: none;
-        color: white;
-        width: 24px;
-        height: 24px;
-        border-radius: 4px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      
-      .reader-content {
-        padding: 15px;
-      }
-      
-      .reader-textarea {
-        width: 100%;
-        height: 100px;
-        padding: 8px;
-        border: 1px solid #e5e7eb;
-        border-radius: 4px;
-        resize: none;
-        font-size: 14px;
-        margin-bottom: 10px;
-      }
-      
-      .reader-options {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        margin-bottom: 15px;
-      }
-      
-      .reader-option-group {
-        display: flex;
-        flex-direction: column;
-        min-width: 120px;
-      }
-      
-      .reader-option-group label {
-        font-size: 12px;
-        margin-bottom: 5px;
-        color: #4b5563;
-      }
-      
-      .reader-option-group select,
-      .reader-option-group input {
-        padding: 5px;
-        border: 1px solid #e5e7eb;
-        border-radius: 4px;
-        font-size: 14px;
-      }
-      
-      .reader-action-buttons {
-        display: flex;
-        gap: 10px;
-        margin-top: 15px;
-      }
-      
-      .reader-action-btn {
-        flex: 1;
-        padding: 8px 0;
-        border-radius: 4px;
-        border: none;
-        cursor: pointer;
-        font-size: 14px;
-        font-weight: 500;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 5px;
-      }
-      
-      .reader-action-btn svg {
-        width: 16px;
-        height: 16px;
-      }
-      
-      .reader-action-btn.primary {
-        background-color: #0a2b72;
-        color: white;
-      }
-      
-      .reader-action-btn.secondary {
-        background-color: #f3f4f6;
-        border: 1px solid #e5e7eb;
-        color: #374151;
-      }
-      
-      .reader-action-btn:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-      }
-      
-      .reader-footer {
-        padding: 10px 15px;
-        background: #f9fafb;
-        border-top: 1px solid #e5e7eb;
-        font-size: 12px;
-        color: #6b7280;
-        display: flex;
-        justify-content: space-between;
-      }
-      
-      .reader-highlight {
-        background-color: rgba(59, 130, 246, 0.2);
-        outline: 2px solid rgba(59, 130, 246, 0.3);
-      }
-      
-      .reader-selection-popup {
-        position: absolute;
-        background: rgba(0, 0, 0, 0.7);
-        color: white;
-        border-radius: 4px;
-        padding: 5px 10px;
-        font-size: 14px;
-        cursor: pointer;
-        z-index: 9998;
-      }
-      
       .reader-auth-modal {
         position: fixed;
         top: 0;
@@ -225,6 +41,7 @@ class ReadAloudTool {
       
       .reader-auth-content h3 {
         margin-top: 0;
+        color: #0a2b72;
       }
       
       .reader-auth-input {
@@ -233,18 +50,22 @@ class ReadAloudTool {
         margin: 10px 0;
         border: 1px solid #e5e7eb;
         border-radius: 4px;
+        box-sizing: border-box;
       }
       
       .reader-auth-buttons {
         display: flex;
         justify-content: space-between;
         margin-top: 15px;
+        gap: 10px;
       }
       
       .reader-auth-btn {
         padding: 8px 16px;
         border-radius: 4px;
         cursor: pointer;
+        flex: 1;
+        font-size: 14px;
       }
       
       .reader-auth-submit {
@@ -253,9 +74,17 @@ class ReadAloudTool {
         border: none;
       }
       
+      .reader-auth-submit:hover {
+        background: #1e40af;
+      }
+      
       .reader-auth-cancel {
         background: #f3f4f6;
         border: 1px solid #e5e7eb;
+      }
+      
+      .reader-auth-cancel:hover {
+        background: #e5e7eb;
       }
     `;
 
@@ -268,7 +97,8 @@ class ReadAloudTool {
         modal.className = 'reader-auth-modal';
         modal.innerHTML = `
       <div class="reader-auth-content">
-        <h3>Enter Read Aloud Tool Access Code</h3>
+        <h3>Read Aloud Tool Access</h3>
+        <p>Enter the access code to use the text-to-speech tool</p>
         <input type="password" class="reader-auth-input" id="reader-auth-input" placeholder="Enter access code">
         <div class="reader-auth-buttons">
           <button class="reader-auth-btn reader-auth-submit" id="reader-auth-submit">Submit</button>
@@ -308,9 +138,11 @@ class ReadAloudTool {
         if (code === this.accessCode) {
             this.authenticated = true;
             modal.remove();
-            this.activate();
+            this.openReadAloudTool();
         } else {
             alert('Invalid access code. Please try again.');
+            document.getElementById('reader-auth-input').value = '';
+            document.getElementById('reader-auth-input').focus();
         }
     }
 
@@ -321,466 +153,417 @@ class ReadAloudTool {
             return;
         }
 
-        if (this.isActive) {
-            return; // Already active
-        }
-
-        this.isActive = true;
-        this.createReaderPanel();
-        this.setupSelectionListener();
+        // Open the read aloud tool in a new window
+        this.openReadAloudTool();
     }
 
-    // Deactivate the read aloud tool
-    deactivate() {
-        this.isActive = false;
+    // Open Read Aloud tool in a new window
+    openReadAloudTool() {
+        // Create a new window with text-to-speech interface
+        const windowFeatures = 'width=600,height=700,left=150,top=100,resizable=yes,scrollbars=yes';
+        const readerWindow = window.open('', 'ReadAloudTool', windowFeatures);
 
-        // Stop any ongoing speech
-        if (this.speaking) {
-            this.synth.cancel();
-            this.speaking = false;
-            this.paused = false;
-        }
-
-        // Remove panel if it exists
-        const panel = document.querySelector('.reader-panel');
-        if (panel) {
-            panel.remove();
-        }
-
-        // Remove any popup
-        const popup = document.querySelector('.reader-selection-popup');
-        if (popup) {
-            popup.remove();
-        }
-
-        // Remove selection listener
-        document.removeEventListener('mouseup', this.handleSelection);
-    }
-
-    // Create the main reader panel
-    createReaderPanel() {
-        const panel = document.createElement('div');
-        panel.className = 'reader-panel active';
-
-        let voiceOptions = '';
-        // Filter for voices that support English or are the default
-        const englishVoices = this.availableVoices.filter(voice =>
-            voice.lang.includes('en') || voice.default
-        );
-
-        // Create voice options, prioritizing English voices
-        if (englishVoices.length > 0) {
-            englishVoices.forEach(voice => {
-                voiceOptions += `<option value="${voice.name}" ${voice.default ? 'selected' : ''}>${voice.name} (${voice.lang})</option>`;
-            });
-        } else {
-            // Fallback to all voices if no English voices are available
-            this.availableVoices.forEach(voice => {
-                voiceOptions += `<option value="${voice.name}" ${voice.default ? 'selected' : ''}>${voice.name} (${voice.lang})</option>`;
-            });
-        }
-
-        panel.innerHTML = `
-      <div class="reader-header">
-        <h3>Read Aloud Tool</h3>
-        <div class="reader-controls">
-          <button class="reader-btn reader-minimize" title="Minimize">_</button>
-          <button class="reader-btn reader-close" title="Close">×</button>
-        </div>
-      </div>
-      <div class="reader-content">
-        <div>
-          <textarea class="reader-textarea" id="reader-text" placeholder="Select text from the assessment or type/paste text here to be read aloud..."></textarea>
-        </div>
-        <div class="reader-options">
-          <div class="reader-option-group">
-            <label for="reader-voice">Voice</label>
-            <select id="reader-voice">
-              ${voiceOptions}
-            </select>
-          </div>
-          <div class="reader-option-group">
-            <label for="reader-rate">Speed</label>
-            <input type="range" id="reader-rate" min="0.5" max="2" step="0.1" value="${this.defaultRate}">
-          </div>
-          <div class="reader-option-group">
-            <label for="reader-pitch">Pitch</label>
-            <input type="range" id="reader-pitch" min="0.5" max="2" step="0.1" value="${this.defaultPitch}">
-          </div>
-        </div>
-        <div class="reader-action-buttons">
-          <button class="reader-action-btn primary" id="reader-play">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-            Play
-          </button>
-          <button class="reader-action-btn secondary" id="reader-pause" disabled>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
-            Pause
-          </button>
-          <button class="reader-action-btn secondary" id="reader-stop" disabled>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
-            Stop
-          </button>
-        </div>
-      </div>
-      <div class="reader-footer">
-        <span>Text-to-Speech</span>
-        <span id="reader-status">Ready</span>
-      </div>
-    `;
-
-        document.body.appendChild(panel);
-
-        // Make panel draggable
-        this.makeDraggable(panel);
-
-        // Setup event listeners
-        this.setupPanelListeners(panel);
-    }
-
-    // Setup event listeners for the panel
-    setupPanelListeners(panel) {
-        // Close button
-        panel.querySelector('.reader-close').addEventListener('click', () => {
-            this.deactivate();
-        });
-
-        // Minimize button
-        panel.querySelector('.reader-minimize').addEventListener('click', () => {
-            panel.classList.toggle('active');
-
-            // Change button text based on state
-            const btn = panel.querySelector('.reader-minimize');
-            btn.textContent = panel.classList.contains('active') ? '_' : '□';
-            btn.title = panel.classList.contains('active') ? 'Minimize' : 'Maximize';
-        });
-
-        // Play button
-        panel.querySelector('#reader-play').addEventListener('click', () => {
-            const text = panel.querySelector('#reader-text').value.trim();
-            if (text) {
-                if (this.paused) {
-                    this.resumeSpeech();
-                } else {
-                    this.speak(text);
-                }
-            } else {
-                panel.querySelector('#reader-status').textContent = 'No text to read';
-                setTimeout(() => {
-                    panel.querySelector('#reader-status').textContent = 'Ready';
-                }, 2000);
-            }
-        });
-
-        // Pause button
-        panel.querySelector('#reader-pause').addEventListener('click', () => {
-            if (this.speaking) {
-                if (this.paused) {
-                    this.resumeSpeech();
-                } else {
-                    this.pauseSpeech();
-                }
-            }
-        });
-
-        // Stop button
-        panel.querySelector('#reader-stop').addEventListener('click', () => {
-            this.stopSpeech();
-        });
-
-        // Handle voice, rate, pitch changes
-        panel.querySelector('#reader-voice').addEventListener('change', () => {
-            if (this.speaking && !this.paused) {
-                // If currently speaking, restart with new voice
-                const text = this.currentText;
-                this.stopSpeech();
-                setTimeout(() => {
-                    this.speak(text);
-                }, 100);
-            }
-        });
-
-        // Speed and pitch sliders
-        const rateControl = panel.querySelector('#reader-rate');
-        rateControl.addEventListener('change', () => {
-            this.defaultRate = parseFloat(rateControl.value);
-            panel.querySelector('#reader-status').textContent = `Speed: ${this.defaultRate.toFixed(1)}x`;
-            setTimeout(() => {
-                panel.querySelector('#reader-status').textContent = 'Ready';
-            }, 1000);
-        });
-
-        const pitchControl = panel.querySelector('#reader-pitch');
-        pitchControl.addEventListener('change', () => {
-            this.defaultPitch = parseFloat(pitchControl.value);
-            panel.querySelector('#reader-status').textContent = `Pitch: ${this.defaultPitch.toFixed(1)}`;
-            setTimeout(() => {
-                panel.querySelector('#reader-status').textContent = 'Ready';
-            }, 1000);
-        });
-    }
-
-    // Make an element draggable
-    makeDraggable(element) {
-        const header = element.querySelector('.reader-header');
-        let isDragging = false;
-        let offsetX, offsetY;
-
-        header.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            offsetX = e.clientX - element.getBoundingClientRect().left;
-            offsetY = e.clientY - element.getBoundingClientRect().top;
-
-            // Add event listeners for dragging
-            document.addEventListener('mousemove', handleMouseMove);
-            document.addEventListener('mouseup', () => {
-                isDragging = false;
-                document.removeEventListener('mousemove', handleMouseMove);
-            });
-        });
-
-        function handleMouseMove(e) {
-            if (isDragging) {
-                const x = e.clientX - offsetX;
-                const y = e.clientY - offsetY;
-
-                // Ensure the panel stays within viewport
-                const maxX = window.innerWidth - element.offsetWidth;
-                const maxY = window.innerHeight - element.offsetHeight;
-
-                element.style.left = `${Math.max(0, Math.min(x, maxX))}px`;
-                element.style.top = `${Math.max(0, Math.min(y, maxY))}px`;
-            }
-        }
-    }
-
-    // Setup text selection listener
-    setupSelectionListener() {
-        this.handleSelection = () => {
-            if (!this.isActive) return;
-
-            const selection = window.getSelection();
-            if (!selection.toString().trim()) return;
-
-            try {
-                // Get selection coordinates
-                const range = selection.getRangeAt(0);
-                const rect = range.getBoundingClientRect();
-
-                // Get selected text
-                const text = selection.toString().trim();
-
-                // Update text in panel
-                const panel = document.querySelector('.reader-panel');
-                if (panel) {
-                    panel.querySelector('#reader-text').value = text;
-                }
-
-                // Show popup for quick reading
-                this.showReadPopup(text, rect);
-            } catch (e) {
-                console.error('Error handling selection', e);
-            }
-        };
-
-        document.addEventListener('mouseup', this.handleSelection);
-    }
-
-    // Show popup for quick reading of selected text
-    showReadPopup(text, rect) {
-        // Remove existing popup
-        const existingPopup = document.querySelector('.reader-selection-popup');
-        if (existingPopup) {
-            existingPopup.remove();
-        }
-
-        // Create new popup
-        const popup = document.createElement('div');
-        popup.className = 'reader-selection-popup';
-        popup.innerHTML = `<span>🔊 Read Aloud</span>`;
-
-        // Position the popup near the selection
-        popup.style.left = `${rect.left + window.scrollX}px`;
-        popup.style.top = `${rect.bottom + window.scrollY + 5}px`;
-
-        document.body.appendChild(popup);
-
-        // Ensure popup stays in viewport
-        const popupRect = popup.getBoundingClientRect();
-        if (popupRect.right > window.innerWidth) {
-            popup.style.left = `${window.innerWidth - popupRect.width - 10}px`;
-        }
-        if (popupRect.bottom > window.innerHeight) {
-            popup.style.top = `${rect.top + window.scrollY - popupRect.height - 5}px`;
-        }
-
-        // Add click event
-        popup.addEventListener('click', () => {
-            this.speak(text);
-            popup.remove();
-        });
-
-        // Auto-remove after 5 seconds
-        setTimeout(() => {
-            if (document.body.contains(popup)) {
-                popup.remove();
-            }
-        }, 5000);
-    }
-
-    // Start speaking the text
-    speak(text) {
-        if (!this.synth) {
-            alert('Your browser does not support text-to-speech functionality');
+        if (!readerWindow) {
+            alert('Please allow popups to use the read aloud tool. Check your browser settings.');
             return;
         }
 
-        // Stop any current speech
-        if (this.speaking) {
-            this.synth.cancel();
+        // Create HTML content for the reader window
+        readerWindow.document.write(`
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Read Aloud Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-
-        // Store current text
-        this.currentText = text;
-
-        // Create utterance
-        const utterance = new SpeechSynthesisUtterance(text);
-
-        // Get selected voice
-        const voiceSelect = document.querySelector('#reader-voice');
-        if (voiceSelect) {
-            const selectedVoice = this.availableVoices.find(voice => voice.name === voiceSelect.value);
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: #0a2b72;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 20px;
+        }
+        
+        .textarea-container {
+            margin-bottom: 20px;
+        }
+        
+        .textarea-container label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #374151;
+        }
+        
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            transition: border-color 0.2s;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #0a2b72;
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .control-group label {
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: #4b5563;
+            font-weight: 500;
+        }
+        
+        select, input[type="range"] {
+            padding: 8px;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .range-value {
+            text-align: center;
+            margin-top: 5px;
+            font-size: 12px;
+            color: #6b7280;
+        }
+        
+        .button-group {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        
+        button {
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn-play {
+            background: #10b981;
+            color: white;
+        }
+        
+        .btn-play:hover {
+            background: #059669;
+        }
+        
+        .btn-pause {
+            background: #f59e0b;
+            color: white;
+        }
+        
+        .btn-pause:hover {
+            background: #d97706;
+        }
+        
+        .btn-stop {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .btn-stop:hover {
+            background: #dc2626;
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 12px;
+            background: #f3f4f6;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 14px;
+            color: #4b5563;
+        }
+        
+        .info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #dbeafe;
+            border-left: 4px solid #3b82f6;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #1e40af;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔊 Read Aloud Tool</h1>
+            <p>Text-to-Speech Assistant</p>
+        </div>
+        
+        <div class="content">
+            <div class="textarea-container">
+                <label for="textInput">Enter or paste text to be read aloud:</label>
+                <textarea id="textInput" placeholder="Type or paste your text here..."></textarea>
+            </div>
+            
+            <div class="controls">
+                <div class="control-group">
+                    <label for="voiceSelect">Voice:</label>
+                    <select id="voiceSelect"></select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="rateControl">Speed: <span id="rateValue">1.0x</span></label>
+                    <input type="range" id="rateControl" min="0.5" max="2" step="0.1" value="1">
+                </div>
+                
+                <div class="control-group">
+                    <label for="pitchControl">Pitch: <span id="pitchValue">1.0</span></label>
+                    <input type="range" id="pitchControl" min="0.5" max="2" step="0.1" value="1">
+                </div>
+                
+                <div class="control-group">
+                    <label for="volumeControl">Volume: <span id="volumeValue">100%</span></label>
+                    <input type="range" id="volumeControl" min="0" max="1" step="0.1" value="1">
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button id="playBtn" class="btn-play">
+                    ▶ Play
+                </button>
+                <button id="pauseBtn" class="btn-pause" disabled>
+                    ⏸ Pause
+                </button>
+                <button id="stopBtn" class="btn-stop" disabled>
+                    ⏹ Stop
+                </button>
+            </div>
+            
+            <div class="status" id="status">Ready to read</div>
+            
+            <div class="info">
+                💡 <strong>Tip:</strong> You can copy text from your assessment and paste it here to have it read aloud.
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Speech Synthesis Setup
+        const synth = window.speechSynthesis;
+        let currentUtterance = null;
+        let isPaused = false;
+        
+        // Elements
+        const textInput = document.getElementById('textInput');
+        const voiceSelect = document.getElementById('voiceSelect');
+        const rateControl = document.getElementById('rateControl');
+        const pitchControl = document.getElementById('pitchControl');
+        const volumeControl = document.getElementById('volumeControl');
+        const playBtn = document.getElementById('playBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const status = document.getElementById('status');
+        
+        // Load voices
+        function loadVoices() {
+            const voices = synth.getVoices();
+            voiceSelect.innerHTML = '';
+            
+            // Prioritize English voices
+            const englishVoices = voices.filter(voice => voice.lang.includes('en'));
+            const otherVoices = voices.filter(voice => !voice.lang.includes('en'));
+            
+            [...englishVoices, ...otherVoices].forEach(voice => {
+                const option = document.createElement('option');
+                option.value = voice.name;
+                option.textContent = \`\${voice.name} (\${voice.lang})\`;
+                if (voice.default) {
+                    option.selected = true;
+                }
+                voiceSelect.appendChild(option);
+            });
+        }
+        
+        // Load voices on page load and when they change
+        loadVoices();
+        if (synth.onvoiceschanged !== undefined) {
+            synth.onvoiceschanged = loadVoices;
+        }
+        
+        // Update slider values
+        rateControl.addEventListener('input', (e) => {
+            document.getElementById('rateValue').textContent = e.target.value + 'x';
+        });
+        
+        pitchControl.addEventListener('input', (e) => {
+            document.getElementById('pitchValue').textContent = e.target.value;
+        });
+        
+        volumeControl.addEventListener('input', (e) => {
+            document.getElementById('volumeValue').textContent = Math.round(e.target.value * 100) + '%';
+        });
+        
+        // Play button
+        playBtn.addEventListener('click', () => {
+            const text = textInput.value.trim();
+            if (!text) {
+                status.textContent = '⚠️ Please enter some text first';
+                return;
+            }
+            
+            if (isPaused) {
+                synth.resume();
+                isPaused = false;
+                pauseBtn.textContent = '⏸ Pause';
+                status.textContent = '🔊 Speaking...';
+            } else {
+                speak(text);
+            }
+        });
+        
+        // Pause button
+        pauseBtn.addEventListener('click', () => {
+            if (synth.speaking && !isPaused) {
+                synth.pause();
+                isPaused = true;
+                pauseBtn.textContent = '▶ Resume';
+                status.textContent = '⏸ Paused';
+            } else if (isPaused) {
+                synth.resume();
+                isPaused = false;
+                pauseBtn.textContent = '⏸ Pause';
+                status.textContent = '🔊 Speaking...';
+            }
+        });
+        
+        // Stop button
+        stopBtn.addEventListener('click', () => {
+            synth.cancel();
+            isPaused = false;
+            updateButtons(false);
+            status.textContent = '⏹ Stopped';
+            setTimeout(() => {
+                status.textContent = 'Ready to read';
+            }, 2000);
+        });
+        
+        // Speak function
+        function speak(text) {
+            synth.cancel();
+            
+            currentUtterance = new SpeechSynthesisUtterance(text);
+            
+            // Get selected voice
+            const voices = synth.getVoices();
+            const selectedVoice = voices.find(voice => voice.name === voiceSelect.value);
             if (selectedVoice) {
-                utterance.voice = selectedVoice;
+                currentUtterance.voice = selectedVoice;
             }
+            
+            // Set parameters
+            currentUtterance.rate = parseFloat(rateControl.value);
+            currentUtterance.pitch = parseFloat(pitchControl.value);
+            currentUtterance.volume = parseFloat(volumeControl.value);
+            
+            // Event handlers
+            currentUtterance.onstart = () => {
+                updateButtons(true);
+                status.textContent = '🔊 Speaking...';
+            };
+            
+            currentUtterance.onend = () => {
+                updateButtons(false);
+                isPaused = false;
+                status.textContent = '✅ Finished reading';
+                setTimeout(() => {
+                    status.textContent = 'Ready to read';
+                }, 2000);
+            };
+            
+            currentUtterance.onerror = (event) => {
+                console.error('Speech error:', event);
+                updateButtons(false);
+                status.textContent = '❌ Error: ' + event.error;
+            };
+            
+            synth.speak(currentUtterance);
         }
-
-        // Set speech properties
-        utterance.rate = this.defaultRate;
-        utterance.pitch = this.defaultPitch;
-        utterance.volume = this.defaultVolume;
-
-        // Event handlers
-        utterance.onstart = () => {
-            this.speaking = true;
-            this.paused = false;
-            this.updateControlStates();
-            document.querySelector('#reader-status').textContent = 'Speaking...';
-        };
-
-        utterance.onend = () => {
-            this.speaking = false;
-            this.paused = false;
-            this.updateControlStates();
-            document.querySelector('#reader-status').textContent = 'Ready';
-        };
-
-        utterance.onerror = (event) => {
-            console.error('Speech error:', event.error);
-            this.speaking = false;
-            this.paused = false;
-            this.updateControlStates();
-            document.querySelector('#reader-status').textContent = `Error: ${event.error}`;
-        };
-
-        // Start speaking
-        this.synth.speak(utterance);
-    }
-
-    // Pause speech
-    pauseSpeech() {
-        if (this.speaking && !this.paused) {
-            this.synth.pause();
-            this.paused = true;
-            this.updateControlStates();
-            document.querySelector('#reader-status').textContent = 'Paused';
-            document.querySelector('#reader-pause').textContent = 'Resume';
+        
+        // Update button states
+        function updateButtons(isSpeaking) {
+            playBtn.disabled = isSpeaking;
+            pauseBtn.disabled = !isSpeaking;
+            stopBtn.disabled = !isSpeaking;
         }
-    }
+    </script>
+</body>
+</html>
+        `);
 
-    // Resume speech
-    resumeSpeech() {
-        if (this.paused) {
-            this.synth.resume();
-            this.paused = false;
-            this.updateControlStates();
-            document.querySelector('#reader-status').textContent = 'Speaking...';
-            document.querySelector('#reader-pause').textContent = 'Pause';
-        }
-    }
-
-    // Stop speech
-    stopSpeech() {
-        this.synth.cancel();
-        this.speaking = false;
-        this.paused = false;
-        this.updateControlStates();
-        document.querySelector('#reader-status').textContent = 'Stopped';
-        setTimeout(() => {
-            document.querySelector('#reader-status').textContent = 'Ready';
-        }, 1000);
-    }
-
-    // Update the enabled/disabled state of control buttons
-    updateControlStates() {
-        const playBtn = document.querySelector('#reader-play');
-        const pauseBtn = document.querySelector('#reader-pause');
-        const stopBtn = document.querySelector('#reader-stop');
-
-        if (this.speaking) {
-            playBtn.disabled = this.paused ? false : true;
-            pauseBtn.disabled = false;
-            stopBtn.disabled = false;
-        } else {
-            playBtn.disabled = false;
-            pauseBtn.disabled = true;
-            stopBtn.disabled = true;
-        }
-
-        // Update pause button text
-        if (pauseBtn) {
-            pauseBtn.innerHTML = this.paused
-                ? `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Resume`
-                : `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg> Pause`;
-        }
-    }
-
-    // Extract text from assessment content
-    extractTextFromAssessment() {
-        try {
-            // Try to access the display frame
-            const displayFrame = document.getElementById('displayFrame');
-            if (!displayFrame) return null;
-
-            let frameDocument;
-            try {
-                // Try to access the content document
-                frameDocument = displayFrame.contentDocument || displayFrame.contentWindow.document;
-            } catch (e) {
-                console.error('Cannot access iframe content due to same-origin policy', e);
-                return null;
-            }
-
-            // Extract text from the document body
-            if (frameDocument && frameDocument.body) {
-                return frameDocument.body.textContent;
-            }
-
-            return null;
-        } catch (e) {
-            console.error('Error extracting text from assessment', e);
-            return null;
-        }
-    }
-
-    // Handle reading the entire assessment
-    readEntireAssessment() {
-        const text = this.extractTextFromAssessment();
-        if (text) {
-            this.speak(text);
-        } else {
-            alert('Could not access assessment content. This may be due to security restrictions or the content structure.');
-        }
+        readerWindow.document.close();
+        console.log('Read Aloud tool opened successfully');
     }
 }
 
