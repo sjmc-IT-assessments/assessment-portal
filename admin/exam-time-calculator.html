@@ -6,26 +6,26 @@
     <title>Exam Invigilation Time Board</title>
     <style>
       :root {
-        color-scheme: light;
         --ink: #16201d;
         --muted: #63706c;
         --line: #dce5e0;
-        --paper: #ffffff;
         --wash: #f3f7f4;
         --green: #1c6b4f;
         --green-dark: #114935;
         --teal: #0f766e;
-        --amber: #b7791f;
         --red: #b42318;
         --shadow: 0 18px 42px rgba(20, 39, 32, 0.13);
+
+        --reading-bg: #eff6ff; --reading-border: #93c5fd; --reading-fg: #1d4ed8;
+        --start-bg:   #f0fdf4; --start-border:   #86efac; --start-fg:   #15803d;
+        --halfway-bg: #fefce8; --halfway-border: #fde047; --halfway-fg: #854d0e;
+        --warning-bg: #fff7ed; --warning-border: #fdba74; --warning-fg: #c2410c;
+        --end-bg:     #fff1f2; --end-border:     #fda4af; --end-fg:     #be123c;
       }
 
-      * {
-        box-sizing: border-box;
-      }
+      *, *::before, *::after { box-sizing: border-box; margin: 0; }
 
       body {
-        margin: 0;
         min-height: 100vh;
         color: var(--ink);
         background:
@@ -34,137 +34,219 @@
         background-attachment: fixed;
         background-position: center;
         background-size: cover;
-        font-family:
-          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-          "Segoe UI", sans-serif;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+        font-size: 15px;
+        line-height: 1.5;
       }
 
-      button,
-      input {
-        font: inherit;
-      }
+      button, input { font: inherit; }
+      button { cursor: pointer; }
 
-      button {
-        cursor: pointer;
-      }
-
+      /* ── Shell ── */
       .shell {
-        width: min(1180px, calc(100% - 32px));
+        width: min(1240px, calc(100% - 32px));
         margin: 0 auto;
-        padding: 28px 0 44px;
+        padding: 24px 0 52px;
       }
 
+      /* ── Topbar ── */
       .topbar {
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-        margin-bottom: 22px;
+        gap: 12px;
+        margin-bottom: 18px;
+        flex-wrap: wrap;
       }
 
       .brand {
         display: flex;
         align-items: center;
-        gap: 12px;
-        min-width: 0;
+        gap: 11px;
+        flex-shrink: 0;
       }
 
       .mark {
         display: grid;
-        width: 46px;
-        height: 46px;
-        flex: 0 0 auto;
         place-items: center;
-        border: 1px solid rgba(28, 107, 79, 0.2);
+        width: 44px;
+        height: 44px;
+        flex-shrink: 0;
+        border: 1px solid rgba(28, 107, 79, 0.22);
         border-radius: 8px;
-        background: rgba(255, 255, 255, 0.82);
-        box-shadow: 0 8px 22px rgba(19, 71, 53, 0.08);
+        background: rgba(255, 255, 255, 0.85);
+        box-shadow: 0 4px 14px rgba(19, 71, 53, 0.08);
       }
 
-      .brand h1 {
-        margin: 0;
-        font-size: clamp(1.5rem, 3vw, 2.45rem);
-        line-height: 1.04;
-        letter-spacing: 0;
+      .brand-text h1 {
+        font-size: 1.3rem;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+        line-height: 1.1;
       }
 
-      .brand p {
-        margin: 5px 0 0;
-        color: #44504c;
-        font-size: 0.98rem;
+      .brand-text p {
+        font-size: 0.82rem;
+        color: var(--muted);
+        margin-top: 1px;
       }
 
-      .actions {
+      .session-fields {
+        flex: 1 1 300px;
         display: flex;
-        flex-wrap: wrap;
-        justify-content: flex-end;
-        gap: 10px;
+        gap: 8px;
+        min-width: 0;
       }
 
+      .session-fields input {
+        min-height: 40px;
+        border: 1px solid #cfdad4;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.88);
+        color: var(--ink);
+        padding: 8px 12px;
+        outline: none;
+        transition: border-color 0.15s, box-shadow 0.15s;
+      }
+
+      .session-fields input::placeholder { color: #8fa39c; }
+      .session-fields input:focus {
+        border-color: var(--teal);
+        box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+      }
+
+      #sessionTitle { flex: 1 1 180px; min-width: 0; }
+      #sessionDate  { flex: 0 0 148px; }
+
+      .topbar-actions {
+        display: flex;
+        gap: 7px;
+        flex-shrink: 0;
+      }
+
+      /* ── Buttons ── */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        min-height: 38px;
+        padding: 7px 13px;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        background: #fff;
+        color: var(--ink);
+        font-weight: 700;
+        font-size: 0.87rem;
+        line-height: 1;
+        text-decoration: none;
+        white-space: nowrap;
+        transition: background 0.13s, border-color 0.13s, color 0.13s;
+      }
+
+      .btn svg { flex-shrink: 0; width: 15px; height: 15px; }
+
+      .btn.primary { background: var(--green); color: #fff; border-color: var(--green); }
+      .btn.primary:hover { background: var(--green-dark); border-color: var(--green-dark); }
+      .btn.secondary { border-color: #c4d3cc; }
+      .btn.secondary:hover { border-color: var(--teal); color: var(--teal); }
+      .btn.ghost { color: var(--muted); }
+      .btn.ghost:hover { background: #edf3ef; color: var(--ink); }
+      .btn.danger { color: var(--red); border-color: #f0c9c5; }
+      .btn.danger:hover { background: #fff0ef; }
+      .btn.icon { width: 36px; min-width: 36px; padding: 0; }
+      .btn:disabled { opacity: 0.42; pointer-events: none; }
+
+      /* ── Two-column layout ── */
       .layout {
         display: grid;
-        grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.95fr);
-        gap: 18px;
+        grid-template-columns: minmax(0, 1.1fr) minmax(340px, 0.9fr);
+        gap: 16px;
         align-items: start;
       }
 
-      .panel,
-      .board {
+      /* ── Card ── */
+      .card {
         border: 1px solid rgba(220, 229, 224, 0.9);
-        border-radius: 8px;
-        background: rgba(255, 255, 255, 0.92);
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.93);
         box-shadow: var(--shadow);
         backdrop-filter: blur(8px);
       }
 
-      .panel {
-        padding: 18px;
-      }
+      .panel { padding: 18px; }
 
-      .section-title {
+      /* ── Section headers ── */
+      .section-head {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 14px;
-        margin-bottom: 16px;
+        gap: 12px;
+        margin-bottom: 13px;
       }
 
-      h2 {
-        margin: 0;
-        font-size: 1.06rem;
-        letter-spacing: 0;
-      }
+      .section-head h2 { font-size: 1rem; font-weight: 800; }
+      .hint { font-size: 0.81rem; color: var(--muted); margin-top: 2px; }
 
-      .hint,
-      .summary {
-        color: var(--muted);
-        font-size: 0.92rem;
-      }
-
+      /* ── Settings grid ── */
       .settings {
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 12px;
+        gap: 10px;
         margin-bottom: 16px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--line);
       }
 
+      .field > label {
+        display: block;
+        font-size: 0.77rem;
+        font-weight: 700;
+        color: #46534e;
+        margin-bottom: 5px;
+        letter-spacing: 0.01em;
+        text-transform: uppercase;
+      }
+
+      .field input[type="number"],
+      .field input[type="time"] {
+        width: 100%;
+        min-height: 38px;
+        border: 1px solid #cfdad4;
+        border-radius: 6px;
+        background: #fff;
+        color: var(--ink);
+        padding: 7px 10px;
+        outline: none;
+        transition: border-color 0.15s, box-shadow 0.15s;
+      }
+
+      .field input:focus {
+        border-color: var(--teal);
+        box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+      }
+
+      .field input:disabled { color: #8b9692; background: #f2f4f3; }
+
+      /* ── Mode toggle ── */
       .mode-toggle {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 4px;
-        min-height: 42px;
+        gap: 3px;
+        min-height: 38px;
         border: 1px solid #cfdad4;
         border-radius: 6px;
         background: #edf3ef;
-        padding: 4px;
+        padding: 3px;
       }
 
       .mode-toggle button {
         border: 0;
         border-radius: 4px;
         background: transparent;
-        color: #43504b;
-        font-weight: 800;
+        color: #546059;
+        font-weight: 700;
+        font-size: 0.87rem;
+        transition: background 0.13s, color 0.13s, box-shadow 0.13s;
       }
 
       .mode-toggle button.active {
@@ -173,422 +255,493 @@
         box-shadow: 0 2px 8px rgba(19, 71, 53, 0.1);
       }
 
-      label {
-        display: block;
-        color: #394541;
-        font-size: 0.82rem;
-        font-weight: 700;
-        margin-bottom: 7px;
+      /* ── Subject cards ── */
+      .subject-list { display: grid; gap: 10px; }
+
+      .subject-card {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--wash);
+        overflow: hidden;
+        transition: box-shadow 0.15s;
       }
 
-      input[type="text"],
-      input[type="number"],
-      input[type="time"] {
+      .subject-card:focus-within { box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.22); }
+
+      .subject-main {
+        display: grid;
+        grid-template-columns: minmax(150px, 1.6fr) minmax(95px, 0.65fr) auto;
+        gap: 9px;
+        align-items: end;
+        padding: 12px 12px 10px;
+      }
+
+      .subject-main .field > label {
+        text-transform: none;
+        letter-spacing: 0;
+      }
+
+      .subject-main input {
         width: 100%;
-        min-height: 42px;
+        min-height: 36px;
         border: 1px solid #cfdad4;
         border-radius: 6px;
         background: #fff;
         color: var(--ink);
-        padding: 10px 11px;
+        padding: 7px 10px;
         outline: none;
-        transition:
-          border-color 0.16s ease,
-          box-shadow 0.16s ease;
+        transition: border-color 0.15s, box-shadow 0.15s;
       }
 
-      input:focus {
+      .subject-main input:focus {
         border-color: var(--teal);
-        box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.16);
+        box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
       }
 
-      input:disabled {
-        color: #8b9692;
-        background: #f2f4f3;
+      .subject-btns { display: flex; gap: 5px; align-items: flex-end; }
+
+      /* ── Subject time preview ── */
+      .subject-preview {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 16px;
+        padding: 7px 12px 10px;
+        border-top: 1px dashed #dce5e0;
+        font-size: 0.8rem;
+        color: var(--muted);
       }
 
-      .subject-list {
-        display: grid;
-        gap: 10px;
-      }
-
-      .subject {
-        display: grid;
-        grid-template-columns: minmax(160px, 1.6fr) minmax(110px, 0.72fr) 42px;
-        gap: 10px;
-        align-items: end;
-        padding: 12px;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        background: var(--wash);
-      }
-
-      .concession-options {
-        grid-column: 1 / -1;
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 10px;
-        padding-top: 4px;
-      }
-
-      .concession-option {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) 92px;
-        gap: 8px;
-        align-items: end;
-        border: 1px solid #dce5e0;
-        border-radius: 6px;
-        background: rgba(255, 255, 255, 0.64);
-        padding: 10px;
-      }
-
-      .check-wrap {
-        min-height: 42px;
+      .preview-chip {
         display: flex;
         align-items: center;
-        gap: 9px;
-        padding: 0 4px;
-        font-size: 0.94rem;
+        gap: 5px;
+      }
+
+      .preview-chip .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+
+      .preview-chip .times {
+        font-family: "Roboto Mono", Consolas, monospace;
+        color: var(--green-dark);
+        font-size: 0.82rem;
         font-weight: 700;
       }
 
-      input[type="checkbox"] {
-        width: 20px;
-        height: 20px;
-        accent-color: var(--green);
+      /* ── Concessions ── */
+      .concessions {
+        border-top: 1px solid #e0eae5;
+        padding: 10px 12px 12px;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 9px;
       }
 
-      .btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        min-height: 42px;
-        border: 1px solid transparent;
+      .con-card {
+        border: 1px solid #dce5e0;
         border-radius: 6px;
-        padding: 9px 13px;
+        background: rgba(255, 255, 255, 0.65);
+        padding: 9px;
+        transition: border-color 0.13s, background 0.13s;
+      }
+
+      .con-card.active {
+        border-color: rgba(15, 118, 110, 0.35);
+        background: rgba(240, 253, 250, 0.75);
+      }
+
+      .check-row {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        min-height: 32px;
+      }
+
+      .check-row input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        accent-color: var(--green);
+        flex-shrink: 0;
+      }
+
+      .check-row span { font-size: 0.87rem; font-weight: 700; }
+
+      .con-inputs { margin-top: 7px; display: grid; gap: 5px; }
+
+      .con-inputs label {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #46534e;
+        margin-bottom: 3px;
+      }
+
+      .con-inputs input {
+        width: 100%;
+        min-height: 32px;
+        border: 1px solid #cfdad4;
+        border-radius: 5px;
         background: #fff;
         color: var(--ink);
-        font-weight: 800;
-        line-height: 1;
-        text-decoration: none;
+        padding: 5px 8px;
+        font-size: 0.88rem;
+        outline: none;
+        transition: border-color 0.15s, box-shadow 0.15s;
       }
 
-      .btn.primary {
-        background: var(--green);
-        color: #fff;
-      }
-
-      .btn.primary:hover {
-        background: var(--green-dark);
-      }
-
-      .btn.secondary {
-        border-color: #cbd8d2;
-      }
-
-      .btn.secondary:hover {
+      .con-inputs input:focus {
         border-color: var(--teal);
+        box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
       }
 
-      .btn.icon {
-        width: 42px;
-        padding: 0;
+      .con-inputs input:disabled { color: #8b9692; background: #f2f4f3; }
+
+      .con-extra {
+        font-size: 0.74rem;
+        color: var(--muted);
+        margin-top: 3px;
+        min-height: 1em;
+        font-family: "Roboto Mono", Consolas, monospace;
       }
 
-      .btn.danger {
-        color: var(--red);
-        border-color: #efd1cd;
-        background: #fff;
+      /* ── Status bar ── */
+      .status-bar {
+        display: flex;
+        align-items: center;
+        min-height: 24px;
+        margin-top: 12px;
       }
 
-      .btn:disabled {
-        cursor: not-allowed;
-        opacity: 0.48;
+      #toast {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--green-dark);
       }
 
-      .board {
-        overflow: hidden;
+      #saveIndicator {
+        margin-left: auto;
+        font-size: 0.76rem;
+        color: var(--muted);
+        opacity: 0;
+        transition: opacity 0.4s;
       }
+
+      #saveIndicator.show { opacity: 1; }
+
+      /* ── Board ── */
+      .board { overflow: hidden; }
 
       .board-head {
         display: flex;
         align-items: flex-start;
         justify-content: space-between;
         gap: 14px;
-        padding: 18px 18px 14px;
+        padding: 16px 18px 14px;
         border-bottom: 1px solid var(--line);
       }
 
-      .board h2 {
-        font-size: 1.35rem;
+      .board-head h2 {
+        font-size: 1.2rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        gap: 8px;
       }
 
-      .board-list {
-        display: grid;
-        padding: 8px 18px 18px;
-      }
-
-      .event {
-        display: grid;
-        grid-template-columns: 78px minmax(0, 1fr);
-        gap: 14px;
-        align-items: start;
-        padding: 12px 0;
-        border-bottom: 1px solid #e6ece9;
-      }
-
-      .event:last-child {
-        border-bottom: 0;
-      }
-
-      .time {
-        color: var(--green-dark);
-        font-family: "Roboto Mono", "SFMono-Regular", Consolas, monospace;
-        font-size: 1.08rem;
-        font-weight: 900;
-      }
-
-      .desc {
-        min-width: 0;
-        font-size: 1.02rem;
-        line-height: 1.35;
-      }
-
-      .tag {
+      .badge {
         display: inline-flex;
         align-items: center;
-        margin-left: 8px;
-        border-radius: 999px;
-        background: #f7ead6;
-        color: #7a4b0b;
-        padding: 3px 8px;
+        padding: 2px 8px;
+        border-radius: 99px;
+        background: #e0ece6;
+        color: var(--green-dark);
         font-size: 0.76rem;
         font-weight: 800;
       }
 
-      .empty {
-        padding: 32px 18px;
-        color: var(--muted);
-        text-align: center;
+      .board-summary { font-size: 0.82rem; color: var(--muted); margin-top: 3px; }
+
+      .board-list { display: grid; }
+
+      /* ── Event rows ── */
+      .event {
+        display: grid;
+        grid-template-columns: 70px minmax(0, 1fr);
+        gap: 12px;
+        align-items: start;
+        padding: 11px 18px;
+        border-bottom: 1px solid #edf0ee;
+        border-left: 3px solid transparent;
       }
 
-      .toast {
-        min-height: 22px;
-        margin-top: 14px;
+      .event:last-child { border-bottom: 0; }
+
+      .event[data-type="Reading"] { border-left-color: var(--reading-border); background: var(--reading-bg); }
+      .event[data-type="Start"]   { border-left-color: var(--start-border);   background: var(--start-bg); }
+      .event[data-type="Halfway"] { border-left-color: var(--halfway-border); background: var(--halfway-bg); }
+      .event[data-type="Warning"] { border-left-color: var(--warning-border); background: var(--warning-bg); }
+      .event[data-type="End"]     { border-left-color: var(--end-border);     background: var(--end-bg); }
+
+      .etime {
+        font-family: "Roboto Mono", "SFMono-Regular", Consolas, monospace;
+        font-size: 1rem;
+        font-weight: 900;
         color: var(--green-dark);
-        font-size: 0.9rem;
-        font-weight: 800;
+        padding-top: 1px;
       }
 
+      .edesc { font-size: 0.94rem; line-height: 1.4; }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        margin-left: 7px;
+        border-radius: 999px;
+        padding: 2px 8px;
+        font-size: 0.72rem;
+        font-weight: 800;
+        vertical-align: middle;
+      }
+
+      .tag[data-type="Reading"] { background: #dbeafe; color: var(--reading-fg); }
+      .tag[data-type="Start"]   { background: #bbf7d0; color: var(--start-fg); }
+      .tag[data-type="Halfway"] { background: #fef08a; color: var(--halfway-fg); }
+      .tag[data-type="Warning"] { background: #fed7aa; color: var(--warning-fg); }
+      .tag[data-type="End"]     { background: #fecdd3; color: var(--end-fg); }
+
+      /* ── Empty state ── */
+      .empty {
+        padding: 44px 18px;
+        text-align: center;
+        color: var(--muted);
+      }
+
+      .empty svg {
+        width: 36px;
+        height: 36px;
+        opacity: 0.3;
+        margin-bottom: 10px;
+      }
+
+      .empty p { font-size: 0.88rem; }
+
+      /* ── SVG base ── */
       svg {
-        width: 18px;
-        height: 18px;
+        width: 16px;
+        height: 16px;
         stroke: currentColor;
-        stroke-width: 2.2;
+        stroke-width: 2;
         stroke-linecap: round;
         stroke-linejoin: round;
         fill: none;
+        vertical-align: middle;
       }
 
-      @media (max-width: 980px) {
-        .layout,
-        .settings {
-          grid-template-columns: 1fr;
-        }
+      /* ── Print-only header ── */
+      .print-header { display: none; }
 
-        .subject {
-          grid-template-columns: repeat(2, minmax(0, 1fr)) 42px;
-        }
-
-        .concession-options {
-          grid-template-columns: 1fr;
-        }
-
-        .subject-name {
-          grid-column: 1 / -1;
-        }
+      /* ── Responsive ── */
+      @media (max-width: 1000px) {
+        .layout { grid-template-columns: 1fr; }
+        .settings { grid-template-columns: repeat(2, 1fr); }
+        .concessions { grid-template-columns: 1fr 1fr; }
       }
 
       @media (max-width: 640px) {
-        .shell {
-          width: min(100% - 22px, 1180px);
-          padding-top: 16px;
-        }
-
-        .topbar,
-        .board-head {
-          align-items: stretch;
-          flex-direction: column;
-        }
-
-        .actions {
-          justify-content: stretch;
-        }
-
-        .actions .btn {
-          flex: 1 1 auto;
-        }
-
-        .subject {
-          grid-template-columns: 1fr 42px;
-        }
-
-        .subject > div:not(.remove-cell) {
-          grid-column: 1 / -1;
-        }
-
-        .remove-cell {
-          grid-column: 2;
-          grid-row: 1;
-          align-self: start;
-        }
-
-        .event {
-          grid-template-columns: 66px minmax(0, 1fr);
-          gap: 10px;
-        }
+        .shell { padding-top: 14px; }
+        .session-fields { flex-direction: column; }
+        #sessionDate { flex: 1 1 auto; }
+        .subject-main { grid-template-columns: 1fr auto; }
+        .subject-main .field:first-child { grid-column: 1 / -1; }
+        .settings { grid-template-columns: 1fr 1fr; }
+        .concessions { grid-template-columns: 1fr; }
+        .event { padding: 10px 14px; }
       }
 
+      /* ── Print ── */
       @media print {
-        body {
-          background: #fff;
-        }
+        body { background: #fff !important; }
 
-        .shell {
-          width: 100%;
-          padding: 0;
-        }
+        .shell { width: 100%; padding: 0; }
 
-        .topbar,
-        .panel,
-        .board-head .actions {
-          display: none;
-        }
+        .topbar, .panel { display: none !important; }
 
-        .layout {
-          display: block;
-        }
+        .layout { display: block; }
 
         .board {
           border: 0;
           box-shadow: none;
+          background: #fff;
         }
 
         .board-head {
-          padding: 0 0 12px;
+          padding: 0 0 10px;
+          border-bottom: 2px solid #000;
         }
 
-        .board-list {
-          padding: 0;
+        .print-header {
+          display: block;
+          padding-bottom: 14px;
+          margin-bottom: 12px;
+          border-bottom: 1px solid #bbb;
         }
+
+        .print-header h2 {
+          font-size: 1.15rem;
+          font-weight: 800;
+          margin-bottom: 2px;
+        }
+
+        .print-header p {
+          font-size: 0.85rem;
+          color: #555;
+        }
+
+        .event {
+          padding: 8px 0;
+          border-left: 0 !important;
+          background: transparent !important;
+          border-bottom: 1px dotted #ddd !important;
+        }
+
+        .event:last-child { border-bottom: 0 !important; }
+
+        .etime { font-size: 0.95rem; }
+
+        .tag {
+          border: 1px solid #999;
+          background: transparent !important;
+          color: #333 !important;
+        }
+
+        .board-list { padding: 0; }
+        .badge { display: none; }
       }
     </style>
   </head>
   <body>
     <main class="shell">
+
+      <!-- Print-only header, populated by JS -->
+      <div class="print-header" id="printHeader"></div>
+
       <header class="topbar">
         <div class="brand">
           <div class="mark" aria-hidden="true">
-            <svg viewBox="0 0 24 24">
-              <path d="M8 2v4" />
-              <path d="M16 2v4" />
-              <path d="M4 10h16" />
-              <path d="M6 4h12a2 2 0 0 1 2 2v14H4V6a2 2 0 0 1 2-2Z" />
-              <path d="m8 15 2 2 5-5" />
+            <svg viewBox="0 0 24 24" style="width:22px;height:22px">
+              <path d="M8 2v4"/><path d="M16 2v4"/><path d="M4 10h16"/>
+              <path d="M6 4h12a2 2 0 0 1 2 2v14H4V6a2 2 0 0 1 2-2Z"/>
+              <path d="m8 15 2 2 5-5"/>
             </svg>
           </div>
-          <div>
-            <h1>Exam Invigilation Time Board</h1>
-            <p>Build the board times once, then copy or print them for staff.</p>
+          <div class="brand-text">
+            <h1>Time Board</h1>
+            <p>Exam Invigilation Calculator</p>
           </div>
         </div>
-        <div class="actions">
-          <a class="btn secondary" href="./index.html" title="Back to Admin Portal">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M19 12H5" />
-              <path d="M12 19l-7-7 7-7" />
-            </svg>
+
+        <div class="session-fields">
+          <input id="sessionTitle" type="text"
+            placeholder="Session title  (e.g. Grade 12 – Morning Session)" />
+          <input id="sessionDate" type="date" title="Exam date" />
+        </div>
+
+        <div class="topbar-actions">
+          <a class="btn ghost" href="./index.html" title="Back to Admin">
+            <svg viewBox="0 0 24 24"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
             Admin
           </a>
-          <button class="btn secondary" id="copyBtn" type="button" title="Copy board list">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <rect x="9" y="9" width="13" height="13" rx="2" />
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-            </svg>
+          <button class="btn ghost" id="resetBtn" title="Clear everything and start fresh">
+            <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            Reset
+          </button>
+          <button class="btn secondary" id="copyBtn" title="Copy board times to clipboard">
+            <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
             Copy
           </button>
-          <button class="btn primary" id="printBtn" type="button" title="Print board list">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M6 9V2h12v7" />
-              <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
-              <path d="M6 14h12v8H6z" />
-            </svg>
+          <button class="btn primary" id="printBtn" title="Print board">
+            <svg viewBox="0 0 24 24"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
             Print
           </button>
         </div>
       </header>
 
       <div class="layout">
-        <section class="panel" aria-labelledby="setupTitle">
-          <div class="section-title">
+
+        <!-- Setup panel -->
+        <section class="card panel" aria-labelledby="setupTitle">
+          <div class="section-head">
             <div>
               <h2 id="setupTitle">Exam Setup</h2>
-              <div class="hint">Choose whether the session is planned from the first reading time or a shared finish.</div>
+              <div class="hint">Set timing mode, reading minutes, and session time.</div>
             </div>
           </div>
 
           <div class="settings">
-            <div>
+            <div class="field">
               <label>Calculate from</label>
               <div class="mode-toggle" role="group" aria-label="Calculate from">
                 <button class="active" id="modeStart" type="button">Start</button>
                 <button id="modeEnd" type="button">End</button>
               </div>
             </div>
-            <div>
-              <label for="readingTime">Reading time</label>
+            <div class="field">
+              <label for="readingTime">Reading time (min)</label>
               <input id="readingTime" type="number" min="0" max="60" step="1" value="10" />
             </div>
-            <div>
+            <div class="field">
               <label for="sessionTime" id="sessionTimeLabel">Session start time</label>
               <input id="sessionTime" type="time" value="13:00" />
             </div>
-            <div>
-              <label for="defaultExtra">Default concession extra</label>
-              <input id="defaultExtra" type="number" min="0" max="60" step="1" value="10" />
+            <div class="field">
+              <label for="defaultExtra">Default concession (min/hr)</label>
+              <input id="defaultExtra" type="number" min="0" max="120" step="1" value="10" />
             </div>
           </div>
 
-          <div class="section-title">
+          <div class="section-head">
             <h2>Subjects</h2>
-            <button class="btn secondary" id="addSubject" type="button" title="Add subject">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 5v14" />
-                <path d="M5 12h14" />
-              </svg>
+            <button class="btn secondary" id="addSubject" type="button">
+              <svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
               Add Subject
             </button>
           </div>
 
           <div class="subject-list" id="subjectList"></div>
-          <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+          <div class="status-bar">
+            <div id="toast" role="status" aria-live="polite"></div>
+            <div id="saveIndicator">&#10003; Saved</div>
+          </div>
         </section>
 
-        <section class="board" aria-labelledby="boardTitle">
+        <!-- Board -->
+        <section class="card board" aria-labelledby="boardTitle">
           <div class="board-head">
             <div>
-              <h2 id="boardTitle">Board Times</h2>
-              <div class="summary" id="summary"></div>
+              <h2 id="boardTitle">
+                Board Times
+                <span class="badge" id="eventCount">0</span>
+              </h2>
+              <div class="board-summary" id="summary"></div>
             </div>
           </div>
           <div class="board-list" id="boardList"></div>
         </section>
+
       </div>
     </main>
 
     <script>
-      const state = {
+      // ── Storage ──────────────────────────────────────────────────────────────
+      const STORAGE_KEY = "examTimeBoard_v2";
+
+      const DEFAULT_STATE = {
+        sessionTitle: "",
+        sessionDate: "",
         calculationMode: "start",
         readingTime: 10,
         sessionStart: "13:00",
@@ -599,69 +752,101 @@
             name: "Accounting",
             duration: 120,
             concessions: [
-              { enabled: true, label: "Concession 1", concessionPerHour: 10 },
-              { enabled: false, label: "Concession 2", concessionPerHour: 15 },
-              { enabled: false, label: "Concession 3", concessionPerHour: 20 },
+              { enabled: true,  label: "Concession 1", concessionPerHour: 10 },
+              { enabled: false, label: "Concession 2", concessionPerHour: 10 },
+              { enabled: false, label: "Concession 3", concessionPerHour: 10 },
             ],
           },
           {
             name: "Geography",
             duration: 180,
             concessions: [
-              { enabled: true, label: "Concession 1", concessionPerHour: 10 },
-              { enabled: false, label: "Concession 2", concessionPerHour: 15 },
-              { enabled: false, label: "Concession 3", concessionPerHour: 20 },
+              { enabled: true,  label: "Concession 1", concessionPerHour: 10 },
+              { enabled: false, label: "Concession 2", concessionPerHour: 10 },
+              { enabled: false, label: "Concession 3", concessionPerHour: 10 },
             ],
           },
         ],
       };
 
+      function loadPersistedState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) return JSON.parse(raw);
+        } catch {}
+        return null;
+      }
+
+      let saveTimer;
+      function queueSave() {
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(() => {
+          try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
+          const ind = document.getElementById("saveIndicator");
+          ind.classList.add("show");
+          clearTimeout(queueSave._hideTimer);
+          queueSave._hideTimer = setTimeout(() => ind.classList.remove("show"), 1800);
+        }, 500);
+      }
+
+      // ── State ────────────────────────────────────────────────────────────────
+      const persisted = loadPersistedState();
+      const state = persisted
+        ? { ...DEFAULT_STATE, ...persisted }
+        : JSON.parse(JSON.stringify(DEFAULT_STATE));
+
+      // ── Element refs ─────────────────────────────────────────────────────────
       const els = {
-        readingTime: document.querySelector("#readingTime"),
-        sessionTime: document.querySelector("#sessionTime"),
+        readingTime:      document.querySelector("#readingTime"),
+        sessionTime:      document.querySelector("#sessionTime"),
         sessionTimeLabel: document.querySelector("#sessionTimeLabel"),
-        modeStart: document.querySelector("#modeStart"),
-        modeEnd: document.querySelector("#modeEnd"),
-        defaultExtra: document.querySelector("#defaultExtra"),
-        subjectList: document.querySelector("#subjectList"),
-        boardList: document.querySelector("#boardList"),
-        summary: document.querySelector("#summary"),
-        toast: document.querySelector("#toast"),
-        addSubject: document.querySelector("#addSubject"),
-        copyBtn: document.querySelector("#copyBtn"),
-        printBtn: document.querySelector("#printBtn"),
+        sessionTitle:     document.querySelector("#sessionTitle"),
+        sessionDate:      document.querySelector("#sessionDate"),
+        modeStart:        document.querySelector("#modeStart"),
+        modeEnd:          document.querySelector("#modeEnd"),
+        defaultExtra:     document.querySelector("#defaultExtra"),
+        subjectList:      document.querySelector("#subjectList"),
+        boardList:        document.querySelector("#boardList"),
+        summary:          document.querySelector("#summary"),
+        eventCount:       document.querySelector("#eventCount"),
+        toast:            document.querySelector("#toast"),
+        addSubject:       document.querySelector("#addSubject"),
+        copyBtn:          document.querySelector("#copyBtn"),
+        printBtn:         document.querySelector("#printBtn"),
+        resetBtn:         document.querySelector("#resetBtn"),
+        printHeader:      document.querySelector("#printHeader"),
       };
 
-      function timeToMinutes(time) {
-        const [hours, minutes] = time.split(":").map(Number);
-        return hours * 60 + minutes;
+      // ── Time helpers ─────────────────────────────────────────────────────────
+      function timeToMinutes(t) {
+        const [h, m] = t.split(":").map(Number);
+        return h * 60 + m;
       }
 
-      function minutesToTime(totalMinutes) {
-        const day = 24 * 60;
-        const normalized = ((totalMinutes % day) + day) % day;
-        const hours = Math.floor(normalized / 60);
-        const minutes = normalized % 60;
-        return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+      function minutesToTime(total) {
+        const day = 1440;
+        const n = ((total % day) + day) % day;
+        return `${String(Math.floor(n / 60)).padStart(2, "0")}:${String(n % 60).padStart(2, "0")}`;
       }
 
-      function cleanNumber(value, fallback = 0) {
-        const number = Number(value);
-        return Number.isFinite(number) ? Math.max(0, number) : fallback;
+      function formatDateLong(dateStr) {
+        if (!dateStr) return "";
+        try {
+          return new Date(dateStr + "T00:00:00").toLocaleDateString("en-ZA", {
+            weekday: "long", year: "numeric", month: "long", day: "numeric",
+          });
+        } catch { return dateStr; }
       }
 
-      function eventType(description) {
-        if (description.includes("reading starts")) return "Reading";
-        if (description.includes("writing starts")) return "Start";
-        if (description.includes("halfway")) return "Halfway";
-        if (description.includes("30 mins left")) return "Warning";
-        if (description.includes("ends")) return "End";
-        return "";
+      function cleanNumber(val, fallback = 0) {
+        const n = Number(val);
+        return Number.isFinite(n) ? Math.max(0, n) : fallback;
       }
 
-      function defaultConcessions(enabledFirst = false) {
+      // ── Concession helpers ───────────────────────────────────────────────────
+      function defaultConcessions() {
         return [
-          { enabled: enabledFirst, label: "Concession 1", concessionPerHour: state.defaultExtra },
+          { enabled: false, label: "Concession 1", concessionPerHour: state.defaultExtra },
           { enabled: false, label: "Concession 2", concessionPerHour: state.defaultExtra },
           { enabled: false, label: "Concession 3", concessionPerHour: state.defaultExtra },
         ];
@@ -677,7 +862,6 @@
             },
           ];
         }
-
         while (subject.concessions.length < 3) {
           subject.concessions.push({
             enabled: false,
@@ -685,207 +869,276 @@
             concessionPerHour: state.defaultExtra,
           });
         }
-
-        subject.concessions = subject.concessions.slice(0, 3).map((concession, index) => ({
-          enabled: Boolean(concession.enabled),
-          label: concession.label || `Concession ${index + 1}`,
-          concessionPerHour: cleanNumber(concession.concessionPerHour, state.defaultExtra),
+        subject.concessions = subject.concessions.slice(0, 3).map((c, i) => ({
+          enabled: Boolean(c.enabled),
+          label: c.label || `Concession ${i + 1}`,
+          concessionPerHour: cleanNumber(c.concessionPerHour, state.defaultExtra),
         }));
-
         return subject.concessions;
       }
 
-      function addExamEvents(events, subjectName, groupName, duration, extraPerHour) {
-        const sessionMinutes = timeToMinutes(
+      // extra minutes for a given duration and rate
+      function calcExtra(duration, ratePerHour) {
+        return Math.ceil(cleanNumber(duration, 0) / 60) * cleanNumber(ratePerHour, 0);
+      }
+
+      // ── Schedule generation ───────────────────────────────────────────────────
+      function addExamEvents(events, label, duration, extraPerHour) {
+        const base = timeToMinutes(
           state.calculationMode === "start" ? state.sessionStart : state.finalEnd
         );
-        const writingDuration = cleanNumber(duration, 0);
-        const extra = Math.ceil(writingDuration / 60) * cleanNumber(extraPerHour, 0);
-        const totalWriting = writingDuration + extra;
+        const writingDur = cleanNumber(duration, 0);
+        const extra = calcExtra(writingDur, extraPerHour);
+        const totalWriting = writingDur + extra;
+        const readingDur = cleanNumber(state.readingTime, 0);
+
         const readingStart =
           state.calculationMode === "start"
-            ? sessionMinutes
-            : sessionMinutes - totalWriting - cleanNumber(state.readingTime, 0);
-        const writingStart = readingStart + cleanNumber(state.readingTime, 0);
-        const endMinutes = writingStart + totalWriting;
-        const label = `${subjectName} ${groupName}`;
+            ? base
+            : base - totalWriting - readingDur;
+        const writingStart = readingStart + readingDur;
+        const endTime = writingStart + totalWriting;
 
-        events.push({ time: readingStart, type: "Reading", label, action: "reading starts" });
+        if (readingDur > 0) {
+          events.push({ time: readingStart, type: "Reading", label, action: "reading starts" });
+        }
         events.push({ time: writingStart, type: "Start", label, action: "writing starts" });
-        events.push({ time: writingStart + Math.floor(totalWriting / 2), type: "Halfway", label, action: "halfway mark" });
-        events.push({ time: endMinutes - 30, type: "Warning", label, action: "30 mins left" });
-        events.push({ time: endMinutes, type: "End", label, action: "ends" });
+        if (totalWriting > 0) {
+          events.push({ time: writingStart + Math.floor(totalWriting / 2), type: "Halfway", label, action: "halfway mark" });
+        }
+        if (totalWriting > 30) {
+          events.push({ time: endTime - 30, type: "Warning", label, action: "30 mins left" });
+        }
+        events.push({ time: endTime, type: "End", label, action: "ends" });
       }
 
       function groupedHeading(type) {
-        if (type === "Reading") return "Reading starts";
-        if (type === "Start") return "Writing starts";
-        if (type === "Halfway") return "Halfway mark";
-        if (type === "Warning") return "30 mins left";
-        if (type === "End") return "Ends";
-        return "Event";
+        return { Reading: "Reading starts", Start: "Writing starts", Halfway: "Halfway mark", Warning: "30 mins left", End: "Ends" }[type] || "Event";
       }
 
       function summarizeLabels(labels, action, type) {
-        const uniqueLabels = [...new Set(labels)];
-        if (uniqueLabels.length === 1) return `${uniqueLabels[0]} ${action}`;
-        return `${groupedHeading(type)}: ${uniqueLabels.join(", ")}`;
+        const u = [...new Set(labels)];
+        return u.length === 1 ? `${u[0]} ${action}` : `${groupedHeading(type)}: ${u.join(", ")}`;
       }
 
       function generateSchedule() {
         const events = [];
-
         state.subjects.forEach((subject) => {
           const name = subject.name.trim() || "Unnamed subject";
-          const duration = cleanNumber(subject.duration, 0);
-          addExamEvents(events, name, "main exam", duration, 0);
+          const dur = cleanNumber(subject.duration, 0);
+          addExamEvents(events, `${name} main exam`, dur, 0);
           ensureConcessions(subject)
-            .filter((concession) => concession.enabled)
-            .forEach((concession) => {
-              addExamEvents(events, name, concession.label, duration, concession.concessionPerHour);
-            });
+            .filter((c) => c.enabled)
+            .forEach((c) => addExamEvents(events, `${name} ${c.label}`, dur, c.concessionPerHour));
         });
 
         const grouped = new Map();
-        events.forEach((event) => {
-          const key = `${event.time}-${event.type}-${event.action}`;
-          if (!grouped.has(key)) {
-            grouped.set(key, {
-              time: event.time,
-              type: event.type,
-              action: event.action,
-              labels: [],
-            });
-          }
-          grouped.get(key).labels.push(event.label);
+        events.forEach((e) => {
+          const key = `${e.time}-${e.type}`;
+          if (!grouped.has(key)) grouped.set(key, { time: e.time, type: e.type, action: e.action, labels: [] });
+          grouped.get(key).labels.push(e.label);
         });
 
         return [...grouped.values()]
-          .map((event) => ({
-            time: event.time,
-            type: event.type,
-            description: summarizeLabels(event.labels, event.action, event.type),
+          .map((e) => ({
+            time: e.time,
+            type: e.type,
+            description: summarizeLabels(e.labels, e.action, e.type),
           }))
           .sort((a, b) => a.time - b.time || a.type.localeCompare(b.type) || a.description.localeCompare(b.description));
       }
 
-      function updateSubject(index, key, value, rerenderSubjects = false) {
-        state.subjects[index][key] = value;
-        if (rerenderSubjects) {
-          render();
-        } else {
-          renderBoard();
-        }
+      // ── Subject time preview ─────────────────────────────────────────────────
+      function subjectPreviewHTML(subject) {
+        const base = timeToMinutes(
+          state.calculationMode === "start" ? state.sessionStart : state.finalEnd
+        );
+        const dur = cleanNumber(subject.duration, 0);
+        const readingDur = cleanNumber(state.readingTime, 0);
+        const readingStart =
+          state.calculationMode === "start" ? base : base - dur - readingDur;
+        const writingStart = readingStart + readingDur;
+        const mainEnd = writingStart + dur;
+
+        const DOT_COLORS = { main: "#16a34a", c1: "#0369a1", c2: "#7c3aed", c3: "#b45309" };
+
+        const chips = [];
+
+        const mainLabel = readingDur > 0
+          ? `${minutesToTime(readingStart)} · ${minutesToTime(writingStart)} – ${minutesToTime(mainEnd)}`
+          : `${minutesToTime(writingStart)} – ${minutesToTime(mainEnd)}`;
+        chips.push(`<span class="preview-chip">
+          <span class="dot" style="background:${DOT_COLORS.main}"></span>
+          <span>Main</span>
+          <span class="times">${mainLabel}</span>
+        </span>`);
+
+        const colors = [DOT_COLORS.c1, DOT_COLORS.c2, DOT_COLORS.c3];
+        ensureConcessions(subject).forEach((c, i) => {
+          if (!c.enabled) return;
+          const extra = calcExtra(dur, c.concessionPerHour);
+          const conEnd = writingStart + dur + extra;
+          chips.push(`<span class="preview-chip">
+            <span class="dot" style="background:${colors[i]}"></span>
+            <span>${escapeHtml(c.label)}</span>
+            <span class="times">+${extra} min → ${minutesToTime(conEnd)}</span>
+          </span>`);
+        });
+
+        return chips.join("");
       }
 
-      function updateConcession(subjectIndex, concessionIndex, key, value, rerenderSubjects = false) {
-        const concessions = ensureConcessions(state.subjects[subjectIndex]);
-        concessions[concessionIndex][key] = value;
-        if (rerenderSubjects) {
-          render();
-        } else {
-          renderBoard();
-        }
-      }
-
-      function removeSubject(index) {
-        state.subjects.splice(index, 1);
-        render();
-      }
-
+      // ── Render: subjects ─────────────────────────────────────────────────────
       function renderSubjects() {
         els.subjectList.innerHTML = "";
-
-        state.subjects.forEach((subject, index) => {
+        state.subjects.forEach((subject, i) => {
           const concessions = ensureConcessions(subject);
-          const row = document.createElement("article");
-          row.className = "subject";
-          row.innerHTML = `
-            <div class="subject-name">
-              <label for="subject-${index}">Subject</label>
-              <input id="subject-${index}" type="text" value="${escapeHtml(subject.name)}" placeholder="Subject name" />
+          const card = document.createElement("article");
+          card.className = "subject-card";
+
+          card.innerHTML = `
+            <div class="subject-main">
+              <div class="field">
+                <label for="sub-name-${i}">Subject</label>
+                <input id="sub-name-${i}" type="text" value="${escapeHtml(subject.name)}" placeholder="Subject name" />
+              </div>
+              <div class="field">
+                <label for="sub-dur-${i}">Duration (min)</label>
+                <input id="sub-dur-${i}" type="number" min="0" step="5" value="${subject.duration}" />
+              </div>
+              <div class="subject-btns">
+                <button class="btn icon secondary" data-action="dup" type="button" title="Duplicate subject">
+                  <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                </button>
+                <button class="btn icon danger" data-action="del" type="button" title="Remove subject" ${state.subjects.length === 1 ? "disabled" : ""}>
+                  <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6 18 21H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+                </button>
+              </div>
             </div>
-            <div>
-              <label for="duration-${index}">Duration</label>
-              <input id="duration-${index}" type="number" min="0" step="5" value="${subject.duration}" />
-            </div>
-            <div class="remove-cell">
-              <button class="btn icon danger" type="button" title="Remove subject" ${state.subjects.length === 1 ? "disabled" : ""}>
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M3 6h18" />
-                  <path d="M8 6V4h8v2" />
-                  <path d="M19 6 18 21H6L5 6" />
-                  <path d="M10 11v6" />
-                  <path d="M14 11v6" />
-                </svg>
-              </button>
-            </div>
-            <div class="concession-options">
-              ${concessions
-                .map(
-                  (concession, concessionIndex) => `
-                    <div class="concession-option">
-                      <div>
-                        <label>Concession ${concessionIndex + 1}</label>
-                        <div class="check-wrap">
-                          <input id="concession-${index}-${concessionIndex}" type="checkbox" ${concession.enabled ? "checked" : ""} />
-                          <span>Use</span>
-                        </div>
-                      </div>
-                      <div>
-                        <label for="extra-${index}-${concessionIndex}">Mins/hr</label>
-                        <input id="extra-${index}-${concessionIndex}" type="number" min="0" step="1" value="${concession.concessionPerHour}" ${concession.enabled ? "" : "disabled"} />
-                      </div>
+            <div class="subject-preview" id="preview-${i}"></div>
+            <div class="concessions">
+              ${concessions.map((c, ci) => `
+                <div class="con-card ${c.enabled ? "active" : ""}" id="concard-${i}-${ci}">
+                  <div class="check-row">
+                    <input id="con-chk-${i}-${ci}" type="checkbox" ${c.enabled ? "checked" : ""} />
+                    <span>${escapeHtml(c.label)}</span>
+                  </div>
+                  <div class="con-inputs" id="coninputs-${i}-${ci}" style="${c.enabled ? "" : "opacity:.5"}">
+                    <div>
+                      <label for="con-rate-${i}-${ci}">Min/hr</label>
+                      <input id="con-rate-${i}-${ci}" type="number" min="0" step="1" value="${c.concessionPerHour}" ${c.enabled ? "" : "disabled"} />
                     </div>
-                  `
-                )
-                .join("")}
+                    <div class="con-extra" id="conextra-${i}-${ci}"></div>
+                  </div>
+                </div>
+              `).join("")}
             </div>
           `;
 
-          row.querySelector(`#subject-${index}`).addEventListener("input", (event) => {
-            updateSubject(index, "name", event.target.value);
+          // Subject name
+          card.querySelector(`#sub-name-${i}`).addEventListener("input", (e) => {
+            state.subjects[i].name = e.target.value;
+            updatePreview(i);
+            renderBoard();
+            queueSave();
           });
-          row.querySelector(`#duration-${index}`).addEventListener("input", (event) => {
-            updateSubject(index, "duration", cleanNumber(event.target.value));
-          });
-          concessions.forEach((concession, concessionIndex) => {
-            row.querySelector(`#concession-${index}-${concessionIndex}`).addEventListener("change", (event) => {
-              updateConcession(index, concessionIndex, "enabled", event.target.checked, true);
-            });
-            row.querySelector(`#extra-${index}-${concessionIndex}`).addEventListener("input", (event) => {
-              updateConcession(index, concessionIndex, "concessionPerHour", cleanNumber(event.target.value));
-            });
-          });
-          row.querySelector(".remove-cell button").addEventListener("click", () => removeSubject(index));
 
-          els.subjectList.append(row);
+          // Duration
+          card.querySelector(`#sub-dur-${i}`).addEventListener("input", (e) => {
+            state.subjects[i].duration = cleanNumber(e.target.value);
+            updatePreview(i);
+            updateConcessionExtras(i);
+            renderBoard();
+            queueSave();
+          });
+
+          // Duplicate / Delete
+          card.querySelector("[data-action='dup']").addEventListener("click", () => duplicateSubject(i));
+          card.querySelector("[data-action='del']").addEventListener("click", () => removeSubject(i));
+
+          // Concession checkboxes + rate inputs
+          concessions.forEach((c, ci) => {
+            card.querySelector(`#con-chk-${i}-${ci}`).addEventListener("change", (e) => {
+              state.subjects[i].concessions[ci].enabled = e.target.checked;
+              render(); // re-render subjects (disables input, updates card class)
+              queueSave();
+            });
+            card.querySelector(`#con-rate-${i}-${ci}`).addEventListener("input", (e) => {
+              state.subjects[i].concessions[ci].concessionPerHour = cleanNumber(e.target.value);
+              updatePreview(i);
+              updateConcessionExtras(i);
+              renderBoard();
+              queueSave();
+            });
+          });
+
+          els.subjectList.append(card);
+          updatePreview(i);
+          updateConcessionExtras(i);
         });
       }
 
+      function updatePreview(i) {
+        const el = document.getElementById(`preview-${i}`);
+        if (el) el.innerHTML = subjectPreviewHTML(state.subjects[i]);
+      }
+
+      function updateConcessionExtras(i) {
+        const subject = state.subjects[i];
+        const dur = cleanNumber(subject.duration, 0);
+        ensureConcessions(subject).forEach((c, ci) => {
+          const el = document.getElementById(`conextra-${i}-${ci}`);
+          if (!el) return;
+          if (c.enabled && dur > 0 && c.concessionPerHour > 0) {
+            const extra = calcExtra(dur, c.concessionPerHour);
+            el.textContent = `+${extra} min total`;
+          } else {
+            el.textContent = "";
+          }
+        });
+      }
+
+      // ── Render: board ────────────────────────────────────────────────────────
       function renderBoard() {
         const schedule = generateSchedule();
         els.boardList.innerHTML = "";
-        const modeText = state.calculationMode === "start" ? "from start time" : "from end time";
-        els.summary.textContent = `${schedule.length} board entries for ${state.subjects.length} subject${state.subjects.length === 1 ? "" : "s"} ${modeText}.`;
+        els.eventCount.textContent = schedule.length;
+
+        // Print header
+        const titleStr = state.sessionTitle.trim() || "Exam Invigilation Time Board";
+        const dateStr = formatDateLong(state.sessionDate);
+        els.printHeader.innerHTML = `<h2>${escapeHtml(titleStr)}</h2>${dateStr ? `<p>${escapeHtml(dateStr)}</p>` : ""}`;
+        document.title = titleStr + (dateStr ? ` – ${dateStr}` : "");
 
         if (!schedule.length) {
-          els.boardList.innerHTML = '<div class="empty">Add at least one subject to generate board times.</div>';
+          els.boardList.innerHTML = `
+            <div class="empty">
+              <svg viewBox="0 0 24 24"><path d="M8 2v4"/><path d="M16 2v4"/><path d="M4 10h16"/>
+              <path d="M6 4h12a2 2 0 0 1 2 2v14H4V6a2 2 0 0 1 2-2Z"/></svg>
+              <p>Add at least one subject to generate board times.</p>
+            </div>`;
+          els.summary.textContent = "";
           return;
         }
+
+        const modeText = state.calculationMode === "start" ? "from start" : "from end";
+        const first = minutesToTime(schedule[0].time);
+        const last = minutesToTime(schedule[schedule.length - 1].time);
+        els.summary.textContent = `${state.subjects.length} subject${state.subjects.length === 1 ? "" : "s"} · ${first} – ${last} · ${modeText}`;
 
         schedule.forEach((event) => {
           const row = document.createElement("div");
           row.className = "event";
-          const type = event.type || eventType(event.description);
+          row.dataset.type = event.type;
           row.innerHTML = `
-            <div class="time">${minutesToTime(event.time)}</div>
-            <div class="desc">${escapeHtml(event.description)}${type ? `<span class="tag">${type}</span>` : ""}</div>
+            <div class="etime">${minutesToTime(event.time)}</div>
+            <div class="edesc">${escapeHtml(event.description)}<span class="tag" data-type="${event.type}">${event.type}</span></div>
           `;
           els.boardList.append(row);
         });
       }
 
+      // ── Full render ──────────────────────────────────────────────────────────
       function render() {
         els.modeStart.classList.toggle("active", state.calculationMode === "start");
         els.modeEnd.classList.toggle("active", state.calculationMode === "end");
@@ -897,82 +1150,136 @@
         renderBoard();
       }
 
-      function escapeHtml(value) {
-        return String(value)
-          .replaceAll("&", "&amp;")
-          .replaceAll("<", "&lt;")
-          .replaceAll(">", "&gt;")
-          .replaceAll('"', "&quot;");
+      // ── Subject actions ──────────────────────────────────────────────────────
+      function removeSubject(i) {
+        state.subjects.splice(i, 1);
+        render();
+        queueSave();
+      }
+
+      function duplicateSubject(i) {
+        const src = state.subjects[i];
+        const copy = JSON.parse(JSON.stringify(src));
+        copy.name = copy.name ? `${copy.name} (copy)` : "";
+        state.subjects.splice(i + 1, 0, copy);
+        render();
+        queueSave();
+        flash("Subject duplicated.");
+      }
+
+      // ── Utilities ────────────────────────────────────────────────────────────
+      function escapeHtml(v) {
+        return String(v)
+          .replaceAll("&", "&amp;").replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;").replaceAll('"', "&quot;");
+      }
+
+      function flash(msg) {
+        els.toast.textContent = msg;
+        clearTimeout(flash._t);
+        flash._t = setTimeout(() => { els.toast.textContent = ""; }, 2400);
       }
 
       function scheduleText() {
-        return generateSchedule()
-          .map((event) => `${minutesToTime(event.time)}  ${event.description}`)
-          .join("\n");
+        const schedule = generateSchedule();
+        const title = state.sessionTitle.trim() || "Exam Invigilation Time Board";
+        const date = formatDateLong(state.sessionDate);
+        const header = [title, date].filter(Boolean).join(" – ");
+        const divider = "─".repeat(Math.max(header.length, 28));
+        return [header, divider, ...schedule.map((e) => `${minutesToTime(e.time)}  ${e.description}`)].join("\n");
       }
 
-      function flash(message) {
-        els.toast.textContent = message;
-        window.clearTimeout(flash.timer);
-        flash.timer = window.setTimeout(() => {
-          els.toast.textContent = "";
-        }, 2200);
-      }
-
-      els.readingTime.addEventListener("input", (event) => {
-        state.readingTime = cleanNumber(event.target.value);
+      // ── Event listeners ──────────────────────────────────────────────────────
+      els.readingTime.addEventListener("input", (e) => {
+        state.readingTime = cleanNumber(e.target.value);
+        renderSubjects(); // previews depend on reading time
         renderBoard();
+        queueSave();
       });
 
-      els.sessionTime.addEventListener("input", (event) => {
-        if (state.calculationMode === "start") {
-          state.sessionStart = event.target.value || "13:00";
-        } else {
-          state.finalEnd = event.target.value || "12:00";
-        }
+      els.sessionTime.addEventListener("input", (e) => {
+        if (state.calculationMode === "start") state.sessionStart = e.target.value || "13:00";
+        else state.finalEnd = e.target.value || "12:00";
+        renderSubjects();
         renderBoard();
+        queueSave();
       });
 
       els.modeStart.addEventListener("click", () => {
         state.calculationMode = "start";
         render();
+        queueSave();
       });
 
       els.modeEnd.addEventListener("click", () => {
         state.calculationMode = "end";
         render();
+        queueSave();
       });
 
-      els.defaultExtra.addEventListener("input", (event) => {
-        state.defaultExtra = cleanNumber(event.target.value, 10);
+      els.defaultExtra.addEventListener("input", (e) => {
+        state.defaultExtra = cleanNumber(e.target.value, 10);
+        queueSave();
+      });
+
+      els.sessionTitle.addEventListener("input", (e) => {
+        state.sessionTitle = e.target.value;
+        renderBoard();
+        queueSave();
+      });
+
+      els.sessionDate.addEventListener("input", (e) => {
+        state.sessionDate = e.target.value;
+        renderBoard();
+        queueSave();
       });
 
       els.addSubject.addEventListener("click", () => {
-        state.subjects.push({
-          name: "",
-          duration: 60,
-          concessions: defaultConcessions(false),
-        });
+        state.subjects.push({ name: "", duration: 60, concessions: defaultConcessions() });
         render();
+        queueSave();
+        // Scroll new card into view
+        requestAnimationFrame(() => {
+          els.subjectList.lastElementChild?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        });
+      });
+
+      els.resetBtn.addEventListener("click", () => {
+        if (!confirm("Reset everything and start fresh? Your current data will be cleared.")) return;
+        Object.assign(state, JSON.parse(JSON.stringify(DEFAULT_STATE)));
+        localStorage.removeItem(STORAGE_KEY);
+        els.sessionTitle.value = "";
+        els.sessionDate.value = "";
+        els.readingTime.value = state.readingTime;
+        els.defaultExtra.value = state.defaultExtra;
+        render();
+        flash("Reset to defaults.");
       });
 
       els.copyBtn.addEventListener("click", async () => {
         const text = scheduleText();
         try {
           await navigator.clipboard.writeText(text);
-          flash("Board times copied.");
         } catch {
-          const textarea = document.createElement("textarea");
-          textarea.value = text;
-          document.body.append(textarea);
-          textarea.select();
+          const ta = document.createElement("textarea");
+          ta.value = text;
+          document.body.append(ta);
+          ta.select();
           document.execCommand("copy");
-          textarea.remove();
-          flash("Board times copied.");
+          ta.remove();
         }
+        flash("Board times copied to clipboard.");
       });
 
       els.printBtn.addEventListener("click", () => window.print());
+
+      // ── Init ─────────────────────────────────────────────────────────────────
+      els.sessionTitle.value = state.sessionTitle;
+      els.sessionDate.value = state.sessionDate;
+      els.readingTime.value = state.readingTime;
+      els.defaultExtra.value = state.defaultExtra;
+
+      if (persisted) flash("Session restored from last visit.");
 
       render();
     </script>
