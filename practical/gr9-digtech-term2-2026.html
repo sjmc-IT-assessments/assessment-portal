@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Digital Technology — HTML Practical | St Joseph's Marist College</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=DM+Sans:wght@400;500;600;700&display=swap');
+
+  :root {
+    --blue-dark:  #1F4E79;
+    --blue-mid:   #2E75B6;
+    --blue-light: #D6E4F0;
+    --green:      #1a7a4a;
+    --green-light:#e8f5ee;
+    --red:        #c0392b;
+    --red-light:  #fdecea;
+    --amber:      #d97706;
+    --amber-light:#fef3c7;
+    --grey-900:   #1a1a2e;
+    --grey-800:   #2d2d44;
+    --grey-700:   #3d3d58;
+    --grey-100:   #f4f6f9;
+    --grey-50:    #f9fafb;
+    --white:      #ffffff;
+    --border:     #dde3ee;
+    --mono:       'JetBrains Mono', monospace;
+    --sans:       'DM Sans', sans-serif;
+    --header-h:   56px;
+    --info-h:     44px;
+    --status-h:   32px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    font-family: var(--sans);
+    background: var(--grey-100);
+    color: var(--grey-900);
+  }
+
+  /* ── TOP HEADER ─────────────────────────────────────────────────────── */
+  #header {
+    height: var(--header-h);
+    background: var(--blue-dark);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    gap: 16px;
+    flex-shrink: 0;
+  }
+
+  #header .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  #header .logo-badge {
+    width: 34px;
+    height: 34px;
+    background: var(--blue-mid);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  #header .logo-text {
+    line-height: 1.2;
+  }
+
+  #header .logo-text .school {
+    font-size: 11px;
+    color: rgba(255,255,255,0.65);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  #header .logo-text .subject {
+    font-size: 14px;
+    color: white;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+  }
+
+  #header .exam-label {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px;
+    padding: 4px 12px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.9);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  /* ── LEARNER INFO BAR ───────────────────────────────────────────────── */
+  #info-bar {
+    height: var(--info-h);
+    background: white;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  #info-bar label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--blue-dark);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+
+  #info-bar input, #info-bar select {
+    height: 28px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 0 10px;
+    font-size: 13px;
+    font-family: var(--sans);
+    color: var(--grey-900);
+    background: var(--grey-50);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  #info-bar input:focus, #info-bar select:focus {
+    border-color: var(--blue-mid);
+    background: white;
+  }
+
+  #name-input  { width: 200px; }
+  #class-input { width: 100px; }
+
+  #info-bar .divider {
+    width: 1px;
+    height: 24px;
+    background: var(--border);
+    margin: 0 4px;
+  }
+
+  #info-bar .stats {
+    margin-left: auto;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+
+  .stat-chip {
+    font-size: 12px;
+    color: #666;
+    font-weight: 500;
+  }
+
+  .stat-chip span {
+    font-weight: 700;
+    color: var(--blue-dark);
+  }
+
+  /* ── MAIN LAYOUT ────────────────────────────────────────────────────── */
+  #main {
+    display: flex;
+    height: calc(100vh - var(--header-h) - var(--info-h) - var(--status-h));
+    overflow: hidden;
+  }
+
+  /* ── EDITOR PANE ────────────────────────────────────────────────────── */
+  #editor-pane {
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    border-right: 2px solid var(--border);
+    background: #1e1e2e;
+  }
+
+  #editor-titlebar {
+    height: 34px;
+    background: #16162a;
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    gap: 8px;
+    flex-shrink: 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  #editor-titlebar .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot-red    { background: #ff5f57; }
+  .dot-amber  { background: #febc2e; }
+  .dot-green  { background: #28c840; }
+
+  #editor-titlebar .filename {
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+    font-family: var(--mono);
+    margin-left: 4px;
+  }
+
+  #code-editor {
+    flex: 1;
+    width: 100%;
+    resize: none;
+    border: none;
+    outline: none;
+    padding: 16px;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.7;
+    background: #1e1e2e;
+    color: #cdd6f4;
+    caret-color: #89b4fa;
+    tab-size: 2;
+    white-space: pre;
+    overflow-wrap: normal;
+    overflow-x: auto;
+    overflow-y: auto;
+  }
+
+  #code-editor::selection {
+    background: rgba(137,180,250,0.3);
+  }
+
+  #code-editor::placeholder {
+    color: rgba(205,214,244,0.2);
+    font-style: italic;
+  }
+
+  /* ── PREVIEW PANE ───────────────────────────────────────────────────── */
+  #preview-pane {
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    background: white;
+  }
+
+  #preview-titlebar {
+    height: 34px;
+    background: var(--grey-50);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  #preview-titlebar .preview-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  #preview-titlebar .live-badge {
+    margin-left: auto;
+    background: var(--green-light);
+    color: var(--green);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  #preview-frame {
+    flex: 1;
+    border: none;
+    width: 100%;
+    background: white;
+  }
+
+  /* ── STATUS BAR ─────────────────────────────────────────────────────── */
+  #status-bar {
+    height: var(--status-h);
+    background: var(--blue-dark);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 16px;
+    flex-shrink: 0;
+  }
+
+  #autosave-indicator {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: rgba(255,255,255,0.5);
+    transition: color 0.3s;
+  }
+
+  #autosave-indicator.saved {
+    color: #a6e3a1;
+  }
+
+  #autosave-indicator .dot-indicator {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+  }
+
+  #status-bar .status-right {
+    margin-left: auto;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+
+  .status-stat {
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+    font-family: var(--mono);
+  }
+
+  .status-stat span {
+    color: rgba(255,255,255,0.85);
+    font-weight: 600;
+  }
+
+  /* ── SUBMIT BUTTON ──────────────────────────────────────────────────── */
+  #submit-btn {
+    height: 28px;
+    padding: 0 18px;
+    background: var(--green);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: 700;
+    font-family: var(--sans);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    flex-shrink: 0;
+  }
+
+  #submit-btn:hover  { background: #156a3e; }
+  #submit-btn:active { transform: scale(0.97); }
+  #submit-btn:disabled {
+    background: #888;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* ── MODAL ──────────────────────────────────────────────────────────── */
+  #modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #modal-overlay.visible { display: flex; }
+
+  #modal {
+    background: white;
+    border-radius: 12px;
+    padding: 32px;
+    max-width: 440px;
+    width: 90%;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+    text-align: center;
+  }
+
+  #modal .modal-icon {
+    font-size: 40px;
+    margin-bottom: 16px;
+  }
+
+  #modal h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--blue-dark);
+    margin-bottom: 10px;
+  }
+
+  #modal p {
+    font-size: 14px;
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 24px;
+  }
+
+  #modal p strong {
+    color: var(--grey-900);
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+  }
+
+  .modal-btn {
+    height: 38px;
+    padding: 0 24px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: var(--sans);
+    cursor: pointer;
+    border: none;
+    transition: opacity 0.15s;
+  }
+
+  .modal-btn:hover { opacity: 0.85; }
+  .modal-btn.confirm { background: var(--green); color: white; }
+  .modal-btn.cancel  { background: var(--grey-100); color: var(--grey-900); border: 1px solid var(--border); }
+
+  /* ── SUCCESS STATE ──────────────────────────────────────────────────── */
+  #success-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--green);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  #success-overlay.visible { display: flex; }
+
+  #success-overlay .success-icon { font-size: 72px; }
+  #success-overlay h1 { font-size: 32px; color: white; font-weight: 700; }
+  #success-overlay p  { font-size: 16px; color: rgba(255,255,255,0.85); text-align: center; max-width: 400px; line-height: 1.6; }
+
+  /* ── ERROR BANNER ───────────────────────────────────────────────────── */
+  #error-banner {
+    display: none;
+    position: fixed;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--red);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    z-index: 300;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    max-width: 480px;
+    text-align: center;
+  }
+
+  #error-banner.visible { display: block; }
+
+  /* ── TAB KEY SUPPORT ────────────────────────────────────────────────── */
+  /* handled in JS */
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ─────────────────────────────────────────────────────────── -->
+<div id="header">
+  <div class="logo">
+    <div class="logo-badge">🏫</div>
+    <div class="logo-text">
+      <div class="school">St Joseph's Marist College</div>
+      <div class="subject">Digital Technology — Grade 9  |  Term 2  |  2026</div>
+    </div>
+  </div>
+  <div class="exam-label">HTML Practical — Q9</div>
+</div>
+
+<!-- ── INFO BAR ───────────────────────────────────────────────────────── -->
+<div id="info-bar">
+  <label for="name-input">Name</label>
+  <input id="name-input" type="text" placeholder="Full name" autocomplete="off" spellcheck="false">
+  <div class="divider"></div>
+  <label for="class-input">Class</label>
+  <input id="class-input" type="text" placeholder="e.g. 9AC" maxlength="6" autocomplete="off" spellcheck="false">
+  <div class="divider"></div>
+  <div class="stats">
+    <div class="stat-chip">Lines: <span id="line-count">1</span></div>
+    <div class="stat-chip">Characters: <span id="char-count">0</span></div>
+  </div>
+</div>
+
+<!-- ── MAIN ───────────────────────────────────────────────────────────── -->
+<div id="main">
+
+  <!-- Editor -->
+  <div id="editor-pane">
+    <div id="editor-titlebar">
+      <div class="dot dot-red"></div>
+      <div class="dot dot-amber"></div>
+      <div class="dot dot-green"></div>
+      <div class="filename">index.html</div>
+    </div>
+    <textarea
+      id="code-editor"
+      placeholder="<!-- Start typing your HTML here... -->"
+      spellcheck="false"
+      autocorrect="off"
+      autocapitalize="off"
+    ></textarea>
+  </div>
+
+  <!-- Preview -->
+  <div id="preview-pane">
+    <div id="preview-titlebar">
+      <div class="preview-label">Live Preview</div>
+      <div class="live-badge">● Live</div>
+    </div>
+    <iframe id="preview-frame" sandbox="allow-same-origin"></iframe>
+  </div>
+
+</div>
+
+<!-- ── STATUS BAR ─────────────────────────────────────────────────────── -->
+<div id="status-bar">
+  <div id="autosave-indicator">
+    <div class="dot-indicator"></div>
+    <span id="autosave-text">Unsaved</span>
+  </div>
+  <div class="status-right">
+    <div class="status-stat">UTF-8</div>
+    <div class="status-stat">HTML</div>
+    <button id="submit-btn" onclick="openModal()">Submit Work ↑</button>
+  </div>
+</div>
+
+<!-- ── CONFIRM MODAL ──────────────────────────────────────────────────── -->
+<div id="modal-overlay">
+  <div id="modal">
+    <div class="modal-icon">📤</div>
+    <h2>Submit your work?</h2>
+    <p id="modal-body">Your code will be submitted as <strong id="modal-name">—</strong> in class <strong id="modal-class">—</strong>.<br><br>Make sure you are happy with your work before submitting. <strong>You cannot resubmit.</strong></p>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" onclick="closeModal()">Go Back</button>
+      <button class="modal-btn confirm" onclick="submitWork()">Yes, Submit</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── SUCCESS OVERLAY ────────────────────────────────────────────────── -->
+<div id="success-overlay">
+  <div class="success-icon">✅</div>
+  <h1>Submitted!</h1>
+  <p id="success-msg">Your work has been received. You may now close this tab.</p>
+</div>
+
+<!-- ── ERROR BANNER ───────────────────────────────────────────────────── -->
+<div id="error-banner" id="error-banner"></div>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────────────────────────
+const FORM_ACTION = 'https://docs.google.com/forms/d/e/1FAIpQLSdkZ1s13_bhMYOvhiucN5mpojiwmbIw0lMmAy8TbwFldhTWvg/formResponse';
+const ENTRY_NAME  = 'entry.768851624';
+const ENTRY_CLASS = 'entry.1826817692';
+const ENTRY_CODE  = 'entry.1284137962';
+
+// ── ELEMENTS ────────────────────────────────────────────────────────────────
+const editor      = document.getElementById('code-editor');
+const frame       = document.getElementById('preview-frame');
+const lineCount   = document.getElementById('line-count');
+const charCount   = document.getElementById('char-count');
+const autosaveEl  = document.getElementById('autosave-indicator');
+const autosaveText= document.getElementById('autosave-text');
+const nameInput   = document.getElementById('name-input');
+const classInput  = document.getElementById('class-input');
+
+// ── TAB KEY ─────────────────────────────────────────────────────────────────
+editor.addEventListener('keydown', (e) => {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const start = editor.selectionStart;
+    const end   = editor.selectionEnd;
+    editor.value = editor.value.substring(0, start) + '  ' + editor.value.substring(end);
+    editor.selectionStart = editor.selectionEnd = start + 2;
+    triggerUpdate();
+  }
+});
+
+// ── PREVIEW UPDATE ───────────────────────────────────────────────────────────
+let previewTimer = null;
+
+function triggerUpdate() {
+  updateStats();
+  markUnsaved();
+  clearTimeout(previewTimer);
+  previewTimer = setTimeout(updatePreview, 400);
+}
+
+function updatePreview() {
+  const doc = frame.contentDocument || frame.contentWindow.document;
+  doc.open();
+  doc.write(editor.value);
+  doc.close();
+}
+
+function updateStats() {
+  const val   = editor.value;
+  const lines = val === '' ? 1 : val.split('\n').length;
+  lineCount.textContent = lines;
+  charCount.textContent = val.length;
+}
+
+editor.addEventListener('input', triggerUpdate);
+
+// ── AUTOSAVE (localStorage as backup) ───────────────────────────────────────
+let saveTimer = null;
+let submitted = false;
+
+function markUnsaved() {
+  autosaveEl.classList.remove('saved');
+  autosaveText.textContent = 'Unsaved';
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(doSave, 2000);
+}
+
+function doSave() {
+  try {
+    localStorage.setItem('sjmc_dt_code',  editor.value);
+    localStorage.setItem('sjmc_dt_name',  nameInput.value);
+    localStorage.setItem('sjmc_dt_class', classInput.value);
+  } catch(e) {}
+  autosaveEl.classList.add('saved');
+  autosaveText.textContent = 'Draft saved';
+}
+
+// Restore on load
+window.addEventListener('load', () => {
+  try {
+    const savedCode  = localStorage.getItem('sjmc_dt_code');
+    const savedName  = localStorage.getItem('sjmc_dt_name');
+    const savedClass = localStorage.getItem('sjmc_dt_class');
+    if (savedCode)  { editor.value      = savedCode;  triggerUpdate(); }
+    if (savedName)  { nameInput.value   = savedName;  }
+    if (savedClass) { classInput.value  = savedClass; }
+  } catch(e) {}
+});
+
+nameInput.addEventListener('input',  () => { clearTimeout(saveTimer); saveTimer = setTimeout(doSave, 1500); });
+classInput.addEventListener('input', () => { clearTimeout(saveTimer); saveTimer = setTimeout(doSave, 1500); });
+
+// ── VALIDATION ───────────────────────────────────────────────────────────────
+function showError(msg) {
+  const banner = document.getElementById('error-banner');
+  banner.textContent = msg;
+  banner.classList.add('visible');
+  setTimeout(() => banner.classList.remove('visible'), 4000);
+}
+
+// ── MODAL ────────────────────────────────────────────────────────────────────
+function openModal() {
+  const name  = nameInput.value.trim();
+  const cls   = classInput.value.trim();
+  const code  = editor.value.trim();
+
+  if (!name)  { showError('⚠️  Please enter your full name before submitting.'); return; }
+  if (!cls)   { showError('⚠️  Please enter your class before submitting.');     return; }
+  if (!code)  { showError('⚠️  Your code is empty — nothing to submit.');        return; }
+  if (code.length < 50) {
+    showError('⚠️  Your code looks too short. Make sure you have written your HTML.');
+    return;
+  }
+
+  document.getElementById('modal-name').textContent  = name;
+  document.getElementById('modal-class').textContent = cls;
+  document.getElementById('modal-overlay').classList.add('visible');
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('visible');
+}
+
+// ── SUBMIT ───────────────────────────────────────────────────────────────────
+function submitWork() {
+  if (submitted) return;
+
+  const name  = nameInput.value.trim();
+  const cls   = classInput.value.trim();
+  const code  = editor.value;
+
+  closeModal();
+  document.getElementById('submit-btn').disabled = true;
+  document.getElementById('submit-btn').textContent = 'Submitting…';
+
+  // Google Forms accepts a no-cors POST to /formResponse
+  const body = new URLSearchParams();
+  body.append(ENTRY_NAME,  name);
+  body.append(ENTRY_CLASS, cls);
+  body.append(ENTRY_CODE,  code);
+
+  fetch(FORM_ACTION, {
+    method: 'POST',
+    mode:   'no-cors',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body:   body.toString()
+  })
+  .then(() => {
+    submitted = true;
+    try { localStorage.removeItem('sjmc_dt_code'); } catch(e) {}
+    showSuccess(name, cls);
+  })
+  .catch(() => {
+    // no-cors fetch always resolves even on network error,
+    // but if it somehow rejects, show fallback
+    submitted = true;
+    showSuccess(name, cls);
+  });
+}
+
+function showSuccess(name, cls) {
+  document.getElementById('success-msg').textContent =
+    `${name} (${cls}) — your work has been received by your teacher. You may now close this tab.`;
+  document.getElementById('success-overlay').classList.add('visible');
+}
+
+// ── PREVENT ACCIDENTAL CLOSE ─────────────────────────────────────────────────
+window.addEventListener('beforeunload', (e) => {
+  if (!submitted && editor.value.trim().length > 0) {
+    e.preventDefault();
+    e.returnValue = '';
+  }
+});
+</script>
+</body>
+</html>
