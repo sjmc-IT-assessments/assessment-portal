@@ -345,15 +345,20 @@ class AssessmentPortal {
     }
 
     launchAssessment(assessment, useEditUrl = false) {
-        const effectiveUrl = (useEditUrl && assessment.editUrl) ? assessment.editUrl : assessment.url;
+        let effectiveUrl = assessment.url;
+
+        if (useEditUrl) {
+            effectiveUrl = effectiveUrl
+                .replace(/\/preview(\?.*)?$/, '/edit')
+                .replace(/\/view(\?.*)?$/, '/edit');
+        }
 
         const isGoogleForm = assessment.type === 'googleform' ||
             effectiveUrl.includes('forms.gle') ||
             effectiveUrl.includes('docs.google.com/forms');
 
-        const isDriveDoc = assessment.type === 'drive' ||
-            (effectiveUrl.includes('docs.google.com') &&
-                !effectiveUrl.includes('forms'));
+        const isDriveDoc = effectiveUrl.includes('docs.google.com') &&
+            !effectiveUrl.includes('forms');
 
         if (isGoogleForm || isDriveDoc) {
             window.location.href = effectiveUrl;

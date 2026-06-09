@@ -631,7 +631,6 @@ class AdminPortal {
       }
 
       document.getElementById("assessmentForm").reset();
-      document.getElementById("editUrlGroup").style.display = "none";
       this.showToast("Assessment saved successfully!", "success");
       await this.loadExams();
 
@@ -1320,9 +1319,7 @@ class AdminPortal {
       date: new Date().toISOString(),
     };
     const typingPassword = document.getElementById("typingPassword")?.value?.trim();
-    const editUrl = document.getElementById("editUrl")?.value?.trim();
     if (typingPassword) formData.typingPassword = typingPassword;
-    if (editUrl) formData.editUrl = editUrl;
     // Optional timer fields — only add if set
     const readingTime = parseInt(document.getElementById("readingTime")?.value) || 0;
     const writingTime = parseInt(document.getElementById("writingTime")?.value) || 0;
