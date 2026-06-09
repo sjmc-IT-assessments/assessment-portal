@@ -1340,18 +1340,6 @@ class AdminPortal {
       throw new Error(`Missing required fields: ${missingFields.join(", ")}`);
     }
 
-    const rawUrl = document.getElementById("driveUrl")?.value || "";
-    const validDomains = [
-      "drive.google.com",
-      "docs.google.com",
-      "forms.gle",
-      "sheets.google.com",
-    ];
-    const isValidUrl = validDomains.some(domain => rawUrl.includes(domain));
-    if (!isValidUrl) {
-      throw new Error("URL must be a Google Drive, Docs, Sheets, or Forms link.");
-    }
-
     return formData;
   }
 
