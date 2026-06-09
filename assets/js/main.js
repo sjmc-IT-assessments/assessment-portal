@@ -319,9 +319,10 @@ class AssessmentPortal {
             }
 
             const assessment = doc.data();
-            if (password === assessment.password) {
+            const isTypingPassword = assessment.typingPassword && password === assessment.typingPassword;
+            if (password === assessment.password || isTypingPassword) {
                 this.closeModal();
-                this.launchAssessment(assessment);
+                this.launchAssessment(assessment, isTypingPassword);
             } else {
                 this.showToast('Incorrect password. Please try again.', 'error');
                 passwordInput.value = '';
@@ -343,20 +344,22 @@ class AssessmentPortal {
         }
     }
 
-    launchAssessment(assessment) {
+    launchAssessment(assessment, useEditUrl = false) {
+        const effectiveUrl = (useEditUrl && assessment.editUrl) ? assessment.editUrl : assessment.url;
+
         const isGoogleForm = assessment.type === 'googleform' ||
-            assessment.url.includes('forms.gle') ||
-            assessment.url.includes('docs.google.com/forms');
+            effectiveUrl.includes('forms.gle') ||
+            effectiveUrl.includes('docs.google.com/forms');
 
         const isDriveDoc = assessment.type === 'drive' ||
-            (assessment.url.includes('docs.google.com') &&
-                !assessment.url.includes('forms'));
+            (effectiveUrl.includes('docs.google.com') &&
+                !effectiveUrl.includes('forms'));
 
         if (isGoogleForm || isDriveDoc) {
-            window.location.href = assessment.url;
+            window.location.href = effectiveUrl;
         } else {
             const examData = {
-                url: assessment.url,
+                url: effectiveUrl,
                 title: `${assessment.subject} - ${assessment.type}`,
                 grade: assessment.grade,
                 subject: assessment.subject,
