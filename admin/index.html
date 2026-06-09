@@ -110,7 +110,8 @@
                         <div class="form-group">
                             <label for="driveUrl">Assessment URL</label>
                             <input type="url" id="driveUrl" required placeholder="https://drive.google.com/file/d/...">
-                            <small class="form-hint">Supports PDF files, Google Forms, Docs, Sheets, or Slides</small>
+                            <small class="form-hint">Supports Google Drive PDFs, Forms, Docs, Sheets, Slides, or any
+                                HTTPS URL</small>
                         </div>
                         <div class="form-group">
                             <label for="scheduledDate">Scheduled Date & Time</label>
@@ -163,7 +164,8 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="password">Password <span style="font-weight:normal;color:#6b7280">(optional — leave blank for open access)</span></label>
+                            <label for="password">Password <span style="font-weight:normal;color:#6b7280">(optional —
+                                    leave blank for open access)</span></label>
                             <div class="password-group">
                                 <input type="text" id="password">
                                 <button type="button" onclick="adminPortal.generatePassword()"
@@ -173,12 +175,15 @@
                         <div class="form-group">
                             <label>Exam Timer <span style="font-weight:normal;color:#6b7280">(optional)</span></label>
                             <div class="datetime-inputs">
-                                <input type="number" id="readingTime" min="0" max="60" placeholder="10" style="width:70px">
+                                <input type="number" id="readingTime" min="0" max="60" placeholder="10"
+                                    style="width:70px">
                                 <span style="font-size:0.9rem;color:#4b5563">min reading</span>
-                                <input type="number" id="writingTime" min="0" max="360" placeholder="60" style="width:70px;margin-left:12px">
+                                <input type="number" id="writingTime" min="0" max="360" placeholder="60"
+                                    style="width:70px;margin-left:12px">
                                 <span style="font-size:0.9rem;color:#4b5563">min writing</span>
                             </div>
-                            <small class="form-hint">Leave blank for no timer. Counts down from the scheduled start time.</small>
+                            <small class="form-hint">Leave blank for no timer. Counts down from the scheduled start
+                                time.</small>
                         </div>
                         <div class="form-group">
                             <label class="checkbox-label">
@@ -206,9 +211,11 @@
                 <!-- Broadcast Message -->
                 <section class="admin-section">
                     <h2>Broadcast Message</h2>
-                    <p style="margin-top:0;color:#6b7280;font-size:0.9rem">Send a message to all active assessment screens instantly.</p>
+                    <p style="margin-top:0;color:#6b7280;font-size:0.9rem">Send a message to all active assessment
+                        screens instantly.</p>
                     <div class="broadcast-controls">
-                        <textarea id="broadcastInput" class="broadcast-input" rows="2" placeholder="e.g. 5 minutes remaining — make sure your name is on your paper"></textarea>
+                        <textarea id="broadcastInput" class="broadcast-input" rows="2"
+                            placeholder="e.g. 5 minutes remaining — make sure your name is on your paper"></textarea>
                         <div class="broadcast-buttons">
                             <select id="broadcastGrade" class="broadcast-grade-select">
                                 <option value="all">All Grades</option>
