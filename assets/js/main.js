@@ -242,7 +242,9 @@ class AssessmentPortal {
         </div>
     </div>
     <p class="assessment-type">
-        ${assessment.type === 'googleform' ? '<span class="form-icon">📝</span> ' : ''}${assessment.type}
+        ${assessment.type === 'googleform' ? '<span class="form-icon">📝</span> Google Form' :
+          assessment.type === 'typing' ? '⌨️ Typing Dispensation' :
+          assessment.type}
     </p>
     <p class="assessment-time">${formattedDate}</p>
     <button class="start-btn ${!isAvailable ? 'disabled' : ''}"
@@ -345,9 +347,10 @@ class AssessmentPortal {
     }
 
     launchAssessment(assessment, useEditUrl = false) {
+        const editMode = useEditUrl || assessment.type === 'typing';
         let effectiveUrl = assessment.url;
 
-        if (useEditUrl) {
+        if (editMode) {
             effectiveUrl = effectiveUrl
                 .replace(/\/preview(\?.*)?$/, '/edit')
                 .replace(/\/view(\?.*)?$/, '/edit');

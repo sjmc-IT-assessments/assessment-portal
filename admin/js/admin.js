@@ -154,6 +154,7 @@ class AdminPortal {
   constructor() {
     this.passwordGenerator = new PasswordGenerator();
     this.isSubmitting = false;
+    this.defaultTypingPassword = '';
     this.calendarService = new CalendarService(calendarConfig);
     try {
       if (!firebase.apps.length) {
@@ -538,6 +539,65 @@ class AdminPortal {
     if (archiveAllBtn) {
       archiveAllBtn.addEventListener("click", () => this.archiveAll());
     }
+
+    const typeSelect = document.getElementById("assessmentType");
+    if (typeSelect) {
+      typeSelect.addEventListener("change", (e) => this.handleAssessmentTypeChange(e.target.value));
+    }
+  }
+
+  handleAssessmentTypeChange(type) {
+    const passwordInput = document.getElementById("password");
+    const urlHint = document.getElementById("urlHint");
+    const urlInput = document.getElementById("driveUrl");
+    if (type === "typing") {
+      if (passwordInput && this.defaultTypingPassword) {
+        passwordInput.value = this.defaultTypingPassword;
+      }
+      if (urlHint) urlHint.textContent = "Enter the Google Doc URL — the learner will be able to type directly in this document.";
+      if (urlInput) urlInput.placeholder = "https://docs.google.com/document/d/...";
+    } else {
+      if (urlHint) urlHint.textContent = "Supports Google Drive PDFs, Forms, Docs, Sheets, Slides, or any HTTPS URL";
+      if (urlInput) urlInput.placeholder = "https://drive.google.com/file/d/...";
+    }
+  }
+
+  ensureEditUrl(url) {
+    if (url.includes("docs.google.com/document")) {
+      return url.replace(/\/(preview|view)(\?.*)?$/, "/edit");
+    }
+    return url;
+  }
+
+  async loadTypingSettings() {
+    try {
+      const doc = await this.db.collection("settings").doc("portal").get();
+      if (doc.exists && doc.data().typingPassword) {
+        this.defaultTypingPassword = doc.data().typingPassword;
+        const el = document.getElementById("defaultTypingPassword");
+        if (el) el.value = this.defaultTypingPassword;
+      }
+    } catch (error) {
+      console.warn("Could not load typing settings:", error);
+    }
+  }
+
+  async saveTypingSettings() {
+    const password = document.getElementById("defaultTypingPassword")?.value?.trim();
+    if (!password) {
+      this.showToast("Please enter a password", "error");
+      return;
+    }
+    try {
+      await this.db.collection("settings").doc("portal").set(
+        { typingPassword: password },
+        { merge: true }
+      );
+      this.defaultTypingPassword = password;
+      this.showToast("Default typing password saved", "success");
+    } catch (error) {
+      this.showToast("Error saving: " + error.message, "error");
+    }
   }
 
   async handleLogin() {
@@ -631,6 +691,7 @@ class AdminPortal {
       }
 
       document.getElementById("assessmentForm").reset();
+      this.handleAssessmentTypeChange("exam");
       this.showToast("Assessment saved successfully!", "success");
       await this.loadExams();
 
@@ -676,6 +737,7 @@ class AdminPortal {
       this.loadExams();
       this.loadBroadcastStatus();
       this.fixExistingExams();
+      this.loadTypingSettings();
     }
   }
 
@@ -1077,11 +1139,9 @@ class AdminPortal {
         item.innerHTML = `
                 <div>
                     <strong>Grade ${exam.grade} - ${exam.subject}</strong>
-                    ${exam.archived
-            ? '<span class="archived-badge">Archived</span>'
-            : ""
-          }<br>
-                    Password: ${exam.password}<br>
+                    ${exam.archived ? '<span class="archived-badge">Archived</span>' : ""}
+                    ${exam.type === "typing" ? '<span class="typing-badge">⌨️ Typing</span>' : ""}<br>
+                    Password: ${exam.password}${exam.type === "typing" ? ' <span style="color:#6b7280;font-size:0.82em">(typing dispensation)</span>' : ""}<br>
                     Scheduled: ${exam.scheduledLocalTime ||
           formatDate(exam.scheduledDate, true)
           }<br>
@@ -1300,13 +1360,13 @@ class AdminPortal {
     // Create a date object in local time zone (just for reference)
     const localDate = new Date(year, month - 1, day, hours, minutes, 0);
 
+    const type = document.getElementById("assessmentType")?.value;
+    const rawUrl = document.getElementById("driveUrl")?.value || "";
     const formData = {
       grade: Number(document.getElementById("grade")?.value),
       subject: document.getElementById("subject")?.value,
-      type: document.getElementById("assessmentType")?.value,
-      url: this.formatDriveUrl(
-        document.getElementById("driveUrl")?.value || ""
-      ),
+      type,
+      url: type === "typing" ? this.ensureEditUrl(rawUrl) : this.formatDriveUrl(rawUrl),
       // Store the timestamp object and display strings
       scheduledTimestamp: timestamp,
       scheduledDisplayDateTime: displayDateTime,
@@ -1318,8 +1378,6 @@ class AdminPortal {
       archived: false,
       date: new Date().toISOString(),
     };
-    const typingPassword = document.getElementById("typingPassword")?.value?.trim();
-    if (typingPassword) formData.typingPassword = typingPassword;
     // Optional timer fields — only add if set
     const readingTime = parseInt(document.getElementById("readingTime")?.value) || 0;
     const writingTime = parseInt(document.getElementById("writingTime")?.value) || 0;

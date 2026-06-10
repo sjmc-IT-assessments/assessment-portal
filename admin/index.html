@@ -104,13 +104,14 @@
                                 <option value="test">Test</option>
                                 <option value="assignment">Assignment</option>
                                 <option value="googleform">Google Form</option>
+                                <option value="typing">Typing Dispensation</option>
                             </select>
                         </div>
 
                         <div class="form-group">
                             <label for="driveUrl">Assessment URL</label>
                             <input type="url" id="driveUrl" required placeholder="https://drive.google.com/file/d/...">
-                            <small class="form-hint">Supports Google Drive PDFs, Forms, Docs, Sheets, Slides, or any
+                            <small class="form-hint" id="urlHint">Supports Google Drive PDFs, Forms, Docs, Sheets, Slides, or any
                                 HTTPS URL</small>
                         </div>
                         <div class="form-group">
@@ -173,17 +174,6 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="typingPassword">Typing Dispensation Password <span
-                                    style="font-weight:normal;color:#6b7280">(optional)</span></label>
-                            <div class="password-group">
-                                <input type="text" id="typingPassword" placeholder="Leave blank if not needed">
-                            </div>
-                            <small class="form-hint">Learner enters this instead of the normal password — opens the
-                                document in edit mode so
-                                they can type.</small>
-                        </div>
-                        
-                        <div class="form-group">
                             <label>Exam Timer <span style="font-weight:normal;color:#6b7280">(optional)</span></label>
                             <div class="datetime-inputs">
                                 <input type="number" id="readingTime" min="0" max="60" placeholder="10"
@@ -206,6 +196,15 @@
                         <button type="submit" class="submit-btn">Add Assessment</button>
                     </form>
                 </section>
+                <section class="admin-section">
+                    <h2>Typing Dispensation</h2>
+                    <p style="margin-top:0;color:#6b7280;font-size:0.9rem">The standard password used for all typing dispensation assessments. Set it once here and it auto-fills whenever you select that type.</p>
+                    <div class="password-group">
+                        <input type="text" id="defaultTypingPassword" placeholder="e.g. TypingAccess99" style="flex:1">
+                        <button type="button" onclick="adminPortal.saveTypingSettings()" class="generate-btn">Save</button>
+                    </div>
+                </section>
+
                 <section class="admin-section">
                     <div class="section-header">
                         <h2>Password Report</h2>
