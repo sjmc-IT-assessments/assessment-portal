@@ -494,13 +494,17 @@
 .sq-capture { outline: 3px solid #ef4444; outline-offset: -3px; }
 [data-piece-color="w"] {
     color: #ffffff;
-    -webkit-text-stroke: 1.5px #0a2b72;
-    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35));
+    text-shadow:
+        -1.5px -1.5px 0 #0a2b72,  0 -1.5px 0 #0a2b72,  1.5px -1.5px 0 #0a2b72,
+         1.5px  0     0 #0a2b72,                          1.5px  1.5px 0 #0a2b72,
+         0      1.5px 0 #0a2b72, -1.5px  1.5px 0 #0a2b72, -1.5px 0    0 #0a2b72;
 }
 [data-piece-color="b"] {
-    color: #fde68a;
-    -webkit-text-stroke: 1.5px #1e293b;
-    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.4));
+    color: #1e293b;
+    text-shadow:
+        -1.5px -1.5px 0 #e2e8f0,  0 -1.5px 0 #e2e8f0,  1.5px -1.5px 0 #e2e8f0,
+         1.5px  0     0 #e2e8f0,                          1.5px  1.5px 0 #e2e8f0,
+         0      1.5px 0 #e2e8f0, -1.5px  1.5px 0 #e2e8f0, -1.5px 0    0 #e2e8f0;
 }
 
 /* Panel footer */
