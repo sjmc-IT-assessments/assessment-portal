@@ -19,6 +19,22 @@
         {
             q: 'I can fill a room but take up no space. What am I?',
             a: ['light']
+        },
+        {
+            q: 'I have a head and a tail, but no body. What am I?',
+            a: ['a coin', 'coin']
+        },
+        {
+            q: 'The more I dry, the wetter I get. What am I?',
+            a: ['a towel', 'towel']
+        },
+        {
+            q: 'What can travel around the world while staying in a corner?',
+            a: ['a stamp', 'stamp', 'postage stamp', 'a postage stamp']
+        },
+        {
+            q: "I'm tall when I'm young and short when I'm old. What am I?",
+            a: ['a candle', 'candle']
         }
     ];
 
@@ -476,8 +492,16 @@
     top: 50%; left: 50%; transform: translate(-50%,-50%);
 }
 .sq-capture { outline: 3px solid #ef4444; outline-offset: -3px; }
-[data-piece-color="w"] { color: #f8fafc; text-shadow: 0 1px 3px rgba(0,0,0,0.6); }
-[data-piece-color="b"] { color: #1e293b; text-shadow: 0 1px 2px rgba(255,255,255,0.3); }
+[data-piece-color="w"] {
+    color: #ffffff;
+    -webkit-text-stroke: 1.5px #0a2b72;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35));
+}
+[data-piece-color="b"] {
+    color: #fde68a;
+    -webkit-text-stroke: 1.5px #1e293b;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.4));
+}
 
 /* Panel footer */
 .egg-panel-foot {
