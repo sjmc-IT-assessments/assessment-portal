@@ -63,7 +63,10 @@ export class CalendarService {
             // Initialize the GAPI client
             await gapi.client.init({
                 apiKey: this.config.apiKey,
-                discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
+                discoveryDocs: [
+                'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest',
+                'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest',
+            ],
             });
 
             this.initialized = true;
@@ -90,6 +93,33 @@ export class CalendarService {
 
             this.tokenClient.requestAccessToken({ prompt: '' });
         });
+    }
+
+    async createTypingDoc(title) {
+        await this.ensureInitialized();
+        await this.getAccessToken();
+
+        // Create a blank Google Doc
+        const createResponse = await gapi.client.drive.files.create({
+            resource: {
+                name: title,
+                mimeType: 'application/vnd.google-apps.document',
+            },
+            fields: 'id',
+        });
+
+        const fileId = createResponse.result.id;
+
+        // Allow anyone with the link to edit — needed for unauthenticated kiosk access
+        await gapi.client.drive.permissions.create({
+            fileId,
+            resource: {
+                type: 'anyone',
+                role: 'writer',
+            },
+        });
+
+        return `https://docs.google.com/document/d/${fileId}/edit`;
     }
 
     async createReminder(examData) {

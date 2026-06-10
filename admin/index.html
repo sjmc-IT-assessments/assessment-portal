@@ -110,7 +110,11 @@
 
                         <div class="form-group">
                             <label for="driveUrl">Assessment URL</label>
-                            <input type="url" id="driveUrl" required placeholder="https://drive.google.com/file/d/...">
+                            <div style="display:flex;gap:8px;align-items:flex-start;">
+                                <input type="url" id="driveUrl" required placeholder="https://drive.google.com/file/d/..." style="flex:1">
+                                <button type="button" id="createDocBtn" onclick="adminPortal.createTypingDoc()"
+                                        class="generate-btn" style="display:none;white-space:nowrap">📄 Create Doc</button>
+                            </div>
                             <small class="form-hint" id="urlHint">Supports Google Drive PDFs, Forms, Docs, Sheets, Slides, or any
                                 HTTPS URL</small>
                         </div>
@@ -198,7 +202,7 @@
                 </section>
                 <section class="admin-section">
                     <h2>Typing Dispensation</h2>
-                    <p style="margin-top:0;color:#6b7280;font-size:0.9rem">The standard password used for all typing dispensation assessments. Set it once here and it auto-fills whenever you select that type.</p>
+                    <p style="margin-top:0;color:#6b7280;font-size:0.9rem">Set the standard password once. When you add a typing assessment, click "Create Doc" to auto-create a Google Doc (shared as "anyone with the link can edit") — you then share it with the teacher from your own Drive.</p>
                     <div class="password-group">
                         <input type="text" id="defaultTypingPassword" placeholder="e.g. TypingAccess99" style="flex:1">
                         <button type="button" onclick="adminPortal.saveTypingSettings()" class="generate-btn">Save</button>

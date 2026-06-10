@@ -12,6 +12,7 @@ export const calendarConfig = {
     apiKey: 'AIzaSyBQiktcs0S_K_8Uyh7PtxH2OgAa0fYp0P0',
     scopes: [
         'https://www.googleapis.com/auth/calendar',
-        'https://www.googleapis.com/auth/calendar.events'
+        'https://www.googleapis.com/auth/calendar.events',
+        'https://www.googleapis.com/auth/drive.file'
     ]
 };

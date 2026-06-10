@@ -550,15 +550,40 @@ class AdminPortal {
     const passwordInput = document.getElementById("password");
     const urlHint = document.getElementById("urlHint");
     const urlInput = document.getElementById("driveUrl");
+    const createDocBtn = document.getElementById("createDocBtn");
     if (type === "typing") {
       if (passwordInput && this.defaultTypingPassword) {
         passwordInput.value = this.defaultTypingPassword;
       }
-      if (urlHint) urlHint.textContent = "Enter the Google Doc URL — the learner will be able to type directly in this document.";
+      if (urlHint) urlHint.textContent = "Enter the Google Doc URL, or click \"Create Doc\" to auto-create and share one with the student.";
       if (urlInput) urlInput.placeholder = "https://docs.google.com/document/d/...";
+      if (createDocBtn) createDocBtn.style.display = "";
     } else {
       if (urlHint) urlHint.textContent = "Supports Google Drive PDFs, Forms, Docs, Sheets, Slides, or any HTTPS URL";
       if (urlInput) urlInput.placeholder = "https://drive.google.com/file/d/...";
+      if (createDocBtn) createDocBtn.style.display = "none";
+    }
+  }
+
+  async createTypingDoc() {
+    const subject = document.getElementById("subject")?.value?.trim();
+    const grade = document.getElementById("grade")?.value;
+    if (!subject || !grade) {
+      this.showToast("Please fill in Grade and Subject first", "warning");
+      return;
+    }
+    const btn = document.getElementById("createDocBtn");
+    if (btn) { btn.disabled = true; btn.textContent = "Creating…"; }
+    try {
+      const title = `Grade ${grade} – ${subject} (Typing)`;
+      const url = await this.calendarService.createTypingDoc(title);
+      document.getElementById("driveUrl").value = url;
+      this.showToast("Document created and shared with student", "success");
+    } catch (error) {
+      console.error("Error creating doc:", error);
+      this.showToast("Error creating document: " + error.message, "error");
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = "📄 Create Doc"; }
     }
   }
 
@@ -594,7 +619,7 @@ class AdminPortal {
         { merge: true }
       );
       this.defaultTypingPassword = password;
-      this.showToast("Default typing password saved", "success");
+      this.showToast("Typing password saved", "success");
     } catch (error) {
       this.showToast("Error saving: " + error.message, "error");
     }
