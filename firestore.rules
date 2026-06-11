@@ -19,5 +19,11 @@ service cloud.firestore {
       allow read: if true;  // Allow public read access
       allow write: if isAuthorizedTeacher();
     }
+
+    // Allow teachers to read/write portal settings (e.g. typing password)
+    match /settings/{document} {
+      allow read: if isAuthorizedTeacher();
+      allow write: if isAuthorizedTeacher();
+    }
   }
 }
