@@ -1289,7 +1289,7 @@ class AdminPortal {
   }
 
   async purgeOldArchives() {
-    const cutoff = new Date("2026-01-01T00:00:00.000Z").toISOString();
+    const cutoff = new Date("2026-01-01T00:00:00.000Z");
 
     // Fetch all archived docs first, then filter client-side (avoids composite index requirement)
     let snapshot;
@@ -1302,11 +1302,16 @@ class AdminPortal {
 
     const toDelete = snapshot.docs.filter(doc => {
       const d = doc.data().scheduledDate;
-      return d && d < cutoff;
+      if (!d) return false;
+      // Handle both Firestore Timestamp objects and ISO strings
+      const date = d.toDate ? d.toDate() : new Date(d);
+      return !isNaN(date) && date < cutoff;
     });
 
+    console.log(`Purge: ${snapshot.size} total archived, ${toDelete.length} before 2026`);
+
     if (toDelete.length === 0) {
-      this.showToast("No archived assessments from before 2026 found", "info");
+      this.showToast(`No archived assessments from before 2026 found (${snapshot.size} total archived checked)`, "info");
       return;
     }
 
