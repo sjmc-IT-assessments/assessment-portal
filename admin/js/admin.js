@@ -540,6 +540,11 @@ class AdminPortal {
       archiveAllBtn.addEventListener("click", () => this.archiveAll());
     }
 
+    const purgeBtn = document.getElementById("purgeOldArchives");
+    if (purgeBtn) {
+      purgeBtn.addEventListener("click", () => this.purgeOldArchives());
+    }
+
     const typeSelect = document.getElementById("assessmentType");
     if (typeSelect) {
       typeSelect.addEventListener("change", (e) => this.handleAssessmentTypeChange(e.target.value));
@@ -1278,6 +1283,54 @@ class AdminPortal {
             "Error archiving assessments: " + error.message,
             "error"
           );
+        }
+      }
+    );
+  }
+
+  async purgeOldArchives() {
+    const cutoff = new Date("2026-01-01T00:00:00.000Z").toISOString();
+
+    // Fetch all archived docs first, then filter client-side (avoids composite index requirement)
+    let snapshot;
+    try {
+      snapshot = await this.db.collection("exams").where("archived", "==", true).get();
+    } catch (error) {
+      this.showToast("Error fetching archives: " + error.message, "error");
+      return;
+    }
+
+    const toDelete = snapshot.docs.filter(doc => {
+      const d = doc.data().scheduledDate;
+      return d && d < cutoff;
+    });
+
+    if (toDelete.length === 0) {
+      this.showToast("No archived assessments from before 2026 found", "info");
+      return;
+    }
+
+    this.showConfirmDialog(
+      `Permanently delete ${toDelete.length} archived assessment${toDelete.length !== 1 ? "s" : ""} from before 2026? This cannot be undone.`,
+      async () => {
+        const BATCH_SIZE = 400;
+        let deleted = 0;
+        try {
+          for (let i = 0; i < toDelete.length; i += BATCH_SIZE) {
+            const chunk = toDelete.slice(i, i + BATCH_SIZE);
+            const batch = this.db.batch();
+            chunk.forEach(doc => batch.delete(doc.ref));
+            await batch.commit();
+            deleted += chunk.length;
+            if (toDelete.length > BATCH_SIZE) {
+              this.showToast(`Deleting… ${deleted}/${toDelete.length}`, "info");
+            }
+          }
+          this.showToast(`Deleted ${deleted} old archived assessment${deleted !== 1 ? "s" : ""}`, "success");
+          this.loadExams(true);
+        } catch (error) {
+          console.error("Purge error:", error);
+          this.showToast(`Deleted ${deleted} before error: ${error.message}`, "error");
         }
       }
     );
