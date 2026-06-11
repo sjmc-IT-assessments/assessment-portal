@@ -23,7 +23,6 @@
     --border:      #dde3ee;
     --mono:        'JetBrains Mono', monospace;
     --sans:        'DM Sans', sans-serif;
-    --header-h:    52px;
     --tabs-h:      44px;
     --status-h:    32px;
   }
@@ -36,51 +35,6 @@
     font-family: var(--sans);
     background: var(--grey-100);
     color: var(--grey-900);
-  }
-
-  /* ── TOP HEADER ───────────────────────────────────────────────────── */
-  #header {
-    height: var(--header-h);
-    background: var(--blue-dark);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 16px;
-    gap: 12px;
-    flex-shrink: 0;
-    z-index: 10;
-  }
-
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .logo-badge {
-    width: 32px; height: 32px;
-    background: var(--blue-mid);
-    border-radius: 7px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 15px; flex-shrink: 0;
-  }
-
-  .logo-text .school {
-    font-size: 10px; color: rgba(255,255,255,0.6);
-    font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase;
-  }
-
-  .logo-text .subject {
-    font-size: 13px; color: white; font-weight: 700;
-  }
-
-  .exam-chip {
-    background: rgba(255,255,255,0.12);
-    border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 5px;
-    padding: 3px 11px;
-    font-size: 11px; color: rgba(255,255,255,0.9);
-    font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
   }
 
   /* ── TAB BAR ──────────────────────────────────────────────────────── */
@@ -124,7 +78,7 @@
 
   /* ── PANELS ───────────────────────────────────────────────────────── */
   #panels {
-    height: calc(100vh - var(--header-h) - var(--tabs-h) - var(--status-h));
+    height: calc(100vh - var(--tabs-h) - var(--status-h));
     position: relative;
   }
 
@@ -138,13 +92,65 @@
 
   /* ── PAPER PANEL ──────────────────────────────────────────────────── */
   #panel-paper {
-    background: white;
+    background: #e8eaed;
+  }
+
+  /* ── ZOOM BAR ─────────────────────────────────────────────────────── */
+  #zoom-bar {
+    height: 30px;
+    background: var(--grey-50);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+
+  .zoom-btn {
+    height: 22px;
+    min-width: 26px;
+    padding: 0 8px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: var(--sans);
+    font-weight: 700;
+    color: #555;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.1s, border-color 0.1s;
+    line-height: 1;
+  }
+
+  .zoom-btn:hover  { background: var(--blue-light); border-color: var(--border); color: var(--blue-dark); }
+  .zoom-btn.active { background: var(--blue-light); border-color: var(--blue-mid); color: var(--blue-dark); }
+
+  #zoom-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #777;
+    min-width: 36px;
+    text-align: center;
+    font-family: var(--mono);
+    user-select: none;
+  }
+
+  .zoom-sep { width: 1px; height: 16px; background: var(--border); margin: 0 4px; }
+
+  /* ── PAPER SCROLL ─────────────────────────────────────────────────── */
+  #paper-scroll {
+    flex: 1;
+    overflow: auto;
+    background: #e8eaed;
   }
 
   #paper-frame {
-    flex: 1;
     border: none;
-    width: 100%;
+    display: block;
   }
 
   /* ── EDITOR PANEL ─────────────────────────────────────────────────── */
@@ -397,18 +403,6 @@
 </head>
 <body>
 
-<!-- ── HEADER ──────────────────────────────────────────────────────────── -->
-<div id="header">
-  <div class="logo">
-    <div class="logo-badge">🏫</div>
-    <div class="logo-text">
-      <div class="school">St Joseph's Marist College</div>
-      <div class="subject">Digital Technology — Grade 9 | Term 2 | 2026</div>
-    </div>
-  </div>
-  <div class="exam-chip">12 June 2026 · 75 marks · 2 hours</div>
-</div>
-
 <!-- ── TAB BAR ─────────────────────────────────────────────────────────── -->
 <div id="tab-bar">
   <button class="tab-btn active" id="tab-paper" onclick="switchTab('paper')">
@@ -424,12 +418,21 @@
 
   <!-- PAPER PANEL -->
   <div class="panel active" id="panel-paper">
-    <iframe
-      id="paper-frame"
-      src="https://docs.google.com/document/d/1k6qqdmQHQ8cV0zKWlmxYQ3UVXsZnXXiYCtuaidJq1KU/preview"
-      allow="autoplay"
-      loading="lazy">
-    </iframe>
+    <div id="zoom-bar">
+      <button class="zoom-btn" id="fit-btn" onclick="toggleFit()" title="Fit to screen">⊡ Fit</button>
+      <div class="zoom-sep"></div>
+      <button class="zoom-btn" onclick="zoomStep(-1)" title="Zoom out">−</button>
+      <span id="zoom-label">125%</span>
+      <button class="zoom-btn" onclick="zoomStep(1)" title="Zoom in">+</button>
+    </div>
+    <div id="paper-scroll">
+      <iframe
+        id="paper-frame"
+        src="https://docs.google.com/document/d/1k6qqdmQHQ8cV0zKWlmxYQ3UVXsZnXXiYCtuaidJq1KU/preview"
+        allow="autoplay"
+        loading="lazy">
+      </iframe>
+    </div>
   </div>
 
   <!-- EDITOR PANEL -->
@@ -527,12 +530,60 @@ const ENTRY_CLASS = 'entry.1826817692';
 const ENTRY_CODE  = 'entry.1284137962';
 const LS_KEY      = 'sjmc_gr9_dt_t2_2026';
 
+// ── PAPER ZOOM ────────────────────────────────────────────────────────────
+let paperZoom = 1.25;
+let fitMode   = false;
+const ZOOM_STEPS = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5, 3.0];
+
+function applyPaperZoom() {
+  const scroll = document.getElementById('paper-scroll');
+  const pframe = document.getElementById('paper-frame');
+  const label  = document.getElementById('zoom-label');
+  const fitBtn = document.getElementById('fit-btn');
+  const w = scroll.clientWidth;
+  const h = scroll.clientHeight;
+  if (!w) return;
+
+  if (fitMode) {
+    pframe.style.width  = '100%';
+    pframe.style.height = h + 'px';
+    pframe.style.zoom   = '';
+    label.textContent   = 'Fit';
+    fitBtn.classList.add('active');
+  } else {
+    pframe.style.width  = w + 'px';
+    pframe.style.height = h + 'px';
+    pframe.style.zoom   = paperZoom;
+    label.textContent   = Math.round(paperZoom * 100) + '%';
+    fitBtn.classList.remove('active');
+  }
+}
+
+function toggleFit() {
+  fitMode = !fitMode;
+  applyPaperZoom();
+}
+
+function zoomStep(dir) {
+  fitMode = false;
+  let idx = ZOOM_STEPS.findIndex(z => Math.abs(z - paperZoom) < 0.01);
+  if (idx === -1) idx = ZOOM_STEPS.indexOf(1.25);
+  const newIdx = Math.max(0, Math.min(ZOOM_STEPS.length - 1, idx + dir));
+  paperZoom = ZOOM_STEPS[newIdx];
+  applyPaperZoom();
+}
+
+window.addEventListener('resize', () => {
+  if (document.getElementById('panel-paper').classList.contains('active')) applyPaperZoom();
+});
+
 // ── TABS ──────────────────────────────────────────────────────────────────
 function switchTab(tab) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.getElementById('tab-' + tab).classList.add('active');
   document.getElementById('panel-' + tab).classList.add('active');
+  if (tab === 'paper') applyPaperZoom();
 }
 
 // ── ELEMENTS ──────────────────────────────────────────────────────────────
@@ -713,6 +764,9 @@ function showSuccess(name, cls) {
     `${name} (${cls}) — your work has been received by your teacher. You may now close this tab.`;
   document.getElementById('success-overlay').classList.add('visible');
 }
+
+// Initialise paper zoom once layout is ready
+requestAnimationFrame(applyPaperZoom);
 </script>
 </body>
 </html>
