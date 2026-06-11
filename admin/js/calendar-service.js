@@ -71,9 +71,10 @@ export class CalendarService {
 
             this.initialized = true;
         } catch (error) {
-            console.error('Calendar initialization failed:', error);
+            const msg = error?.result?.error?.message || error?.message || JSON.stringify(error);
+            console.error('Calendar initialization failed:', msg, error);
             this.initialized = false;
-            throw error;
+            throw new Error(`Calendar init failed: ${msg}`);
         }
     }
 
@@ -86,7 +87,9 @@ export class CalendarService {
 
             this.tokenClient.callback = async (response) => {
                 if (response.error !== undefined) {
-                    reject(response);
+                    const description = response.error_description || response.error;
+                    reject(new Error(`Google auth error: ${description}`));
+                    return;
                 }
                 resolve(response.access_token);
             };
