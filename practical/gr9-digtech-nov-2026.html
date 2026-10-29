@@ -1,174 +1,712 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gr9 Digital Technology — November 2026 Practical | St Joseph's Marist College</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=DM+Sans:wght@400;500;600;700&display=swap');
-  :root{--blue-dark:#1F4E79;--blue-mid:#2E75B6;--blue-light:#D6E4F0;--green:#1a7a4a;--green-light:#e8f5ee;--red:#c0392b;
-    --amber:#d97706;--grey-900:#1a1a2e;--grey-100:#f4f6f9;--grey-50:#f9fafb;--border:#dde3ee;
-    --mono:'JetBrains Mono',monospace;--sans:'DM Sans',sans-serif;--tabs-h:44px;--info-h:40px;--status-h:30px}
-  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-  html,body{height:100%;overflow:hidden;font-family:var(--sans);background:var(--grey-100);color:var(--grey-900)}
-  #info-bar{height:var(--info-h);background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 14px;gap:10px}
-  #info-bar .brand{font-weight:700;color:var(--blue-dark);font-size:13px;margin-right:6px}
-  #info-bar label{font-size:11px;font-weight:700;color:var(--blue-dark);text-transform:uppercase;letter-spacing:.05em}
-  #info-bar input{height:26px;border:1px solid var(--border);border-radius:4px;padding:0 9px;font-size:12px;font-family:var(--sans);background:var(--grey-50);outline:none}
-  #info-bar input:focus{border-color:var(--blue-mid);background:#fff}
-  #name-input{width:180px}#class-input{width:70px}
-  .info-divider{width:1px;height:20px;background:var(--border)}
-  #progress{margin-left:auto;font-size:11px;color:#777}#progress span{font-weight:700;color:var(--blue-dark)}
-  #tab-bar{height:var(--tabs-h);background:#fff;border-bottom:2px solid var(--border);display:flex;overflow-x:auto}
-  .tab-btn{flex:1 0 auto;min-width:64px;border:none;background:transparent;font-family:var(--sans);font-size:12px;font-weight:600;color:#777;
-    cursor:pointer;padding:0 10px;border-bottom:3px solid transparent;margin-bottom:-2px;display:flex;align-items:center;justify-content:center;gap:6px}
-  .tab-btn:hover{color:var(--blue-mid)}
-  .tab-btn.active{color:var(--blue-dark);border-bottom-color:var(--blue-dark);background:var(--grey-50)}
-  .tab-btn .st{width:8px;height:8px;border-radius:50%;background:#d0d5de}
-  .tab-btn.done .st{background:var(--green)}
-  .tab-btn.submit-tab{color:var(--green)}
-  #panels{height:calc(100vh - var(--info-h) - var(--tabs-h) - var(--status-h));position:relative}
-  .panel{position:absolute;inset:0;display:none}
-  .panel.active{display:flex;flex-direction:column}
-  .doc{overflow:auto;padding:28px 40px;max-width:900px;margin:0 auto;width:100%;line-height:1.6;font-size:14px}
-  .doc h1{font-size:22px;color:var(--blue-dark);margin-bottom:6px}.doc h2{font-size:16px;color:var(--blue-dark);margin:18px 0 6px}
-  .doc p,.doc li{margin-bottom:6px}.doc ul,.doc ol{margin-left:22px}
-  .doc table.marks{border-collapse:collapse;margin:10px 0}.doc table.marks td,.doc table.marks th{border:1px solid var(--border);padding:5px 12px;text-align:left;font-size:13px}
-  .doc table.marks th{background:var(--blue-light)}
-  .mcq{background:#fff;border:1px solid var(--border);border-radius:8px;padding:14px 18px;margin-bottom:14px}
-  .mcq .qh{font-weight:700;color:var(--blue-dark);margin-bottom:6px}
-  .mcq pre,.task-card pre{background:#1e1e2e;color:#cdd6f4;font-family:var(--mono);font-size:12px;padding:8px 12px;border-radius:6px;margin:8px 0;white-space:pre}
-  .mcq label{display:flex;gap:8px;align-items:flex-start;padding:5px 8px;border-radius:5px;cursor:pointer}
-  .mcq label:hover{background:var(--grey-100)}
-  .mcq input{margin-top:4px}
-  /* task panel */
-  .task-card{flex:0 0 auto;max-height:42%;overflow:auto;background:#fff;border-bottom:2px solid var(--border);padding:12px 18px;font-size:13.5px;line-height:1.55}
-  .task-card.collapsed{max-height:44px;overflow:hidden}
-  .task-head{display:flex;align-items:center;gap:10px;margin-bottom:6px}
-  .task-head h2{font-size:15px;color:var(--blue-dark)}
-  .task-head .lesson{font-size:11px;color:#888}
-  .task-head .mk{margin-left:auto;font-weight:700;color:var(--blue-dark);font-size:13px}
-  .small-btn{height:26px;padding:0 10px;border:1px solid var(--border);background:var(--grey-50);border-radius:4px;font-size:11px;font-weight:700;font-family:var(--sans);cursor:pointer;color:var(--blue-dark)}
-  .small-btn:hover{background:var(--blue-light)}
-  .task-card ul,.task-card ol{margin:4px 0 6px 22px}.task-card p{margin-bottom:6px}
-  .task-card code{font-family:var(--mono);font-size:12px;background:var(--grey-100);padding:1px 4px;border-radius:3px}
-  table.spec{border-collapse:collapse;margin:6px 0}table.spec td,table.spec th{border:1px solid #bbb;padding:3px 10px;font-size:12.5px}table.spec th{background:var(--grey-100)}
-  .work{flex:1;display:flex;min-height:0}
-  .editor-pane{width:50%;display:flex;flex-direction:column;border-right:2px solid var(--border);background:#1e1e2e}
-  .bar{height:30px;display:flex;align-items:center;padding:0 12px;gap:8px;flex-shrink:0;font-size:11px}
-  .editor-pane .bar{background:#16162a;color:rgba(255,255,255,.45);font-family:var(--mono)}
-  .editor-pane .bar button{margin-left:auto;background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.6);border-radius:4px;font-size:10px;padding:2px 8px;cursor:pointer}
-  textarea.code{flex:1;width:100%;resize:none;border:none;outline:none;padding:14px;font-family:var(--mono);font-size:13px;line-height:1.7;background:#1e1e2e;color:#cdd6f4;caret-color:#89b4fa;tab-size:2;white-space:pre;overflow:auto}
-  .preview-pane{width:50%;display:flex;flex-direction:column;background:#fff}
-  .preview-pane .bar{background:var(--grey-50);border-bottom:1px solid var(--border);color:#999;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
-  .preview-pane iframe{flex:1;border:none;width:100%;background:#fff}
-  #status-bar{height:var(--status-h);background:var(--blue-dark);display:flex;align-items:center;padding:0 14px;gap:14px;color:rgba(255,255,255,.6);font-size:10px;font-weight:600}
-  #autosave.saved{color:#a6e3a1}
-  .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;align-items:center;justify-content:center}
-  .overlay.visible{display:flex}
-  .modal{background:#fff;border-radius:12px;padding:26px;max-width:520px;width:92%;box-shadow:0 24px 60px rgba(0,0,0,.25);text-align:center}
-  .modal h2{font-size:19px;color:var(--blue-dark);margin-bottom:10px}.modal p{font-size:13px;color:#555;line-height:1.6;margin-bottom:18px}
-  .modal-actions{display:flex;gap:10px;justify-content:center}
-  .modal-btn{height:36px;padding:0 22px;border-radius:6px;font-size:12px;font-weight:700;font-family:var(--sans);cursor:pointer;border:none}
-  .modal-btn.confirm{background:var(--green);color:#fff}.modal-btn.cancel{background:var(--grey-100);border:1px solid var(--border)}
-  #target-img{max-width:90vw;max-height:80vh;border:1px solid var(--border);background:#fff}
-  #target-box{background:#fff;padding:14px;border-radius:10px;text-align:center}
-  #target-box p{font-size:12px;color:#666;margin-bottom:8px}
-  #success{display:none;position:fixed;inset:0;background:var(--green);z-index:200;align-items:center;justify-content:center;flex-direction:column;gap:14px;color:#fff;text-align:center}
-  #success.visible{display:flex}#success h1{font-size:28px}
-  #error-banner{display:none;position:fixed;top:14px;left:50%;transform:translateX(-50%);background:var(--red);color:#fff;padding:9px 18px;border-radius:7px;font-size:12px;font-weight:600;z-index:300;max-width:480px;text-align:center}
-  #error-banner.visible{display:block}
-  .checklist td{padding:4px 10px;font-size:13px;border-bottom:1px solid var(--border)}
-  .big-submit{height:44px;padding:0 30px;background:var(--green);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;font-family:var(--sans);cursor:pointer;margin-top:14px}
-  .big-submit:disabled{background:#888}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gr9 Digital Technology — November 2026 Practical | St Joseph's Marist College</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=DM+Sans:wght@400;500;600;700&display=swap');
+
+    :root {
+      --blue-dark: #1F4E79;
+      --blue-mid: #2E75B6;
+      --blue-light: #D6E4F0;
+      --green: #1a7a4a;
+      --green-light: #e8f5ee;
+      --red: #c0392b;
+      --amber: #d97706;
+      --grey-900: #1a1a2e;
+      --grey-100: #f4f6f9;
+      --grey-50: #f9fafb;
+      --border: #dde3ee;
+      --mono: 'JetBrains Mono', monospace;
+      --sans: 'DM Sans', sans-serif;
+      --tabs-h: 44px;
+      --info-h: 40px;
+      --status-h: 30px
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+      font-family: var(--sans);
+      background: var(--grey-100);
+      color: var(--grey-900)
+    }
+
+    #info-bar {
+      height: var(--info-h);
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      gap: 10px
+    }
+
+    #info-bar .brand {
+      font-weight: 700;
+      color: var(--blue-dark);
+      font-size: 13px;
+      margin-right: 6px
+    }
+
+    #info-bar label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--blue-dark);
+      text-transform: uppercase;
+      letter-spacing: .05em
+    }
+
+    #info-bar input {
+      height: 26px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0 9px;
+      font-size: 12px;
+      font-family: var(--sans);
+      background: var(--grey-50);
+      outline: none
+    }
+
+    #info-bar input:focus {
+      border-color: var(--blue-mid);
+      background: #fff
+    }
+
+    #name-input {
+      width: 180px
+    }
+
+    #class-input {
+      width: 70px
+    }
+
+    .info-divider {
+      width: 1px;
+      height: 20px;
+      background: var(--border)
+    }
+
+    #progress {
+      margin-left: auto;
+      font-size: 11px;
+      color: #777
+    }
+
+    #progress span {
+      font-weight: 700;
+      color: var(--blue-dark)
+    }
+
+    #tab-bar {
+      height: var(--tabs-h);
+      background: #fff;
+      border-bottom: 2px solid var(--border);
+      display: flex;
+      overflow-x: auto
+    }
+
+    .tab-btn {
+      flex: 1 0 auto;
+      min-width: 64px;
+      border: none;
+      background: transparent;
+      font-family: var(--sans);
+      font-size: 12px;
+      font-weight: 600;
+      color: #777;
+      cursor: pointer;
+      padding: 0 10px;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px
+    }
+
+    .tab-btn:hover {
+      color: var(--blue-mid)
+    }
+
+    .tab-btn.active {
+      color: var(--blue-dark);
+      border-bottom-color: var(--blue-dark);
+      background: var(--grey-50)
+    }
+
+    .tab-btn .st {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #d0d5de
+    }
+
+    .tab-btn.done .st {
+      background: var(--green)
+    }
+
+    .tab-btn.submit-tab {
+      color: var(--green)
+    }
+
+    #panels {
+      height: calc(100vh - var(--info-h) - var(--tabs-h) - var(--status-h));
+      position: relative
+    }
+
+    .panel {
+      position: absolute;
+      inset: 0;
+      display: none
+    }
+
+    .panel.active {
+      display: flex;
+      flex-direction: column
+    }
+
+    .doc {
+      overflow: auto;
+      padding: 28px 40px;
+      max-width: 900px;
+      margin: 0 auto;
+      width: 100%;
+      line-height: 1.6;
+      font-size: 14px
+    }
+
+    .doc h1 {
+      font-size: 22px;
+      color: var(--blue-dark);
+      margin-bottom: 6px
+    }
+
+    .doc h2 {
+      font-size: 16px;
+      color: var(--blue-dark);
+      margin: 18px 0 6px
+    }
+
+    .doc p,
+    .doc li {
+      margin-bottom: 6px
+    }
+
+    .doc ul,
+    .doc ol {
+      margin-left: 22px
+    }
+
+    .doc table.marks {
+      border-collapse: collapse;
+      margin: 10px 0
+    }
+
+    .doc table.marks td,
+    .doc table.marks th {
+      border: 1px solid var(--border);
+      padding: 5px 12px;
+      text-align: left;
+      font-size: 13px
+    }
+
+    .doc table.marks th {
+      background: var(--blue-light)
+    }
+
+    .mcq {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin-bottom: 14px
+    }
+
+    .mcq .qh {
+      font-weight: 700;
+      color: var(--blue-dark);
+      margin-bottom: 6px
+    }
+
+    .mcq pre,
+    .task-card pre {
+      background: #1e1e2e;
+      color: #cdd6f4;
+      font-family: var(--mono);
+      font-size: 12px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin: 8px 0;
+      white-space: pre
+    }
+
+    .mcq label {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      padding: 5px 8px;
+      border-radius: 5px;
+      cursor: pointer
+    }
+
+    .mcq label:hover {
+      background: var(--grey-100)
+    }
+
+    .mcq input {
+      margin-top: 4px
+    }
+
+    /* task panel */
+    .task-card {
+      flex: 0 0 auto;
+      max-height: 42%;
+      overflow: auto;
+      background: #fff;
+      border-bottom: 2px solid var(--border);
+      padding: 12px 18px;
+      font-size: 13.5px;
+      line-height: 1.55
+    }
+
+    .task-card.collapsed {
+      max-height: 44px;
+      overflow: hidden
+    }
+
+    .task-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px
+    }
+
+    .task-head h2 {
+      font-size: 15px;
+      color: var(--blue-dark)
+    }
+
+    .task-head .lesson {
+      font-size: 11px;
+      color: #888
+    }
+
+    .task-head .mk {
+      margin-left: auto;
+      font-weight: 700;
+      color: var(--blue-dark);
+      font-size: 13px
+    }
+
+    .small-btn {
+      height: 26px;
+      padding: 0 10px;
+      border: 1px solid var(--border);
+      background: var(--grey-50);
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      font-family: var(--sans);
+      cursor: pointer;
+      color: var(--blue-dark)
+    }
+
+    .small-btn:hover {
+      background: var(--blue-light)
+    }
+
+    .task-card ul,
+    .task-card ol {
+      margin: 4px 0 6px 22px
+    }
+
+    .task-card p {
+      margin-bottom: 6px
+    }
+
+    .task-card code {
+      font-family: var(--mono);
+      font-size: 12px;
+      background: var(--grey-100);
+      padding: 1px 4px;
+      border-radius: 3px
+    }
+
+    table.spec {
+      border-collapse: collapse;
+      margin: 6px 0
+    }
+
+    table.spec td,
+    table.spec th {
+      border: 1px solid #bbb;
+      padding: 3px 10px;
+      font-size: 12.5px
+    }
+
+    table.spec th {
+      background: var(--grey-100)
+    }
+
+    .work {
+      flex: 1;
+      display: flex;
+      min-height: 0
+    }
+
+    .editor-pane {
+      width: 50%;
+      display: flex;
+      flex-direction: column;
+      border-right: 2px solid var(--border);
+      background: #1e1e2e
+    }
+
+    .bar {
+      height: 30px;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      gap: 8px;
+      flex-shrink: 0;
+      font-size: 11px
+    }
+
+    .editor-pane .bar {
+      background: #16162a;
+      color: rgba(255, 255, 255, .45);
+      font-family: var(--mono)
+    }
+
+    .editor-pane .bar button {
+      margin-left: auto;
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, .2);
+      color: rgba(255, 255, 255, .6);
+      border-radius: 4px;
+      font-size: 10px;
+      padding: 2px 8px;
+      cursor: pointer
+    }
+
+    textarea.code {
+      flex: 1;
+      width: 100%;
+      resize: none;
+      border: none;
+      outline: none;
+      padding: 14px;
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 1.7;
+      background: #1e1e2e;
+      color: #cdd6f4;
+      caret-color: #89b4fa;
+      tab-size: 2;
+      white-space: pre;
+      overflow: auto
+    }
+
+    .preview-pane {
+      width: 50%;
+      display: flex;
+      flex-direction: column;
+      background: #fff
+    }
+
+    .preview-pane .bar {
+      background: var(--grey-50);
+      border-bottom: 1px solid var(--border);
+      color: #999;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .05em
+    }
+
+    .preview-pane iframe {
+      flex: 1;
+      border: none;
+      width: 100%;
+      background: #fff
+    }
+
+    #status-bar {
+      height: var(--status-h);
+      background: var(--blue-dark);
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      gap: 14px;
+      color: rgba(255, 255, 255, .6);
+      font-size: 10px;
+      font-weight: 600
+    }
+
+    #autosave.saved {
+      color: #a6e3a1
+    }
+
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .6);
+      z-index: 100;
+      align-items: center;
+      justify-content: center
+    }
+
+    .overlay.visible {
+      display: flex
+    }
+
+    .modal {
+      background: #fff;
+      border-radius: 12px;
+      padding: 26px;
+      max-width: 520px;
+      width: 92%;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, .25);
+      text-align: center
+    }
+
+    .modal h2 {
+      font-size: 19px;
+      color: var(--blue-dark);
+      margin-bottom: 10px
+    }
+
+    .modal p {
+      font-size: 13px;
+      color: #555;
+      line-height: 1.6;
+      margin-bottom: 18px
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center
+    }
+
+    .modal-btn {
+      height: 36px;
+      padding: 0 22px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      font-family: var(--sans);
+      cursor: pointer;
+      border: none
+    }
+
+    .modal-btn.confirm {
+      background: var(--green);
+      color: #fff
+    }
+
+    .modal-btn.cancel {
+      background: var(--grey-100);
+      border: 1px solid var(--border)
+    }
+
+    #target-img {
+      max-width: 90vw;
+      max-height: 80vh;
+      border: 1px solid var(--border);
+      background: #fff
+    }
+
+    #target-box {
+      background: #fff;
+      padding: 14px;
+      border-radius: 10px;
+      text-align: center
+    }
+
+    #target-box p {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 8px
+    }
+
+    #success {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: var(--green);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 14px;
+      color: #fff;
+      text-align: center
+    }
+
+    #success.visible {
+      display: flex
+    }
+
+    #success h1 {
+      font-size: 28px
+    }
+
+    #error-banner {
+      display: none;
+      position: fixed;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--red);
+      color: #fff;
+      padding: 9px 18px;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 600;
+      z-index: 300;
+      max-width: 480px;
+      text-align: center
+    }
+
+    #error-banner.visible {
+      display: block
+    }
+
+    .checklist td {
+      padding: 4px 10px;
+      font-size: 13px;
+      border-bottom: 1px solid var(--border)
+    }
+
+    .big-submit {
+      height: 44px;
+      padding: 0 30px;
+      background: var(--green);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: var(--sans);
+      cursor: pointer;
+      margin-top: 14px
+    }
+
+    .big-submit:disabled {
+      background: #888
+    }
+  </style>
 </head>
+
 <body>
 
-<div id="info-bar">
-  <div class="brand">Gr 9 Digital Technology · November 2026</div>
-  <label for="name-input">Name</label>
-  <input id="name-input" type="text" placeholder="Full name" autocomplete="off" spellcheck="false">
-  <div class="info-divider"></div>
-  <label for="class-input">Class</label>
-  <input id="class-input" type="text" placeholder="e.g. 9AC" maxlength="6" autocomplete="off" spellcheck="false">
-  <div id="progress">Done: <span id="done-count">0</span> / <span id="total-count">0</span></div>
-</div>
+  <div id="info-bar">
+    <div class="brand">Gr 9 Digital Technology · November 2026</div>
+    <label for="name-input">Name</label>
+    <input id="name-input" type="text" placeholder="Full name" autocomplete="off" spellcheck="false">
+    <div class="info-divider"></div>
+    <label for="class-input">Class</label>
+    <input id="class-input" type="text" placeholder="e.g. 9AC" maxlength="6" autocomplete="off" spellcheck="false">
+    <div id="progress">Done: <span id="done-count">0</span> / <span id="total-count">0</span></div>
+  </div>
 
-<div id="tab-bar"></div>
-<div id="panels"></div>
+  <div id="tab-bar"></div>
+  <div id="panels"></div>
 
-<div id="status-bar"><div id="autosave">● Unsaved</div><div style="margin-left:auto">Your work saves automatically on this Chromebook</div></div>
+  <div id="status-bar">
+    <div id="autosave">● Unsaved</div>
+    <div style="margin-left:auto">Your work saves automatically on this Chromebook</div>
+  </div>
 
-<div class="overlay" id="target-overlay" onclick="this.classList.remove('visible')">
-  <div id="target-box"><p>Target output — click anywhere to close</p><img id="target-img" alt="Target output"></div>
-</div>
-
-<div class="overlay" id="modal-overlay">
-  <div class="modal">
-    <h2>Submit your whole paper?</h2>
-    <p id="modal-text"></p>
-    <div class="modal-actions">
-      <button class="modal-btn cancel" onclick="closeModal()">Go back</button>
-      <button class="modal-btn confirm" onclick="submitWork()">Yes, submit</button>
+  <div class="overlay" id="target-overlay" onclick="this.classList.remove('visible')">
+    <div id="target-box">
+      <p>Target output — click anywhere to close</p><img id="target-img" alt="Target output">
     </div>
   </div>
-</div>
 
-<div id="success"><div style="font-size:60px">✅</div><h1>Submitted!</h1><p id="success-msg"></p></div>
-<div id="error-banner"></div>
+  <div class="overlay" id="modal-overlay">
+    <div class="modal">
+      <h2>Submit your whole paper?</h2>
+      <p id="modal-text"></p>
+      <div class="modal-actions">
+        <button class="modal-btn cancel" onclick="closeModal()">Go back</button>
+        <button class="modal-btn confirm" onclick="submitWork()">Yes, submit</button>
+      </div>
+    </div>
+  </div>
 
-<script>
-// ═════════════════ CONFIG — paste your Google Form entry IDs here ═════════════════
-const FORM_ACTION = 'https://docs.google.com/forms/d/e/REPLACE_WITH_FORM_ID/formResponse';
-const ENTRY = {
-  name:  'entry.REPLACE_NAME',
-  class: 'entry.REPLACE_CLASS',
-  MCQ1: 'entry.REPLACE_MCQ1', MCQ2: 'entry.REPLACE_MCQ2', MCQ3: 'entry.REPLACE_MCQ3',
-  MCQ4: 'entry.REPLACE_MCQ4', MCQ5: 'entry.REPLACE_MCQ5',
-  Q1: 'entry.REPLACE_Q1', Q2: 'entry.REPLACE_Q2', Q3: 'entry.REPLACE_Q3', Q4: 'entry.REPLACE_Q4',
-  Q5: 'entry.REPLACE_Q5', Q6: 'entry.REPLACE_Q6', Q7: 'entry.REPLACE_Q7', B: 'entry.REPLACE_B'
-};
-const LS_KEY = 'sjmc_gr9_dt_nov_2026';
-// ══════════════════════════════════════════════════════════════════════════════════
+  <div id="success">
+    <div style="font-size:60px">✅</div>
+    <h1>Submitted!</h1>
+    <p id="success-msg"></p>
+  </div>
+  <div id="error-banner"></div>
 
-const MCQ = [{"q": "Which tag displays the <strong>biggest, most important<\/strong> heading?", "opts": ["&lt;h6&gt;", "&lt;head&gt;", "&lt;h1&gt;", "&lt;title&gt;"]}, {"q": "What will this code display?<pre>&lt;ol&gt;\n  &lt;li&gt;Water&lt;/li&gt;\n  &lt;li&gt;Snacks&lt;/li&gt;\n&lt;/ol&gt;<\/pre>", "opts": ["• Water  • Snacks (bullet points)", "1. Water  2. Snacks (numbered)", "Water Snacks on one line", "A table with two cells"]}, {"q": "A learner wants a link to open in a <strong>new tab<\/strong>. Which attribute must be added to the &lt;a&gt; tag?", "opts": ["href=\"new\"", "target=\"_blank\"", "alt=\"tab\"", "style=\"new-tab\""]}, {"q": "Look at this CSS rule:<pre>.warning {\n  color: red;\n}<\/pre>Which element will turn red?", "opts": ["&lt;p id=\"warning\"&gt;", "&lt;warning&gt;", "&lt;p class=\"warning\"&gt;", "Every &lt;p&gt; on the page"]}, {"q": "Look at this table:<pre>&lt;table&gt;\n  &lt;tr&gt;&lt;th&gt;Day&lt;/th&gt;&lt;th&gt;Hike&lt;/th&gt;&lt;/tr&gt;\n  &lt;tr&gt;&lt;td&gt;Sat&lt;/td&gt;&lt;td&gt;Lion's Head&lt;/td&gt;&lt;/tr&gt;\n  &lt;tr&gt;&lt;td&gt;Sun&lt;/td&gt;&lt;td&gt;Kirstenbosch&lt;/td&gt;&lt;/tr&gt;\n&lt;/table&gt;<\/pre>How many <strong>rows<\/strong> does it have?", "opts": ["2", "3", "4", "6"]}];
-const TASKS = [{"key": "Q1", "title": "Fix the broken page", "lesson": "4.2 Structure of an HTML Page", "marks": 3, "instr": "<p>The club's welcome page has <strong>mistakes in its structure<\/strong>. The browser still shows something, but the page is not built correctly.<\/p>\n<p>Fix the code so that:<\/p>\n<ul>\n<li>the page starts with the correct <strong>DOCTYPE<\/strong> declaration;<\/li>\n<li>the <code>&lt;title&gt;<\/code> is inside a <code>&lt;head&gt;<\/code> section;<\/li>\n<li>every tag that was opened is <strong>closed<\/strong> (look carefully at the paragraph and the end of the page).<\/li>\n<\/ul>\n<p>Do not change the text.<\/p>", "starter": "<html>\n<title>Lion's Head Hiking Club<\/title>\n<body>\n<h1>Welcome Hikers!<\/h1>\n<p>Meet at the parking lot at 6 am. Bring water.\n<\/body>\n", "target": "gr9n26/target_Q1.png"}, {"key": "Q2", "title": "Format the safety tips", "lesson": "4.3 Formatting Text", "marks": 4, "instr": "<p>Create the club's safety tips inside the <code>&lt;body&gt;<\/code> so that it looks like the <strong>target<\/strong>:<\/p>\n<ul>\n<li>A main heading (biggest heading): <em>Hike Safety Tips<\/em><\/li>\n<li>A smaller second-level heading: <em>Before you go<\/em><\/li>\n<li>A paragraph: <em>Always tell someone where you are going.<\/em> — the word <strong>Always<\/strong> must be <strong>bold<\/strong> (use <code>&lt;strong&gt;<\/code>).<\/li>\n<li>A second paragraph: <em>Check the weather the night before.<\/em> — the words <em>the weather<\/em> must be in <em>italics<\/em> (use <code>&lt;em&gt;<\/code>).<\/li>\n<\/ul>", "starter": "<!DOCTYPE html>\n<html>\n<head>\n<title>Safety Tips<\/title>\n<\/head>\n<body>\n<!-- Write your code below this line -->\n\n<\/body>\n<\/html>\n", "target": "gr9n26/target_Q2.png"}, {"key": "Q3", "title": "Add the links", "lesson": "4.4 Links", "marks": 3, "instr": "<p>Add TWO links inside the paragraph that says <em>Useful links:<\/em><\/p>\n<ol>\n<li>A link with the text <strong>SANParks Table Mountain<\/strong> that goes to <code>https://www.sanparks.org<\/code>. This link must <strong>open in a new tab<\/strong>.<\/li>\n<li>A link with the text <strong>Check the weather<\/strong> that goes to <code>https://www.weathersa.co.za<\/code>.<\/li>\n<\/ol>\n<p>Test your links in the preview. (The kiosk may block the websites — that is fine, the code is what is marked.)<\/p>", "starter": "<!DOCTYPE html>\n<html>\n<head>\n<title>Useful Links<\/title>\n<\/head>\n<body>\n<h1>Plan your hike<\/h1>\n<p>Useful links:\n<!-- Add your two links here -->\n\n<\/p>\n<\/body>\n<\/html>\n", "target": "gr9n26/target_Q3.png"}, {"key": "Q4", "title": "Show the mountain", "lesson": "4.5 Images", "marks": 3, "instr": "<p>Add an image of Lion's Head under the heading.<\/p>\n<ul>\n<li>The image file is: <code>gr9n26/lionshead.png<\/code> (type it exactly as shown in the <code>src<\/code>).<\/li>\n<li>Give the image the alternative text: <strong>Lion's Head peak<\/strong><\/li>\n<li>Make the image <strong>300<\/strong> pixels wide.<\/li>\n<\/ul>", "starter": "<!DOCTYPE html>\n<html>\n<head>\n<title>The Mountain<\/title>\n<\/head>\n<body>\n<h1>Our Mountain<\/h1>\n<!-- Add the image below -->\n\n<\/body>\n<\/html>\n", "target": "gr9n26/target_Q4.png"}, {"key": "Q5", "title": "Packing list and route", "lesson": "4.6 HTML Lists", "marks": 4, "instr": "<p>Under each heading, create the correct type of list:<\/p>\n<ul>\n<li><strong>What to pack<\/strong> — the order does not matter, so use <strong>bullet points<\/strong>: Water, Hat, Sunscreen<\/li>\n<li><strong>Route<\/strong> — the order matters, so use a <strong>numbered list<\/strong>: Parking lot, Chains section, Summit<\/li>\n<\/ul>", "starter": "<!DOCTYPE html>\n<html>\n<head>\n<title>Packing<\/title>\n<\/head>\n<body>\n<h2>What to pack<\/h2>\n<!-- bullet list here -->\n\n<h2>Route<\/h2>\n<!-- numbered list here -->\n\n<\/body>\n<\/html>\n", "target": "gr9n26/target_Q5.png"}, {"key": "Q6", "title": "Hike schedule table", "lesson": "4.7 HTML Tables", "marks": 4, "instr": "<p>Create a table with a <strong>border<\/strong> that shows the hike schedule:<\/p>\n<table class=\"spec\"><tr><th>Day<\/th><th>Hike<\/th><th>Distance<\/th><\/tr>\n<tr><td>Saturday<\/td><td>Lion's Head<\/td><td>5 km<\/td><\/tr>\n<tr><td>Sunday<\/td><td>Kirstenbosch<\/td><td>7 km<\/td><\/tr><\/table>\n<p>The first row must use <strong>header cells<\/strong>.<\/p>", "starter": "<!DOCTYPE html>\n<html>\n<head>\n<title>Schedule<\/title>\n<\/head>\n<body>\n<h1>Hike Schedule<\/h1>\n<!-- Create the table below -->\n\n<\/body>\n<\/html>\n", "target": "gr9n26/target_Q6.png"}, {"key": "Q7", "title": "Style the notice board", "lesson": "4.8 HTML Styling · 5.1–5.4 CSS", "marks": 4, "instr": "<p>The HTML is already written — <strong>do not change the text<\/strong>. Style it as follows:<\/p>\n<ol>\n<li>Use the <code>style<\/code> <strong>attribute<\/strong> on the <code>&lt;h1&gt;<\/code> to make its text <strong>green<\/strong>.<\/li>\n<li>In the <code>&lt;style&gt;<\/code> tag, use a <strong>tag selector<\/strong> to centre (<code>text-align<\/code>) <strong>all<\/strong> <code>&lt;h2&gt;<\/code> headings.<\/li>\n<li>Use a <strong>class selector<\/strong> to give everything with class <code>note<\/code> a <strong>lightyellow<\/strong> background colour.<\/li>\n<li>Use an <strong>ID selector<\/strong> to make the element with id <code>warning<\/code> <strong>red<\/strong> and <strong>20px<\/strong> in size.<\/li>\n<\/ol>", "starter": "<!DOCTYPE html>\n<html>\n<head>\n<title>Notice Board<\/title>\n<style>\n/* Write your CSS rules here */\n\n<\/style>\n<\/head>\n<body>\n<h1>Club Notice Board<\/h1>\n<h2>This week<\/h2>\n<p class=\"note\">New members hike for free on Saturday.<\/p>\n<h2>Important<\/h2>\n<p id=\"warning\">The cable car is closed for maintenance.<\/p>\n<p class=\"note\">Remember your membership card.<\/p>\n<\/body>\n<\/html>\n", "target": "gr9n26/target_Q7.png"}, {"key": "B", "title": "Mini-build: Next Hike poster", "lesson": "Section C", "marks": 10, "instr": "<p>Build a one-page poster for the club's <strong>next hike<\/strong>. You choose the details (date, place, times) — make it believable. Your page must include ALL of the following:<\/p>\n<table class=\"spec\">\n<tr><th>#<\/th><th>Requirement<\/th><th>Marks<\/th><\/tr>\n<tr><td>1<\/td><td>Correct page structure (DOCTYPE, head, body) with the title <strong>Next Hike<\/strong><\/td><td>1<\/td><\/tr>\n<tr><td>2<\/td><td>An <code>&lt;h1&gt;<\/code> heading and a paragraph that contains at least one <strong>bold<\/strong> word<\/td><td>1<\/td><\/tr>\n<tr><td>3<\/td><td>The backpack image <code>gr9n26/backpack.png<\/code> with suitable <strong>alt<\/strong> text<\/td><td>1<\/td><\/tr>\n<tr><td>4<\/td><td>A link to <code>https://www.sanparks.org<\/code> that opens in a <strong>new tab<\/strong><\/td><td>1<\/td><\/tr>\n<tr><td>5<\/td><td>A <strong>bulleted list<\/strong> of at least 3 things to bring<\/td><td>1<\/td><\/tr>\n<tr><td>6<\/td><td>A table with a <strong>header row<\/strong> (Time | Activity) and at least <strong>2 data rows<\/strong><\/td><td>2<\/td><\/tr>\n<tr><td>7<\/td><td>A <code>&lt;style&gt;<\/code> tag with a <strong>tag selector<\/strong> rule<\/td><td>1<\/td><\/tr>\n<tr><td>8<\/td><td>A <strong>class selector<\/strong> rule that is <strong>used<\/strong> on at least one element<\/td><td>1<\/td><\/tr>\n<tr><td>9<\/td><td>An <strong>ID selector<\/strong> rule that is <strong>used<\/strong> on one element<\/td><td>1<\/td><\/tr>\n<\/table>\n<p>Tip: tick off each requirement as you go. You may copy and adapt your own code from Questions 1–7.<\/p>", "starter": "<!-- Build your Next Hike poster here -->\n", "target": null}];
+  <script>
+    // ═════════════════ CONFIG — paste your Google Form entry IDs here ═════════════════
+    const FORM_ACTION = 'https://docs.google.com/forms/d/e/1FAIpQLSf2Q47MR5o0e0mZPbQ-5Codc8aUWtRSjk_TXNllqcSoTECOMA/formResponse';
+    const ENTRY = {
+      name: 'entry.1884601868',
+      class: 'entry.1377940471',
+      MCQ1: 'entry.256473617', MCQ2: 'entry.1658626152', MCQ3: 'entry.459205418',
+      MCQ4: 'entry.902390435', MCQ5: 'entry.302068239',
+      Q1: 'entry.1416648327', Q2: 'entry.2121416421', Q3: 'entry.64963371', Q4: 'entry.2092382422',
+      Q5: 'entry.508618855', Q6: 'entry.1052846747', Q7: 'entry.685231471', B: 'entry.702092172'
+    };
+    const LS_KEY = 'sjmc_gr9_dt_nov_2026';
+    // ══════════════════════════════════════════════════════════════════════════════════
 
-const state = { mcq: {}, code: {}, touched: {} };
-const tabBar = document.getElementById('tab-bar');
-const panels = document.getElementById('panels');
-const nameInput = document.getElementById('name-input');
-const classInput = document.getElementById('class-input');
-let submitted = false;
+    const MCQ = [{ "q": "Which tag displays the <strong>biggest, most important<\/strong> heading?", "opts": ["&lt;h6&gt;", "&lt;head&gt;", "&lt;h1&gt;", "&lt;title&gt;"] }, { "q": "What will this code display?<pre>&lt;ol&gt;\n  &lt;li&gt;Water&lt;/li&gt;\n  &lt;li&gt;Snacks&lt;/li&gt;\n&lt;/ol&gt;<\/pre>", "opts": ["• Water  • Snacks (bullet points)", "1. Water  2. Snacks (numbered)", "Water Snacks on one line", "A table with two cells"] }, { "q": "A learner wants a link to open in a <strong>new tab<\/strong>. Which attribute must be added to the &lt;a&gt; tag?", "opts": ["href=\"new\"", "target=\"_blank\"", "alt=\"tab\"", "style=\"new-tab\""] }, { "q": "Look at this CSS rule:<pre>.warning {\n  color: red;\n}<\/pre>Which element will turn red?", "opts": ["&lt;p id=\"warning\"&gt;", "&lt;warning&gt;", "&lt;p class=\"warning\"&gt;", "Every &lt;p&gt; on the page"] }, { "q": "Look at this table:<pre>&lt;table&gt;\n  &lt;tr&gt;&lt;th&gt;Day&lt;/th&gt;&lt;th&gt;Hike&lt;/th&gt;&lt;/tr&gt;\n  &lt;tr&gt;&lt;td&gt;Sat&lt;/td&gt;&lt;td&gt;Lion's Head&lt;/td&gt;&lt;/tr&gt;\n  &lt;tr&gt;&lt;td&gt;Sun&lt;/td&gt;&lt;td&gt;Kirstenbosch&lt;/td&gt;&lt;/tr&gt;\n&lt;/table&gt;<\/pre>How many <strong>rows<\/strong> does it have?", "opts": ["2", "3", "4", "6"] }];
+    const TASKS = [{ "key": "Q1", "title": "Fix the broken page", "lesson": "4.2 Structure of an HTML Page", "marks": 3, "instr": "<p>The club's welcome page has <strong>mistakes in its structure<\/strong>. The browser still shows something, but the page is not built correctly.<\/p>\n<p>Fix the code so that:<\/p>\n<ul>\n<li>the page starts with the correct <strong>DOCTYPE<\/strong> declaration;<\/li>\n<li>the <code>&lt;title&gt;<\/code> is inside a <code>&lt;head&gt;<\/code> section;<\/li>\n<li>every tag that was opened is <strong>closed<\/strong> (look carefully at the paragraph and the end of the page).<\/li>\n<\/ul>\n<p>Do not change the text.<\/p>", "starter": "<html>\n<title>Lion's Head Hiking Club<\/title>\n<body>\n<h1>Welcome Hikers!<\/h1>\n<p>Meet at the parking lot at 6 am. Bring water.\n<\/body>\n", "target": "gr9n26/target_Q1.png" }, { "key": "Q2", "title": "Format the safety tips", "lesson": "4.3 Formatting Text", "marks": 4, "instr": "<p>Create the club's safety tips inside the <code>&lt;body&gt;<\/code> so that it looks like the <strong>target<\/strong>:<\/p>\n<ul>\n<li>A main heading (biggest heading): <em>Hike Safety Tips<\/em><\/li>\n<li>A smaller second-level heading: <em>Before you go<\/em><\/li>\n<li>A paragraph: <em>Always tell someone where you are going.<\/em> — the word <strong>Always<\/strong> must be <strong>bold<\/strong> (use <code>&lt;strong&gt;<\/code>).<\/li>\n<li>A second paragraph: <em>Check the weather the night before.<\/em> — the words <em>the weather<\/em> must be in <em>italics<\/em> (use <code>&lt;em&gt;<\/code>).<\/li>\n<\/ul>", "starter": "<!DOCTYPE html>\n<html>\n<head>\n<title>Safety Tips<\/title>\n<\/head>\n<body>\n<!-- Write your code below this line -->\n\n<\/body>\n<\/html>\n", "target": "gr9n26/target_Q2.png "},  {"key": "Q3", "title": "Add the links", "lesson": "4.4 Links", "marks": 3, "instr": "<p>Add TWO links inside the paragraph that says <em>Useful links:<\/em><\/p>\n<ol>\n<li>A link with the text <strong>SANParks Table Mountain<\/strong> that goes to <code>https://www.sanparks.org<\/code>. This link must <strong>open in a new tab<\/strong>.<\/li>\n<li>A link with the text <strong>Check the weather<\/strong> that goes to <code>https://www.weathersa.co.za<\/code>.<\/li>\n<\/ol>\n<p>Test your links in the preview. (The kiosk may block the websites — that is fine, the code is what is marked.)<\/p>", "starter": "<!DOCTYPE html>\n<html>\n<head>\n<title>Useful Links<\/title>\n<\/head>\n<body>\n<h1>Plan your hike<\/h1>\n<p>Useful links:\n<!-- Add your two links here -->\n\n<\/p>\n<\/body>\n<\/html>\n", "target": "gr9n26/target_Q3.pn g"},  {"key": "Q4", "title": "Show the mountain", "lesson": "4.5 Images", "marks": 3, "instr": "<p>Add an image of Lion's Head under the heading.<\/p>\n<ul>\n<li>The image file is: <code>gr9n26/lionshead.png<\/code> (type it exactly as shown in the <code>src<\/code>).<\/li>\n<li>Give the image the alternative text: <strong>Lion's Head peak<\/strong><\/li>\n<li>Make the image <strong>300<\/strong> pixels wide.<\/li>\n<\/ul>", "starter": "<!DOCTYPE html>\n<html>\n<head>\n<title>The Mountain<\/title>\n<\/head>\n<body>\n<h1>Our Mountain<\/h1>\n<!-- Add the image below -->\n\n<\/body>\n<\/html>\n", "target": "gr9n26/target_Q4.p ng"} , {"key": "Q5", "title": "Packing list and route", "lesson": "4.6 HTML Lists", "marks": 4, "instr": "<p>Under each heading, create the correct type of list:<\/p>\n<ul>\n<li><strong>What to pack<\/strong> — the order does not matter, so use <strong>bullet points<\/strong>: Water, Hat, Sunscreen<\/li>\n<li><strong>Route<\/strong> — the order matters, so use a <strong>numbered list<\/strong>: Parking lot, Chains section, Summit<\/li>\n<\/ul>", "starter": "<!DOCTYPE html>\n<html>\n<head>\n<title>Packing<\/title>\n<\/head>\n<body>\n<h2>What to pack<\/h2>\n<!-- bullet list here -->\n\n<h2>Route<\/h2>\n<!-- numbered list here -->\n\n<\/body>\n<\/html>\n", "target": "gr9n26/target_Q5 .png "}, {"key": "Q6", "title": "Hike schedule table", "lesson": "4.7 HTML Tables", "marks": 4, "instr": "<p>Create a table with a <strong>border<\/strong> that shows the hike schedule:<\/p>\n<table class=\"spec\"><tr><th>Day<\/th><th>Hike<\/th><th>Distance<\/th><\/tr>\n<tr><td>Saturday<\/td><td>Lion's Head<\/td><td>5 km<\/td><\/tr>\n<tr><td>Sunday<\/td><td>Kirstenbosch<\/td><td>7 km<\/td><\/tr><\/table>\n<p>The first row must use <strong>header cells<\/strong>.<\/p>", "starter": "<!DOCTYPE html>\n<html>\n<head>\n<title>Schedule<\/title>\n<\/head>\n<body>\n<h1>Hike Schedule<\/h1>\n<!-- Create the table below -->\n\n<\/body>\n<\/html>\n", "target": "gr9n26/target_Q 6.pn g"}, {"key": "Q7", "title": "Style the notice board", "lesson": "4.8 HTML Styling · 5.1–5.4 CSS", "marks": 4, "instr": "<p>The HTML is already written — <strong>do not change the text<\/strong>. Style it as follows:<\/p>\n<ol>\n<li>Use the <code>style<\/code> <strong>attribute<\/strong> on the <code>&lt;h1&gt;<\/code> to make its text <strong>green<\/strong>.<\/li>\n<li>In the <code>&lt;style&gt;<\/code> tag, use a <strong>tag selector<\/strong> to centre (<code>text-align<\/code>) <strong>all<\/strong> <code>&lt;h2&gt;<\/code> headings.<\/li>\n<li>Use a <strong>class selector<\/strong> to give everything with class <code>note<\/code> a <strong>lightyellow<\/strong> background colour.<\/li>\n<li>Use an <strong>ID selector<\/strong> to make the element with id <code>warning<\/code> <strong>red<\/strong> and <strong>20px<\/strong> in size.<\/li>\n<\/ol>", "starter": "<!DOCTYPE html>\n<html>\n<head>\n<title>Notice Board<\/title>\n<style>\n/* Write your CSS rules here */\n\n<\/style>\n<\/head>\n<body>\n<h1>Club Notice Board<\/h1>\n<h2>This week<\/h2>\n<p class=\"note\">New members hike for free on Saturday.<\/p>\n<h2>Important<\/h2>\n<p id=\"warning\">The cable car is closed for maintenance.<\/p>\n<p class=\"note\">Remember your membership card.<\/p>\n<\/body>\n<\/html>\n", "target": "gr9n26/target_Q 7.pn g"}, {"key": "B", "title": "Mini-build: Next Hike poster", "lesson": "Section C", "marks": 10, "instr": "<p>Build a one-page poster for the club's <strong>next hike<\/strong>. You choose the details (date, place, times) — make it believable. Your page must include ALL of the following:<\/p>\n<table class=\"spec\">\n<tr><th>#<\/th><th>Requirement<\/th><th>Marks<\/th><\/tr>\n<tr><td>1<\/td><td>Correct page structure (DOCTYPE, head, body) with the title <strong>Next Hike<\/strong><\/td><td>1<\/td><\/tr>\n<tr><td>2<\/td><td>An <code>&lt;h1&gt;<\/code> heading and a paragraph that contains at least one <strong>bold<\/strong> word<\/td><td>1<\/td><\/tr>\n<tr><td>3<\/td><td>The backpack image <code>gr9n26/backpack.png<\/code> with suitable <strong>alt<\/strong> text<\/td><td>1<\/td><\/tr>\n<tr><td>4<\/td><td>A link to <code>https://www.sanparks.org<\/code> that opens in a <strong>new tab<\/strong><\/td><td>1<\/td><\/tr>\n<tr><td>5<\/td><td>A <strong>bulleted list<\/strong> of at least 3 things to bring<\/td><td>1<\/td><\/tr>\n<tr><td>6<\/td><td>A table with a <strong>header row<\/strong> (Time | Activity) and at least <strong>2 data rows<\/strong><\/td><td>2<\/td><\/tr>\n<tr><td>7<\/td><td>A <code>&lt;style&gt;<\/code> tag with a <strong>tag selector<\/strong> rule<\/td><td>1<\/td><\/tr>\n<tr><td>8<\/td><td>A <strong>class selector<\/strong> rule that is <strong>used<\/strong> on at least one element<\/td><td>1<\/td><\/tr>\n<tr><td>9<\/td><td>An <strong>ID selector<\/strong> rule that is <strong>used<\/strong> on one element<\/td><td>1<\/td><\/tr>\n<\/table>\n<p>Tip: tick off each requirement as you go. You may copy and adapt your own code from Questions 1–7.<\/p>", "starter": "<!-- Build your Next Hike poster here -->\n", "target ": null}];
 
-function addTab(id, label, cls) {
-  const b = document.createElement('button');
-  b.className = 'tab-btn' + (cls ? ' ' + cls : '');
-  b.id = 'tab-' + id;
-  b.innerHTML = (cls === 'submit-tab' || id === 'start' ? '' : '<span class="st"></span>') + label;
-  b.onclick = () => switchTab(id);
-  tabBar.appendChild(b);
-  const p = document.createElement('div');
-  p.className = 'panel'; p.id = 'panel-' + id;
-  panels.appendChild(p);
-  return p;
-}
+    const state = { mcq: {}, code: {}, touched: {} };
+    const tabBar = document.getElementById('tab-bar');
+    const panels = document.getElementById('panels');
+    const nameInput = document.getElementById('name-input');
+    const classInput = document.getElementById('class-input');
+    let submitted = false;
 
-function switchTab(id) {
-  doSave();
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.getElementById('tab-' + id).classList.add('active');
-  document.getElementById('panel-' + id).classList.add('active');
-  if (id === 'submit') renderChecklist();
-  const t = TASKS.find(x => x.key === id);
-  if (t) updatePreview(t.key);
-}
+    function addTab(id, label, cls) {
+      const b = document.createElement('button');
+      b.className = 'tab-btn' + (cls ? ' ' + cls : '');
+      b.id = 'tab-' + id;
+      b.innerHTML = (cls === 'submit-tab' || id === 'start' ? '' : '<span class="st"></span>') + label;
+      b.onclick = () => switchTab(id);
+      tabBar.appendChild(b);
+      const p = document.createElement('div');
+      p.className = 'panel'; p.id = 'panel-' + id;
+      panels.appendChild(p);
+      return p;
+    }
 
-// ── START PAGE ──
-const start = addTab('start', '📄 Instructions');
-start.innerHTML = `<div class="doc">
+    function switchTab(id) {
+      doSave();
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      document.getElementById('tab-' + id).classList.add('active');
+      document.getElementById('panel-' + id).classList.add('active');
+      if (id === 'submit') renderChecklist();
+      const t = TASKS.find(x => x.key === id);
+      if (t) updatePreview(t.key);
+    }
+
+    // ── START PAGE ──
+    const start = addTab('start', '📄 Instructions');
+    start.innerHTML = `<div class="doc">
   <h1>Digital Technology — Grade 9 · November 2026 Practical</h1>
   <p><strong>Theme:</strong> Lion&#39;s Head Hiking Club · <strong>Total:</strong> 40 marks · <strong>Time:</strong> 2 hours</p>
   <table class="marks"><tr><th>Section</th><th>Content</th><th>Marks</th></tr>
@@ -188,19 +726,19 @@ start.innerHTML = `<div class="doc">
   <p>Images for this paper are in the folder <code>gr9n26</code>. Type the image paths exactly as given in the questions.</p>
 </div>`;
 
-// ── SECTION A ──
-const pA = addTab('A', 'A · MCQ');
-pA.innerHTML = '<div class="doc"><h1>Section A — Multiple choice (5 marks)</h1><p>Choose the best answer for each question.</p>' +
-  MCQ.map((m, i) => `<div class="mcq"><div class="qh">${i + 1}.</div><div>${m.q}</div>` +
-    m.opts.map((o, j) => `<label><input type="radio" name="mcq${i + 1}" value="${'ABCD'[j]}" onchange="setMcq(${i + 1}, this.value)"><span><strong>${'ABCD'[j]}.</strong> ${o}</span></label>`).join('') +
-    `<div style="text-align:right;font-weight:700;color:var(--blue-dark)">(1)</div></div>`).join('') + '</div>';
+    // ── SECTION A ──
+    const pA = addTab('A', 'A · MCQ');
+    pA.innerHTML = '<div class="doc"><h1>Section A — Multiple choice (5 marks)</h1><p>Choose the best answer for each question.</p>' +
+      MCQ.map((m, i) => `<div class="mcq"><div class="qh">${i + 1}.</div><div>${m.q}</div>` +
+        m.opts.map((o, j) => `<label><input type="radio" name="mcq${i + 1}" value="${'ABCD'[j]}" onchange="setMcq(${i + 1}, this.value)"><span><strong>${'ABCD'[j]}.</strong> ${o}</span></label>`).join('') +
+        `<div style="text-align:right;font-weight:700;color:var(--blue-dark)">(1)</div></div>`).join('') + '</div>';
 
-function setMcq(n, v) { state.mcq['MCQ' + n] = v; markTouched('A'); scheduleSave(); }
+    function setMcq(n, v) { state.mcq['MCQ' + n] = v; markTouched('A'); scheduleSave(); }
 
-// ── TASK TABS ──
-TASKS.forEach(t => {
-  const p = addTab(t.key, t.key === 'B' ? 'C · Build' : t.key);
-  p.innerHTML = `
+    // ── TASK TABS ──
+    TASKS.forEach(t => {
+      const p = addTab(t.key, t.key === 'B' ? 'C · Build' : t.key);
+      p.innerHTML = `
     <div class="task-card" id="card-${t.key}">
       <div class="task-head">
         <h2>${t.key === 'B' ? 'Section C' : 'Question ' + t.key.substring(1)} — ${t.title}</h2>
@@ -218,131 +756,134 @@ TASKS.forEach(t => {
       </div>
       <div class="preview-pane"><div class="bar">Live preview</div><iframe id="frame-${t.key}" sandbox="allow-same-origin allow-popups"></iframe></div>
     </div>`;
-  const ed = p.querySelector('textarea');
-  ed.value = t.starter;
-  ed.addEventListener('input', () => { state.code[t.key] = ed.value; markTouched(t.key); scheduleSave(); schedulePreview(t.key); });
-  ed.addEventListener('keydown', e => {
-    if (e.key === 'Tab') {
-      e.preventDefault();
-      const s = ed.selectionStart;
-      ed.value = ed.value.substring(0, s) + '  ' + ed.value.substring(ed.selectionEnd);
-      ed.selectionStart = ed.selectionEnd = s + 2;
-      ed.dispatchEvent(new Event('input'));
-    }
-  });
-});
-
-const pS = addTab('submit', '✔ Submit', 'submit-tab');
-
-function toggleCard(k) { document.getElementById('card-' + k).classList.toggle('collapsed'); }
-function showTarget(src) { document.getElementById('target-img').src = src; document.getElementById('target-overlay').classList.add('visible'); }
-function resetTask(k) {
-  if (!confirm('Reset this question? Your code for this question will be deleted.')) return;
-  const t = TASKS.find(x => x.key === k);
-  const ed = document.getElementById('code-' + k);
-  ed.value = t.starter; delete state.code[k]; delete state.touched[k];
-  refreshTabStatus(); doSave(); updatePreview(k);
-}
-
-const previewTimers = {};
-function schedulePreview(k) { clearTimeout(previewTimers[k]); previewTimers[k] = setTimeout(() => updatePreview(k), 400); }
-function updatePreview(k) {
-  try {
-    const f = document.getElementById('frame-' + k);
-    const doc = f.contentDocument || f.contentWindow.document;
-    doc.open(); doc.write(document.getElementById('code-' + k).value); doc.close();
-  } catch (e) {}
-}
-
-function markTouched(k) { state.touched[k] = true; refreshTabStatus(); }
-function refreshTabStatus() {
-  let done = 0;
-  ['A', ...TASKS.map(t => t.key)].forEach(k => {
-    const isDone = k === 'A' ? Object.keys(state.mcq).length === MCQ.length : !!state.touched[k];
-    document.getElementById('tab-' + k).classList.toggle('done', isDone);
-    if (isDone) done++;
-  });
-  document.getElementById('done-count').textContent = done;
-  document.getElementById('total-count').textContent = TASKS.length + 1;
-}
-
-// ── AUTOSAVE ──
-let saveTimer = null;
-const autosaveEl = document.getElementById('autosave');
-function scheduleSave() { autosaveEl.classList.remove('saved'); autosaveEl.textContent = '● Unsaved'; clearTimeout(saveTimer); saveTimer = setTimeout(doSave, 1200); }
-function doSave() {
-  if (submitted) return;
-  try {
-    localStorage.setItem(LS_KEY, JSON.stringify({ mcq: state.mcq, code: state.code, touched: state.touched,
-      name: nameInput.value, cls: classInput.value, ts: Date.now() }));
-    autosaveEl.classList.add('saved'); autosaveEl.textContent = '● Saved ' + new Date().toLocaleTimeString();
-  } catch (e) {}
-}
-(function restore() {
-  try {
-    const d = JSON.parse(localStorage.getItem(LS_KEY) || 'null');
-    if (!d) return;
-    Object.assign(state.mcq, d.mcq || {}); Object.assign(state.code, d.code || {}); Object.assign(state.touched, d.touched || {});
-    Object.entries(state.mcq).forEach(([k, v]) => {
-      const r = document.querySelector(`input[name="${k.toLowerCase()}"][value="${v}"]`); if (r) r.checked = true;
+      const ed = p.querySelector('textarea');
+      ed.value = t.starter;
+      ed.addEventListener('input', () => { state.code[t.key] = ed.value; markTouched(t.key); scheduleSave(); schedulePreview(t.key); });
+      ed.addEventListener('keydown', e => {
+        if (e.key === 'Tab') {
+          e.preventDefault();
+          const s = ed.selectionStart;
+          ed.value = ed.value.substring(0, s) + '  ' + ed.value.substring(ed.selectionEnd);
+          ed.selectionStart = ed.selectionEnd = s + 2;
+          ed.dispatchEvent(new Event('input'));
+        }
+      });
     });
-    Object.entries(state.code).forEach(([k, v]) => { const ed = document.getElementById('code-' + k); if (ed) ed.value = v; });
-    nameInput.value = d.name || ''; classInput.value = d.cls || '';
-    autosaveEl.classList.add('saved'); autosaveEl.textContent = '● Work restored';
-  } catch (e) {}
-})();
-nameInput.addEventListener('input', scheduleSave);
-classInput.addEventListener('input', scheduleSave);
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') doSave(); });
-window.addEventListener('beforeunload', e => { doSave(); if (!submitted) { e.preventDefault(); e.returnValue = ''; } });
 
-// ── SUBMIT TAB ──
-function renderChecklist() {
-  const rows = [['A', 'Section A — Multiple choice', Object.keys(state.mcq).length + ' of 5 answered']]
-    .concat(TASKS.map(t => [t.key, (t.key === 'B' ? 'Section C' : 'Question ' + t.key.substring(1)) + ' — ' + t.title,
-      state.touched[t.key] ? '✅ Attempted' : '⚠️ Not started']));
-  pS.innerHTML = `<div class="doc"><h1>Submit your paper</h1>
+    const pS = addTab('submit', '✔ Submit', 'submit-tab');
+
+    function toggleCard(k) { document.getElementById('card-' + k).classList.toggle('collapsed'); }
+    function showTarget(src) { document.getElementById('target-img').src = src; document.getElementById('target-overlay').classList.add('visible'); }
+    function resetTask(k) {
+      if (!confirm('Reset this question? Your code for this question will be deleted.')) return;
+      const t = TASKS.find(x => x.key === k);
+      const ed = document.getElementById('code-' + k);
+      ed.value = t.starter; delete state.code[k]; delete state.touched[k];
+      refreshTabStatus(); doSave(); updatePreview(k);
+    }
+
+    const previewTimers = {};
+    function schedulePreview(k) { clearTimeout(previewTimers[k]); previewTimers[k] = setTimeout(() => updatePreview(k), 400); }
+    function updatePreview(k) {
+      try {
+        const f = document.getElementById('frame-' + k);
+        const doc = f.contentDocument || f.contentWindow.document;
+        doc.open(); doc.write(document.getElementById('code-' + k).value); doc.close();
+      } catch (e) { }
+    }
+
+    function markTouched(k) { state.touched[k] = true; refreshTabStatus(); }
+    function refreshTabStatus() {
+      let done = 0;
+      ['A', ...TASKS.map(t => t.key)].forEach(k => {
+        const isDone = k === 'A' ? Object.keys(state.mcq).length === MCQ.length : !!state.touched[k];
+        document.getElementById('tab-' + k).classList.toggle('done', isDone);
+        if (isDone) done++;
+      });
+      document.getElementById('done-count').textContent = done;
+      document.getElementById('total-count').textContent = TASKS.length + 1;
+    }
+
+    // ── AUTOSAVE ──
+    let saveTimer = null;
+    const autosaveEl = document.getElementById('autosave');
+    function scheduleSave() { autosaveEl.classList.remove('saved'); autosaveEl.textContent = '● Unsaved'; clearTimeout(saveTimer); saveTimer = setTimeout(doSave, 1200); }
+    function doSave() {
+      if (submitted) return;
+      try {
+        localStorage.setItem(LS_KEY, JSON.stringify({
+          mcq: state.mcq, code: state.code, touched: state.touched,
+          name: nameInput.value, cls: classInput.value, ts: Date.now()
+        }));
+        autosaveEl.classList.add('saved'); autosaveEl.textContent = '● Saved ' + new Date().toLocaleTimeString();
+      } catch (e) { }
+    }
+    (function restore() {
+      try {
+        const d = JSON.parse(localStorage.getItem(LS_KEY) || 'null');
+        if (!d) return;
+        Object.assign(state.mcq, d.mcq || {}); Object.assign(state.code, d.code || {}); Object.assign(state.touched, d.touched || {});
+        Object.entries(state.mcq).forEach(([k, v]) => {
+          const r = document.querySelector(`input[name="${k.toLowerCase()}"][value="${v}"]`); if (r) r.checked = true;
+        });
+        Object.entries(state.code).forEach(([k, v]) => { const ed = document.getElementById('code-' + k); if (ed) ed.value = v; });
+        nameInput.value = d.name || ''; classInput.value = d.cls || '';
+        autosaveEl.classList.add('saved'); autosaveEl.textContent = '● Work restored';
+      } catch (e) { }
+    })();
+    nameInput.addEventListener('input', scheduleSave);
+    classInput.addEventListener('input', scheduleSave);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') doSave(); });
+    window.addEventListener('beforeunload', e => { doSave(); if (!submitted) { e.preventDefault(); e.returnValue = ''; } });
+
+    // ── SUBMIT TAB ──
+    function renderChecklist() {
+      const rows = [['A', 'Section A — Multiple choice', Object.keys(state.mcq).length + ' of 5 answered']]
+        .concat(TASKS.map(t => [t.key, (t.key === 'B' ? 'Section C' : 'Question ' + t.key.substring(1)) + ' — ' + t.title,
+        state.touched[t.key] ? '✅ Attempted' : '⚠️ Not started']));
+      pS.innerHTML = `<div class="doc"><h1>Submit your paper</h1>
     <p>Check that every question has been attempted. <strong>You can only submit once.</strong></p>
     <table class="checklist">${rows.map(r => `<tr><td><a href="#" onclick="switchTab('${r[0]}');return false">${r[1]}</a></td><td>${r[2]}</td></tr>`).join('')}</table>
     <button class="big-submit" id="submit-btn" onclick="openModal()">Submit all my work ↑</button></div>`;
-}
+    }
 
-function showError(msg) { const b = document.getElementById('error-banner'); b.textContent = msg; b.classList.add('visible'); setTimeout(() => b.classList.remove('visible'), 4500); }
+    function showError(msg) { const b = document.getElementById('error-banner'); b.textContent = msg; b.classList.add('visible'); setTimeout(() => b.classList.remove('visible'), 4500); }
 
-function openModal() {
-  const name = nameInput.value.trim(), cls = classInput.value.trim();
-  if (!name) { showError('⚠️ Please type your full name at the top before submitting.'); nameInput.focus(); return; }
-  if (!cls) { showError('⚠️ Please type your class at the top before submitting.'); classInput.focus(); return; }
-  if (FORM_ACTION.includes('REPLACE_WITH')) { showError('⚠️ The form is not set up yet — tell your teacher.'); return; }
-  const missing = TASKS.filter(t => !state.touched[t.key]).length + (Object.keys(state.mcq).length < 5 ? 1 : 0);
-  document.getElementById('modal-text').innerHTML = `You are submitting as <strong>${name}</strong> (${cls}).` +
-    (missing ? `<br><br><strong style="color:var(--red)">${missing} section(s) have not been attempted.</strong>` : '') +
-    '<br><br>You cannot change your work after submitting.';
-  document.getElementById('modal-overlay').classList.add('visible');
-}
-function closeModal() { document.getElementById('modal-overlay').classList.remove('visible'); }
+    function openModal() {
+      const name = nameInput.value.trim(), cls = classInput.value.trim();
+      if (!name) { showError('⚠️ Please type your full name at the top before submitting.'); nameInput.focus(); return; }
+      if (!cls) { showError('⚠️ Please type your class at the top before submitting.'); classInput.focus(); return; }
+      if (FORM_ACTION.includes('REPLACE_WITH')) { showError('⚠️ The form is not set up yet — tell your teacher.'); return; }
+      const missing = TASKS.filter(t => !state.touched[t.key]).length + (Object.keys(state.mcq).length < 5 ? 1 : 0);
+      document.getElementById('modal-text').innerHTML = `You are submitting as <strong>${name}</strong> (${cls}).` +
+        (missing ? `<br><br><strong style="color:var(--red)">${missing} section(s) have not been attempted.</strong>` : '') +
+        '<br><br>You cannot change your work after submitting.';
+      document.getElementById('modal-overlay').classList.add('visible');
+    }
+    function closeModal() { document.getElementById('modal-overlay').classList.remove('visible'); }
 
-function submitWork() {
-  if (submitted) return;
-  closeModal();
-  const btn = document.getElementById('submit-btn'); btn.disabled = true; btn.textContent = 'Submitting…';
-  const body = new URLSearchParams();
-  body.append(ENTRY.name, nameInput.value.trim());
-  body.append(ENTRY.class, classInput.value.trim());
-  for (let i = 1; i <= 5; i++) body.append(ENTRY['MCQ' + i], state.mcq['MCQ' + i] || '');
-  TASKS.forEach(t => body.append(ENTRY[t.key], document.getElementById('code-' + t.key).value));
-  fetch(FORM_ACTION, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body.toString() })
-    .then(done).catch(done);
-  function done() {
-    submitted = true;
-    try { localStorage.setItem(LS_KEY + '_submitted', JSON.stringify({ name: nameInput.value, ts: Date.now(), code: state.code, mcq: state.mcq })); localStorage.removeItem(LS_KEY); } catch (e) {}
-    document.getElementById('success-msg').textContent = `${nameInput.value.trim()} (${classInput.value.trim()}) — your work has been received. You may now close this tab.`;
-    document.getElementById('success').classList.add('visible');
-  }
-}
+    function submitWork() {
+      if (submitted) return;
+      closeModal();
+      const btn = document.getElementById('submit-btn'); btn.disabled = true; btn.textContent = 'Submitting…';
+      const body = new URLSearchParams();
+      body.append(ENTRY.name, nameInput.value.trim());
+      body.append(ENTRY.class, classInput.value.trim());
+      for (let i = 1; i <= 5; i++) body.append(ENTRY['MCQ' + i], state.mcq['MCQ' + i] || '');
+      TASKS.forEach(t => body.append(ENTRY[t.key], document.getElementById('code-' + t.key).value));
+      fetch(FORM_ACTION, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body.toString() })
+        .then(done).catch(done);
+      function done() {
+        submitted = true;
+        try { localStorage.setItem(LS_KEY + '_submitted', JSON.stringify({ name: nameInput.value, ts: Date.now(), code: state.code, mcq: state.mcq })); localStorage.removeItem(LS_KEY); } catch (e) { }
+        document.getElementById('success-msg').textContent = `${nameInput.value.trim()} (${classInput.value.trim()}) — your work has been received. You may now close this tab.`;
+        document.getElementById('success').classList.add('visible');
+      }
+    }
 
-refreshTabStatus();
-switchTab('start');
-</script>
+    refreshTabStatus();
+    switchTab('start');
+  </script>
 </body>
+
 </html>
