@@ -877,9 +877,13 @@
         return subject.concessions;
       }
 
-      // extra minutes for a given duration and rate
+      function roundUpToFive(minutes) {
+        return Math.ceil(minutes / 5) * 5;
+      }
+
+      // extra minutes pro rata for the duration (so half-hour papers get a half-hour share), rounded up to 5
       function calcExtra(duration, ratePerHour) {
-        return Math.ceil(cleanNumber(duration, 0) / 60) * cleanNumber(ratePerHour, 0);
+        return roundUpToFive((cleanNumber(duration, 0) / 60) * cleanNumber(ratePerHour, 0));
       }
 
       // ── Schedule generation ───────────────────────────────────────────────────
@@ -904,7 +908,7 @@
         }
         events.push({ time: writingStart, type: "Start", label, action: "writing starts" });
         if (totalWriting > 0) {
-          events.push({ time: writingStart + Math.floor(totalWriting / 2), type: "Halfway", label, action: "halfway mark" });
+          events.push({ time: writingStart + roundUpToFive(totalWriting / 2), type: "Halfway", label, action: "halfway mark" });
         }
         if (totalWriting > 30) {
           events.push({ time: endTime - 30, type: "Warning", label, action: "30 mins left" });

@@ -78,6 +78,10 @@ h1 {
     transform: translateY(0);
 }
 
+.admin-link + .admin-link {
+    margin-left: 0.5rem;
+}
+
 /* Main Content Layout */
 .container {
     max-width: 1200px;
