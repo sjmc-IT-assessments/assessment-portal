@@ -100,15 +100,15 @@ select{padding:6px 8px;border:1px solid var(--line);border-radius:6px;font-size:
 <div class="screen center on" id="startScreen">
   <div class="card">
     <h1>Grade 8 Karel Exam</h1>
-    <p>Fill in your details exactly as your teacher tells you, then press <b>Start</b>.</p>
+    <p>Type your name and surname <b>in full, spelled correctly</b>, choose your class, then press <b>Start</b>.</p>
     <div class="row2">
       <div class="field"><label for="fName">First name</label><input id="fName" autocomplete="off"></div>
       <div class="field"><label for="sName">Surname</label><input id="sName" autocomplete="off"></div>
     </div>
-    <div class="row2">
-      <div class="field"><label for="cls">Class</label><input id="cls" autocomplete="off" placeholder="e.g. 8A"></div>
-      <div class="field"><label for="stuNo">Student number</label><input id="stuNo" autocomplete="off" inputmode="numeric"></div>
-    </div>
+    <div class="field"><label for="cls">Class</label>
+      <select id="cls" style="font-size:16px;padding:10px 12px;border:1px solid #b9c0ca;border-radius:8px">
+        <option value="">Choose your class</option><option value="8TR">8TR</option><option value="8RP">8RP</option>
+      </select></div>
     <div class="field"><label for="code">Exam code</label><input id="code" autocomplete="off" style="text-transform:uppercase"></div>
     <div class="msg" id="startMsg"></div>
     <button class="btn primary" id="startBtn" style="width:100%;margin-top:6px">Start</button>
@@ -6499,10 +6499,15 @@ function modal(title, text, yes, no){
 
 /* ---------- start ---------- */
 $('startBtn').onclick = async () => {
-  const first = $('fName').value.trim(), sur = $('sName').value.trim(), cls = clean($('cls').value, /[^A-Z0-9]/g);
-  const stu = clean($('stuNo').value, /[^A-Z0-9]/g), code = clean($('code').value, /[^A-Z0-9-]/g);
+  const first = $('fName').value.trim().replace(/\s+/g,' '), sur = $('sName').value.trim().replace(/\s+/g,' ');
+  const cls = clean($('cls').value, /[^A-Z0-9]/g), code = clean($('code').value, /[^A-Z0-9-]/g);
   const msg = t => $('startMsg').textContent = t;
-  if (!first || !sur || !cls || !stu || !code) return msg('Please fill in every box.');
+  if (!first || !sur || !cls || !code) return msg('Please fill in every box and choose your class.');
+  // No student numbers at this school: the paper is found by class + name + surname.
+  // Accents, spaces, apostrophes and capitals are ignored, so "Thabo" and "thabo " match.
+  const letters = s => s.normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/[^A-Z]/g,'');
+  const stu = `${cls}-${letters(first)}-${letters(sur)}`; // stored in the studentNumber field the Firestore rules check
+  if (!letters(first) || !letters(sur)) return msg('Please type your name and surname using letters.');
   $('startBtn').disabled = true; msg('');
   try {
     uid = await DB.signInAnon();
