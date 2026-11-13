@@ -1,29 +1,73 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Helper function to check if user is authorized teacher
+
+    function signedIn() { return request.auth != null; }
+    // Anonymous (exam) sessions have no email, so this safely returns ''
+    function email() { return request.auth.token.get('email', ''); }
     function isAuthorizedTeacher() {
-      return request.auth != null && 
-             exists(/databases/$(database)/documents/users/$(request.auth.token.email));
+      return signedIn() && email() != '' &&
+             exists(/databases/$(database)/documents/users/$(email()));
     }
 
-    // Allow teachers to read/write everything
+    // Only the user themselves or a teacher can read a user record
     match /users/{userEmail} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && 
-                  request.auth.token.email == "acoetzee@maristsj.co.za";
+      allow read: if (signedIn() && email() == userEmail) || isAuthorizedTeacher();
+      allow write: if signedIn() && email() == "acoetzee@maristsj.co.za";
     }
 
-    // Allow anyone to read exams, but only teachers can write
+    // Grade 9 portal exams
     match /exams/{examId} {
-      allow read: if true;  // Allow public read access
+      allow read: if true;
       allow write: if isAuthorizedTeacher();
     }
 
-    // Allow teachers to read/write portal settings (e.g. typing password)
+    // Portal settings (e.g. typing password)
     match /settings/{document} {
       allow read: if isAuthorizedTeacher();
       allow write: if isAuthorizedTeacher();
+    }
+
+    // Karel exam: teacher opens and closes an exam code from the teacher page
+    match /karelExamConfig/{examCode} {
+      allow read: if true;
+      allow write: if isAuthorizedTeacher();
+    }
+
+    // Karel exam: one paper per learner per exam code
+    match /karelSubmissions/{paperId} {
+      function examOpen(code) {
+        return get(/databases/$(database)/documents/karelExamConfig/$(code)).data.get('open', false) == true;
+      }
+      function isOwner() { return signedIn() && request.auth.uid in resource.data.owners; }
+      function onlyChanges(keys) {
+        return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys);
+      }
+
+      // resource == null lets the exam page check whether a paper exists yet
+      allow read: if resource == null || isAuthorizedTeacher() || isOwner();
+
+      // Learner starts a paper, only while the exam is open
+      allow create: if signedIn()
+        && request.resource.data.owners == [request.auth.uid]
+        && request.resource.data.status == 'in_progress'
+        && paperId == request.resource.data.examCode + '_' + request.resource.data.studentNumber
+        && examOpen(request.resource.data.examCode);
+
+      allow update: if isAuthorizedTeacher()
+        // Learner saves answers or submits; locked once submitted or once the exam is closed
+        || (isOwner()
+            && resource.data.status == 'in_progress'
+            && request.resource.data.status in ['in_progress', 'submitted']
+            && onlyChanges(['answers', 'currentQ', 'updatedAt', 'status', 'submittedAt'])
+            && examOpen(resource.data.examCode))
+        // Dead Chromebook: a new device can only ask to resume; the teacher approves it
+        || (signedIn() && !(request.auth.uid in resource.data.owners)
+            && resource.data.status == 'in_progress'
+            && onlyChanges(['resumeRequest'])
+            && request.resource.data.resumeRequest == request.auth.uid);
+
+      allow delete: if isAuthorizedTeacher();
     }
   }
 }

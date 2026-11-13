@@ -66,8 +66,8 @@ summary{cursor:pointer;font-weight:600}
     <section class="card">
       <h2>2 · Live papers <span class="muted" id="liveCount"></span></h2>
       <div id="resumeAlert"></div>
-      <table><thead><tr><th>Learner</th><th>Class</th><th>Student no.</th><th>Status</th><th class="num">Answered</th><th>Last saved</th><th></th></tr></thead>
-      <tbody id="liveBody"><tr><td colspan="7" class="muted">No papers yet.</td></tr></tbody></table>
+      <table><thead><tr><th>Learner</th><th>Class</th><th>Status</th><th class="num">Answered</th><th>Last saved</th><th></th></tr></thead>
+      <tbody id="liveBody"><tr><td colspan="6" class="muted">No papers yet.</td></tr></tbody></table>
     </section>
 
     <section class="card">
@@ -3847,10 +3847,12 @@ function renderLive(){
     const t = tsMs(p.updatedAt), last = t ? new Date(t).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '—';
     const btn = p.resumeRequest ? `<button class="btn go small" data-approve="${esc(p.id)}">Approve resume</button>`
               : p.status === 'submitted' ? `<button class="btn small" data-reopen="${esc(p.id)}">Reopen</button>` : '';
-    return `<tr><td>${esc(p.firstName)} ${esc(p.surname)}</td><td>${esc(p.className)}</td><td>${esc(p.studentNumber)}</td>
+    // a learner who misspells their name when resuming gets a second paper: flag same class + same surname
+    const dup = papers.filter(x => x.className===p.className && x.studentNumber.split('-')[2]===p.studentNumber.split('-')[2]).length > 1;
+    return `<tr><td>${esc(p.firstName)} ${esc(p.surname)}${dup ? ' <span class="flag">CHECK: possible duplicate</span>' : ''}</td><td>${esc(p.className)}</td>
       <td>${p.status==='submitted' ? '<span class="pill sub">Submitted</span>' : '<span class="pill prog">Writing</span>'}</td>
       <td class="num">${answered}/${QUESTION_COUNT}</td><td>${last}</td><td>${btn}</td></tr>`;
-  }).join('') : '<tr><td colspan="7" class="muted">No papers yet.</td></tr>';
+  }).join('') : '<tr><td colspan="6" class="muted">No papers yet.</td></tr>';
   document.querySelectorAll('[data-approve]').forEach(b => b.onclick = () => { const p = papers.find(x => x.id === b.dataset.approve); DB.approveResume(p.id, p.resumeRequest); });
   document.querySelectorAll('[data-reopen]').forEach(b => b.onclick = () => { if (confirm('Reopen this paper so the learner can carry on? (The exam must also be open.)')) DB.reopen(b.dataset.reopen); });
 }
@@ -3878,8 +3880,8 @@ function showDetail(m){
 }
 $('csvBtn').onclick = () => {
   const qs = PAPER.questions;
-  const head = ['Surname','First name','Class','Student number','Status', ...qs.map(q => q.bonus ? 'Bonus bones' : q.id), 'A','B','C','D','Total /40','%','Check'];
-  const lines = [head, ...marked.map(m => [m.p.surname, m.p.firstName, m.p.className, m.p.studentNumber, m.p.status,
+  const head = ['Surname','First name','Class','Status', ...qs.map(q => q.bonus ? 'Bonus bones' : q.id), 'A','B','C','D','Total /40','%','Check'];
+  const lines = [head, ...marked.map(m => [m.p.surname, m.p.firstName, m.p.className, m.p.status,
     ...qs.map(q => m.g.byQ[q.id].score), m.g.sec.A, m.g.sec.B, m.g.sec.C, m.g.sec.D, m.g.total, Math.round(m.g.total/PAPER.totalMarks*100), m.g.review.join(' ')])];
   const csv = lines.map(r => r.map(v => { const s = String(v ?? ''); return /[",\n]/.test(s) || /^[=+\-@]/.test(s) ? `"${s.replace(/"/g,'""').replace(/^([=+\-@])/, "'$1")}"` : s; }).join(',')).join('\n');
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'})); a.download = `karel-marks-${code()}.csv`; a.click();
