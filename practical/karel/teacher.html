@@ -3514,6 +3514,8 @@ function makeRealDB(){
                               snap => cb(snap.docs.map(d => ({id:d.id, ...d.data()})))); },
     approveResume(id, uid){ return F.updateDoc(papRef(id), {owners:F.arrayUnion(uid), resumeRequest:F.deleteField()}); },
     reopen(id){ return F.updateDoc(papRef(id), {status:'in_progress'}); },
+    // teacher's adjusted mark for one question (null removes it)
+    setOverride(id, qid, val){ return F.updateDoc(papRef(id), {['overrides.' + qid]: val === null ? F.deleteField() : val}); },
   };
 }
 
@@ -3546,6 +3548,7 @@ function makeMockDB(){
     watchPapers(code, cb){ const f = () => cb(Object.entries(load().papers).filter(([,p]) => p.examCode===code).map(([id,p]) => ({id, ...p}))); listeners.add(f); f(); return () => listeners.delete(f); },
     async approveResume(id, u){ const d = load(), p = d.papers[id]; if (!p.owners.includes(u)) p.owners.push(u); delete p.resumeRequest; save(d); },
     async reopen(id){ const d = load(); d.papers[id].status = 'in_progress'; save(d); },
+    async setOverride(id, qid, val){ const d = load(), p = d.papers[id]; p.overrides = p.overrides || {}; if (val === null) delete p.overrides[qid]; else p.overrides[qid] = val; save(d); },
   };
 }
 const DB = MOCK ? makeMockDB() : makeRealDB();
@@ -3797,10 +3800,16 @@ function gradeQuestion(q, a){
   out.worlds = results;
   return out;
 }
-function gradePaper(answers){
-  const res = {byQ:{}, sec:{A:0,B:0,C:0,D:0}, total:0, bonus:0, review:[], answered:0};
+function gradePaper(answers, overrides){
+  const res = {byQ:{}, sec:{A:0,B:0,C:0,D:0}, total:0, bonus:0, review:[], overridden:[], answered:0};
   PAPER.questions.forEach(q => {
     const a = (answers||{})[q.id], g = gradeQuestion(q, a); res.byQ[q.id] = g;
+    g.auto = g.score;
+    const ov = (overrides||{})[q.id];
+    if (ov && Number.isFinite(ov.score)){ // teacher's adjusted mark replaces the auto mark
+      g.score = Math.max(0, Math.min(g.max, Math.round(ov.score))); g.overridden = true; g.note = ov.note || ''; g.by = ov.by || ''; g.review = false;
+      res.overridden.push(q.bonus ? 'Bonus' : q.id);
+    }
     if (!q.bonus && questionDone(q, a)) res.answered++;
     if (q.bonus) res.bonus = g.score; else { res.sec[q.section] += g.score; res.total += g.score; }
     if (g.review) res.review.push(q.id);
@@ -3840,7 +3849,7 @@ function watch(){
     $('cfgState').innerHTML = c && c.open ? `<span class="pill open">OPEN</span> <span class="muted">${c.durationMin||120} min</span>` : '<span class="pill closed">CLOSED</span>';
     if (c && c.durationMin) $('dur').value = c.durationMin;
   });
-  unPapers = DB.watchPapers(code(), list => { papers = list.sort((a,b) => (a.className+a.surname).localeCompare(b.className+b.surname)); renderLive(); });
+  unPapers = DB.watchPapers(code(), list => { papers = list.sort((a,b) => (a.className+a.surname).localeCompare(b.className+b.surname)); renderLive(); if (markedOnce) markAll(); });
 }
 $('code').onchange = watch;
 $('openBtn').onclick = () => DB.setConfig(code(), {open:true, durationMin:Math.max(10, +$('dur').value || 120), title:'Grade 8 Karel Exam'});
@@ -3867,31 +3876,61 @@ function renderLive(){
 }
 
 /* ---------- marking ---------- */
-$('markBtn').onclick = () => {
-  marked = papers.map(p => ({p, g:gradePaper(p.answers)}));
-  $('markBody').innerHTML = marked.length ? marked.map((m, i) => `<tr class="click" data-i="${i}">
+let markedOnce = false, selectedId = null;
+function markAll(){
+  markedOnce = true;
+  marked = papers.map(p => ({p, g:gradePaper(p.answers, p.overrides)}));
+  $('markBody').innerHTML = marked.length ? marked.map((m, i) => `<tr class="click${m.p.id===selectedId?' sel':''}" data-i="${i}">
       <td>${esc(m.p.firstName)} ${esc(m.p.surname)}${m.p.status!=='submitted' ? ' <span class="muted">(not submitted)</span>' : ''}</td><td>${esc(m.p.className)}</td>
       <td class="num">${m.g.sec.A}</td><td class="num">${m.g.sec.B}</td><td class="num">${m.g.sec.C}</td><td class="num">${m.g.sec.D}</td>
       <td class="num"><b>${m.g.total}</b></td><td class="num">${Math.round(m.g.total/PAPER.totalMarks*100)}%</td><td class="num">${m.g.bonus}</td>
-      <td>${m.g.review.map(id => `<span class="flag">CHECK ${id}</span>`).join(' ')}</td></tr>`).join('')
+      <td>${m.g.review.map(id => `<span class="flag">CHECK ${id}</span>`).join(' ')}${m.g.overridden.length ? ` <span class="muted">✎ ${m.g.overridden.join(', ')}</span>` : ''}</td></tr>`).join('')
     : '<tr><td colspan="10" class="muted">No papers to mark.</td></tr>';
-  document.querySelectorAll('#markBody tr.click').forEach(tr => tr.onclick = () => { document.querySelectorAll('#markBody tr').forEach(r => r.classList.remove('sel')); tr.classList.add('sel'); showDetail(marked[+tr.dataset.i]); });
-  $('csvBtn').disabled = !marked.length; $('detail').innerHTML = '';
-};
+  document.querySelectorAll('#markBody tr.click').forEach(tr => tr.onclick = () => { selectedId = marked[+tr.dataset.i].p.id; markAll(); });
+  $('csvBtn').disabled = !marked.length;
+  const sel = marked.find(m => m.p.id === selectedId);
+  if (sel) showDetail(sel); else $('detail').innerHTML = '';
+}
+$('markBtn').onclick = markAll;
+let openQs = new Set();
 function showDetail(m){
+  // remember which questions were open, so saving a mark doesn't collapse everything
+  document.querySelectorAll('#detail details[data-q]').forEach(d => d.open ? openQs.add(d.dataset.q) : openQs.delete(d.dataset.q));
   const parts = PAPER.questions.map(q => {
     const g = m.g.byQ[q.id];
     const rows = g.rows.map(r => `<div><span class="${r.ok?'ok':'bad'}">${r.ok?'✓':'✗'}</span> ${esc(r.label)}${r.of ? ` <span class="muted">(${r.marks}/${r.of})</span>` : ''}${r.note ? ` <span class="muted">· ${esc(r.note)}</span>` : ''}</div>`).join('');
     const code = g.code !== null ? `<pre>${esc(g.code || '// empty')}</pre>` : '';
-    return `<details ${g.review?'open':''}><summary>${q.bonus?'Bonus (Karel Bones)':q.id}: ${g.score}/${g.max}${g.review?' <span class="flag">CHECK</span>':''}</summary>${rows}${code}</details>`;
+    const adj = `<div class="row" style="margin-top:8px;background:#f5f8fd;border:1px solid #d6e2f5;border-radius:8px;padding:8px">
+        <label>Final mark <input type="number" min="0" max="${g.max}" step="1" value="${g.score}" data-score="${q.id}" style="width:70px"> / ${g.max}</label>
+        <input type="text" placeholder="Reason (optional)" value="${esc(g.note||'')}" data-note="${q.id}" style="flex:1;min-width:180px">
+        <button class="btn primary small" data-save="${q.id}">${g.overridden ? 'Update mark' : (g.review ? 'Confirm mark' : 'Save mark')}</button>
+        ${g.overridden ? `<button class="btn small" data-clear="${q.id}">Use auto mark (${g.auto})</button>` : ''}
+        <span class="muted" style="font-size:13px">${g.overridden ? `Adjusted from the auto mark of ${g.auto}${g.by ? ' by ' + esc(g.by) : ''}` : 'Auto mark'}</span></div>`;
+    const flag = g.review ? ' <span class="flag">CHECK</span>' : g.overridden ? ' <span class="muted">✎ adjusted</span>' : '';
+    const open = openQs.has(q.id) || g.review;
+    return `<details data-q="${q.id}" ${open?'open':''}><summary>${q.bonus?'Bonus (Karel Bones)':q.id}: ${g.score}/${g.max}${flag}</summary>${rows}${code}${adj}</details>`;
   }).join('');
-  $('detail').innerHTML = `<h2 style="font-size:16px">${esc(m.p.firstName)} ${esc(m.p.surname)} · ${esc(m.p.className)} · ${m.g.total}/40</h2>${parts}`;
+  $('detail').innerHTML = `<h2 style="font-size:16px">${esc(m.p.firstName)} ${esc(m.p.surname)} · ${esc(m.p.className)} · ${m.g.total}/40</h2>
+    <p class="muted" style="margin-top:-6px">Change a mark and press Save. Adjusted marks are stored with the paper, so they stay after a reload and go into the CSV.</p>${parts}`;
+  $('detail').querySelectorAll('[data-save]').forEach(b => b.onclick = async () => {
+    const qid = b.dataset.save, q = PAPER.questions.find(x => x.id === qid), max = m.g.byQ[qid].max;
+    const score = Math.round(Number($('detail').querySelector(`[data-score="${qid}"]`).value));
+    if (!Number.isFinite(score) || score < 0 || score > max){ alert(`Enter a whole number from 0 to ${max}.`); return; }
+    const note = $('detail').querySelector(`[data-note="${qid}"]`).value.trim().slice(0, 300);
+    b.disabled = true; b.textContent = 'Saving…'; openQs.add(qid);
+    try { await DB.setOverride(m.p.id, qid, {score, note, by:$('me').textContent || '', atMs:Date.now()}); }
+    catch(e){ alert('Could not save: ' + (e.message || e)); b.disabled = false; b.textContent = 'Save mark'; }
+  });
+  $('detail').querySelectorAll('[data-clear]').forEach(b => b.onclick = async () => {
+    b.disabled = true; openQs.add(b.dataset.clear);
+    try { await DB.setOverride(m.p.id, b.dataset.clear, null); } catch(e){ alert('Could not save: ' + (e.message || e)); b.disabled = false; }
+  });
 }
 $('csvBtn').onclick = () => {
   const qs = PAPER.questions;
-  const head = ['Surname','First name','Class','Status', ...qs.map(q => q.bonus ? 'Bonus bones' : q.id), 'A','B','C','D','Total /40','%','Check'];
+  const head = ['Surname','First name','Class','Status', ...qs.map(q => q.bonus ? 'Bonus bones' : q.id), 'A','B','C','D','Total /40','%','Still to check','Adjusted'];
   const lines = [head, ...marked.map(m => [m.p.surname, m.p.firstName, m.p.className, m.p.status,
-    ...qs.map(q => m.g.byQ[q.id].score), m.g.sec.A, m.g.sec.B, m.g.sec.C, m.g.sec.D, m.g.total, Math.round(m.g.total/PAPER.totalMarks*100), m.g.review.join(' ')])];
+    ...qs.map(q => m.g.byQ[q.id].score), m.g.sec.A, m.g.sec.B, m.g.sec.C, m.g.sec.D, m.g.total, Math.round(m.g.total/PAPER.totalMarks*100), m.g.review.join(' '), m.g.overridden.join(' ')])];
   const csv = lines.map(r => r.map(v => { const s = String(v ?? ''); return /[",\n]/.test(s) || /^[=+\-@]/.test(s) ? `"${s.replace(/"/g,'""').replace(/^([=+\-@])/, "'$1")}"` : s; }).join(',')).join('\n');
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'})); a.download = `karel-marks-${code()}.csv`; a.click();
 };
